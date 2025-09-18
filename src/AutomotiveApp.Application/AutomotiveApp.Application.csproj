@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutomotiveApp.Domain\AutomotiveApp.Domain.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Shared\AutomotiveApp.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
