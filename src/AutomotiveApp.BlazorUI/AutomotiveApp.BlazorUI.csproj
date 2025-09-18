@@ -11,4 +11,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.8" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AutomotiveApp.Client\AutomotiveApp.Client.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Shared\AutomotiveApp.Shared.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
+  </ItemGroup>
+
 </Project>

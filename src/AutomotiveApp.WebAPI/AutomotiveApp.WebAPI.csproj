@@ -10,4 +10,11 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AutomotiveApp.Domain\AutomotiveApp.Domain.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Infrastructure\AutomotiveApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Shared\AutomotiveApp.Shared.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
+  </ItemGroup>
+
 </Project>

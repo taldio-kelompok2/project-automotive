@@ -33,6 +33,56 @@
             "related": ".pdb;.xml"
           }
         }
+      },
+      "AutomotiveApp.Base/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        }
+      },
+      "AutomotiveApp.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Domain.dll": {}
+        }
+      },
+      "AutomotiveApp.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0",
+          "AutomotiveApp.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Infrastructure.dll": {}
+        }
+      },
+      "AutomotiveApp.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
+        }
       }
     }
   },
@@ -67,10 +117,34 @@
         "microsoft.openapi.1.6.17.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
+    },
+    "AutomotiveApp.Base/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Base/AutomotiveApp.Base.csproj",
+      "msbuildProject": "../AutomotiveApp.Base/AutomotiveApp.Base.csproj"
+    },
+    "AutomotiveApp.Domain/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Domain/AutomotiveApp.Domain.csproj",
+      "msbuildProject": "../AutomotiveApp.Domain/AutomotiveApp.Domain.csproj"
+    },
+    "AutomotiveApp.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Infrastructure/AutomotiveApp.Infrastructure.csproj",
+      "msbuildProject": "../AutomotiveApp.Infrastructure/AutomotiveApp.Infrastructure.csproj"
+    },
+    "AutomotiveApp.Shared/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Shared/AutomotiveApp.Shared.csproj",
+      "msbuildProject": "../AutomotiveApp.Shared/AutomotiveApp.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "AutomotiveApp.Base >= 1.0.0",
+      "AutomotiveApp.Domain >= 1.0.0",
+      "AutomotiveApp.Infrastructure >= 1.0.0",
+      "AutomotiveApp.Shared >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 9.0.8"
     ]
   },
@@ -98,7 +172,20 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Base\\AutomotiveApp.Base.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Base\\AutomotiveApp.Base.csproj"
+            },
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Domain\\AutomotiveApp.Domain.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Domain\\AutomotiveApp.Domain.csproj"
+            },
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Infrastructure\\AutomotiveApp.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Infrastructure\\AutomotiveApp.Infrastructure.csproj"
+            },
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Shared\\AutomotiveApp.Shared.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Shared\\AutomotiveApp.Shared.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

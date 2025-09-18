@@ -432,6 +432,43 @@
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
         }
+      },
+      "AutomotiveApp.Base/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        }
+      },
+      "AutomotiveApp.Client/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0",
+          "AutomotiveApp.Shared": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Client.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Client.dll": {}
+        }
+      },
+      "AutomotiveApp.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
+        }
       }
     },
     "net9.0/browser-wasm": {
@@ -864,6 +901,43 @@
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
+        }
+      },
+      "AutomotiveApp.Base/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Base.dll": {}
+        }
+      },
+      "AutomotiveApp.Client/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0",
+          "AutomotiveApp.Shared": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Client.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Client.dll": {}
+        }
+      },
+      "AutomotiveApp.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "AutomotiveApp.Base": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AutomotiveApp.Shared.dll": {}
         }
       }
     }
@@ -1746,10 +1820,28 @@
         "tools/net9.0/Microsoft.NET.Sdk.WebAssembly.Pack.Tasks.dll",
         "tools/net9.0/Microsoft.NET.WebAssembly.Webcil.dll"
       ]
+    },
+    "AutomotiveApp.Base/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Base/AutomotiveApp.Base.csproj",
+      "msbuildProject": "../AutomotiveApp.Base/AutomotiveApp.Base.csproj"
+    },
+    "AutomotiveApp.Client/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Client/AutomotiveApp.Client.csproj",
+      "msbuildProject": "../AutomotiveApp.Client/AutomotiveApp.Client.csproj"
+    },
+    "AutomotiveApp.Shared/1.0.0": {
+      "type": "project",
+      "path": "../AutomotiveApp.Shared/AutomotiveApp.Shared.csproj",
+      "msbuildProject": "../AutomotiveApp.Shared/AutomotiveApp.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "AutomotiveApp.Base >= 1.0.0",
+      "AutomotiveApp.Client >= 1.0.0",
+      "AutomotiveApp.Shared >= 1.0.0",
       "Microsoft.AspNetCore.Components.WebAssembly >= 9.0.8",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 9.0.8",
       "Microsoft.NET.ILLink.Tasks >= 9.0.8",
@@ -1780,7 +1872,17 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Base\\AutomotiveApp.Base.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Base\\AutomotiveApp.Base.csproj"
+            },
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Client\\AutomotiveApp.Client.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Client\\AutomotiveApp.Client.csproj"
+            },
+            "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Shared\\AutomotiveApp.Shared.csproj": {
+              "projectPath": "C:\\Users\\NAN0C\\Documents\\Projects\\final_project_taldio\\src\\AutomotiveApp.Shared\\AutomotiveApp.Shared.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
