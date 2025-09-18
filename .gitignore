@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# NuGet
+*.nupkg
+packages/
+
+# Publish
+publish/
+
+# Blazor WASM runtime
+wwwroot/_framework/*.dll
+wwwroot/_framework/*.pdb
+wwwroot/_framework/*.wasm
+wwwroot/_framework/*.json
+wwwroot/_framework/blazor.*.js
+
+# Environment / secrets
+appsettings.Development.json
