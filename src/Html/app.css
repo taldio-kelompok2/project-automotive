@@ -88,6 +88,7 @@ button:active {
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 3.125rem;
+    min-width: min-content;
 }
 
 .nav-buttons > button {
@@ -114,4 +115,10 @@ button:active {
     color: var(--primary-color);
     font-size: 1.25rem; /* di figma 1.5rem tapi hasil nya ga sesuai */
     font-weight: var(--base-font-weight);
+}
+
+@media (max-width: 450px) {
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
 }
