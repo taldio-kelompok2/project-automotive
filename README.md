@@ -1,5 +1,5 @@
 ### Kelompok 2
 
-- Aditya  
+- Aditya Pratama Febriono
 - Gregorius Ivan Halim
 - Kiet Pascal  
