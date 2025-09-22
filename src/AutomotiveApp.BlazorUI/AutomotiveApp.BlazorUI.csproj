@@ -6,6 +6,10 @@
     <ProjectReference Include="..\AutomotiveApp.Client\AutomotiveApp.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.12.0" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
