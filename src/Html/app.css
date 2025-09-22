@@ -1,0 +1,124 @@
+:root {
+    --bg-primary-color: #ffffff;
+    --primary-color: #333333;
+    --secondary-color: #4F4F4F;
+    --accent-color: #790B0A;
+    --form-border-color: #CFD6E5;
+    --link-color: #5596f0;
+    --base-font-size: 1rem;
+    --base-font-family: 'Montserrat', Tahoma, Geneva, Verdana, sans-serif;
+    --base-font-weight: 400;
+    --base-font-style: 'Regular';
+    --base-line-height: 1;
+    --font-size-h3: 1.5rem;
+    --font-size-h2: 2rem;
+    --font-size-h1: 2.5rem;
+}
+
+html,
+body {
+    font-size: var(--base-font-size);
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight);
+    font-style: var(--base-font-style);
+    line-height: var(--base-line-height);
+    color: var(--primary-color);
+    background-color: var(--bg-primary-color);
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    font-size: var(--font-size-h1);
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+}
+
+h3 {
+    font-size: var(--font-size-h3);
+}
+
+a {
+    text-decoration: none;
+    color: var(--link-color); 
+}
+
+button {
+    font-family: inherit;
+    background-color: var(--accent-color);
+    color:var(--bg-primary-color);
+    border-radius: 6px;
+    border: 0;
+    max-width: fit-content;
+    height: auto;
+    font-weight: 500;
+    font-style: "medium";
+    size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-shadow: 0 0 0px transparent;
+}
+
+button:hover {
+    transform: translateY(-1px); /* slightly lift */
+    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+}
+
+.root-container {
+    min-height: 100vh;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 3.125rem;
+    min-width: min-content;
+}
+
+.nav-buttons > button {
+    padding: 9px 1rem;
+}
+
+.nav-button-register {
+    background-color: var(--bg-primary-color);
+    color: var(--accent-color);
+
+}
+
+.nav-left-group {
+    display: flex;
+    align-items: center;
+}
+
+.nav-left-group img {
+    width: 60px;
+    height: auto;
+}
+
+.nav-left-group h3 {
+    color: var(--primary-color);
+    font-size: 1.25rem; /* di figma 1.5rem tapi hasil nya ga sesuai */
+    font-weight: var(--base-font-weight);
+}
+
+@media (max-width: 450px) {
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+}
