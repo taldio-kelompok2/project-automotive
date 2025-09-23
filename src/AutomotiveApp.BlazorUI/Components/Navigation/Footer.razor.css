@@ -1,0 +1,29 @@
+ul {
+    column-count: 2;
+    column-gap: 3rem; 
+    padding-left: 1rem;
+}
+
+ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer {
+    padding:2rem 5rem;
+    display: flex;
+    justify-content: space-evenly;
+    gap: 3rem;
+    border-top: 1px solid var(--form-border-color);
+}
+
+.footer-text {
+    font-family: 'Poppins';
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--font-primary-color);
+    text-align: justify;
+    max-width: 330px;
+    width: 100%;
+    line-height: 1.5;
+    word-wrap: break-word; 
+}

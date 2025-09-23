@@ -38,6 +38,10 @@ a {
     color: var(--accent-color); 
 }
 
+.mud-main-content {
+    padding:0 !important;
+}
+
 .mud-button-root:hover {
     background-color: transparent;
     box-shadow: none;
@@ -76,7 +80,7 @@ a {
 }
 
 .auth-container {
-    margin: 2rem auto 0 auto; /* top 5rem, horizontal auto */
+    margin: 6rem auto 0 auto; /* top 5rem, horizontal auto */
     display: flex;
     flex-direction: column;
     gap: 3rem;
@@ -89,4 +93,12 @@ a {
     flex-direction: column;
     gap: 0.5rem;
     color: var(--secondary-color);
+}
+
+.footer-icons {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    width: 25px;
+    height: 25px;
+    padding: 1.35rem;
 }

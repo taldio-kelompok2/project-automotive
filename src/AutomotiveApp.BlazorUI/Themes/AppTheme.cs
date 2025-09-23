@@ -29,11 +29,34 @@ namespace AutomotiveApp.BlazorUI.Themes
                     FontWeight = "500",
                 },
 
+                H4 = new H4Typography
+                {
+                    FontSize = "1.75rem",
+                    FontWeight = "500",
+                },
+
+                H3 = new H3Typography
+                {
+                    FontSize = "2rem",
+                    FontWeight = "600",
+                },
+
+                H2 = new H2Typography
+                {
+                    FontSize = "2.5rem",
+                    FontWeight = "600",
+                },
+
+                H1 = new H1Typography
+                {
+                    FontSize = "3rem",
+                    FontWeight = "600",
+                },
 
                 Body1 = new Body1Typography
                 {
-                    FontSize = "0.8rem",
-                    FontWeight = "400",
+                    FontSize = "1rem",
+                    FontWeight = "500",
                 },
 
                 Body2 = new Body2Typography
