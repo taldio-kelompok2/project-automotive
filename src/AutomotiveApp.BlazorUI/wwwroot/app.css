@@ -69,3 +69,24 @@ a {
     font-style: Regular;
     text-transform: none;
 }
+
+.custom-form-button {
+    padding: 7px 2.75rem !important;
+    border-radius: 8px !important;;
+}
+
+.auth-container {
+    margin: 2rem auto 0 auto; /* top 5rem, horizontal auto */
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: 600px;
+    max-height: fit-content;
+}
+
+.auth-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--secondary-color);
+}
