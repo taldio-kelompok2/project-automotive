@@ -1,0 +1,111 @@
+/* Base Root */
+:root {
+  --brand:#790B0A;
+  --brand-dark:#640C0C;
+  --text:#1b1d24;
+  --muted:#4F4F4F;
+  --border:#CFD6E5;
+  --bg:#ffffff;
+}
+
+body {
+  margin: 0;
+  background: #fafafa;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--text);
+}
+
+/* Container */
+.mud-paper {
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.master-title {
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 100%;
+  color: var(--brand);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 100%;
+}
+
+/* MudBlazor text field custom */
+.mud-input-root {
+  border-radius: 6px !important;
+  border: 1px solid var(--border);
+}
+
+.mud-input-root.mud-input-underline:after {
+  border-bottom: none !important;
+}
+
+.mud-input-input::placeholder {
+  color: #333333;
+  font-weight: 400;
+  font-size: 14px;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Fokus efek */
+.mud-input-root.mud-input-focused {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(122, 15, 15, 0.06);
+}
+
+/* Actions (container button) */
+.actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Custom button (pakai MudButton) */
+.mud-button.signup-btn {
+  background: var(--brand) !important;
+  color: #790B0A !important;
+  border-radius: 8px !important;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 10px 20px;
+  transition: background 0.2s ease;
+}
+
+.mud-button.signup-btn:hover {
+  background: var(--brand-dark) !important;
+}
+
+/* Sign-In note */
+.signin-note {
+  margin-top: 60px;
+  text-align: center;
+  color: #454c5a;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.login-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
