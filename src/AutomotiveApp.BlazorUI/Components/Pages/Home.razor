@@ -1,7 +1,98 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<section class="main-banner container-fluid">
+    <div class="banner-content-top">
+        <MudText Typo="Typo.h3">We provide driving lessons for various types of cars</MudText>
+        <MudText Class="fw-light" Typo="Typo.h5">Professional staff who are ready to help you to become a
+            much-needed reliable driver
+        </MudText>
+    </div>
+    <div class="banner-content-bottom">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.h1" Color="Color.Inherit">50+</MudText>
+            <span class="banner-caption"> A class ready to make you a reliable driver</span>
+        </MudStack>
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.h1" Color="Color.Inherit">20+</MudText>
+            <span class="banner-caption">Professional workforce with great experience</span>
+        </MudStack>
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.h1" Color="Color.Inherit">10+</MudText>
+            <span class="banner-caption">Cooperate with driver service partners</span>
+        </MudStack>
+    </div>
+</section>
 
-<h1>Hello, world!</h1>
+<section class="course-list">
+    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">Join us for the course </MudText>
+    <MudGrid>
+        @foreach (var car in cars)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <CarCard Car="car" />
+            </MudItem>
+        }
+    </MudGrid>
+</section>
 
-Welcome to your new app.
+<section class="course-info">
+    <div class="d-flex align-items-end gap-4 position-relative">
+        <div class="course-content">
+            <MudStack Spacing="3">
+                <MudText Typo=" Typo.h3" Color="Color.Primary" style="font-size: 2.5rem;">Gets your best benefit
+                </MudText>
+                <MudText Typo="Typo.body1">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
+                    doloremque
+                    laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto
+                    beatae
+                    vitae
+                    dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit,
+                    sed
+                    quia
+                    consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui
+                    dolorem
+                    ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam.
+                </MudText>
+
+                <MudText Typo="Typo.body1">
+                    Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed
+                    quia
+                    non
+                    numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+                </MudText>
+            </MudStack>
+        </div>
+        <div class="course-info-logo">
+            <img class="course-info-bg" src="/Images/Course/course_bg.svg" alt="">
+            <img class="course-info-img" src="/Images/Course/course_img.svg" alt="">
+        </div>
+    </div>
+</section>
+<section class="course-category">
+    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">More car type you can choose</MudText>
+    <MudGrid>
+        @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
+        {
+            <MudItem xs="6" sm="4" md="3">
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
+                    <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")" Class="rounded-lg"
+                        ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
+                    <MudText Typo="Typo.body1">@category.ToString()</MudText>
+                </MudStack>
+            </MudItem>
+        }
+    </MudGrid>
+</section>
+
+<Footer />
+
+
+@code {
+    private List<CarViewModel> cars = new List<CarViewModel>();
+
+    protected override void OnInitialized()
+    {
+        CarViewModel.InitDummyData(cars);
+    }
+
+}

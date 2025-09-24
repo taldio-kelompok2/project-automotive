@@ -1,0 +1,77 @@
+@rendermode InteractiveServer
+
+@page "/Login"
+
+<div class="auth-container">
+    <div class="auth-title-group">
+        <MudText Typo="Typo.h5" Color="Color.Primary">Welcome Back!</MudText>
+        <MudText Typo="Typo.body2">Please login first</MudText>
+    </div>
+    <EditForm OnValidSubmit="OnValidSubmit" EditContext="@_editContext">
+        <DataAnnotationsValidator />
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" Variant="Variant.Outlined"
+                Margin="Margin.Dense" placeholder="Email" OnBlur="UpdateFormValidity" />
+            <MudTextField @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)"
+                Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End"
+                InputType="@(_isPasswordVisible? InputType.Text: InputType.Password)"
+                AdornmentIcon="@(_isPasswordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                AdornmentColor="Color.Default" OnAdornmentClick="ViewPassword" IconSize="Size.Small"
+                AdornmentAriaLabel="Toggle password visibility" placeholder="Password" OnBlur="UpdateFormValidity" />
+            <div class="d-flex gap-1 mt-2">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Forgot Password?</MudText>
+                <MudLink Href="#" Typo="Typo.body2" Underline="Underline.None" Color="Color.Tertiary">Click here
+                </MudLink>
+            </div>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                Disabled="@(!_isFormValid)" Class="ml-auto custom-form-button">
+                Login
+            </MudButton>
+            <div class="d-flex gap-1 justify-content-center p-4">
+                <MudText Typo="Typo.body2">
+                    Dont Have An Account?
+                </MudText>
+                <MudLink Href="#" Typo="Typo.body2" Underline="Underline.None" Color="Color.Tertiary">Click here
+                </MudLink>
+            </div>
+        </MudStack>
+    </EditForm>
+    @if (success)
+    {
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
+                <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
+            </MudCardContent>
+        </MudCard>
+
+    }
+</div>
+
+@code {
+    private EditContext _editContext = null!;
+    private LoginRequestDto _loginModel = new LoginRequestDto();
+    private bool _isPasswordVisible = false;
+    private bool _isFormValid = false;
+    private bool success = false;
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_loginModel);
+    }
+
+    private void UpdateFormValidity(FocusEventArgs e)
+    {
+        _editContext.Validate();
+        _isFormValid = !_editContext.GetValidationMessages().Any();
+        Console.WriteLine($"Form valid? {_isFormValid}");
+
+        StateHasChanged();
+    }
+
+    private void ViewPassword() => _isPasswordVisible = !_isPasswordVisible;
+    private void OnValidSubmit()
+    {
+        success = true;
+    }
+}

@@ -1,0 +1,20 @@
+<div class="card card-car">
+    <img src=@Car.Image class="car-card-img-top">
+    <div class="card-body card-car-body">
+        <div class="d-flex flex-column gap-1">
+            <div class="card-car-category">
+                <MudText Typo="Typo.body2" class="fw-light" Color="Color.Secondary">@Car.Category.ToString()
+                </MudText>
+            </div>
+            <div class="card-car-title">@Car.Name</div>
+        </div>
+        <div class="card-car-price">
+            @Car.Price.ToString("C0", new CultureInfo("id-ID")).Replace("Rp", "IDR ")
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public CarViewModel Car { get; set; } = null!;
+}
