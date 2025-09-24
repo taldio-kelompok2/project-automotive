@@ -1,10 +1,23 @@
 ﻿@page "/suv"
 @using MudBlazor
 
-<PageTitle>SUV</PageTitle>
+<style>
+    .course-card-hover {
+        background-color: white;
+        transition: background-color 0.1s;
+        cursor: pointer;
+    }
 
-<!-- Hero Banner -->
-<MudImage Src="/images/CourseMenuHero.svg" Class="p-0 m-0"
+    .course-card-hover:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-5px); /* slight lift upward */
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    }
+</style>
+
+<PageTitle>Course Menu</PageTitle>
+
+<MudImage Src="/images/CourseMenu/CourseMenuHero.svg" Class="p-0 m-0"
           ObjectFit="ObjectFit.Cover"
           Style="display:flex;
                      width:100%;
@@ -12,15 +25,24 @@
                      object-fit:cover;
                      border-bottom: 1px solid #BDBDBD" />
 <MudStack Class="p-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
-    <MudText Typo="Typo.h4" Class="text-black mx-4 px-4 mt-1" Align="Align.Left" Style="font-weight: 600;">SUV</MudText>
-    <MudText Typo="Typo.subtitle1" Class="text-black mx-4 px-4 mb-5 pt-2 pb-3"
-             Style="text-align: justify; line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</MudText>
+    <MudText Typo="Typo.h4" 
+             Class="text-black mx-4 px-4 mt-1" 
+             Align="Align.Left" 
+             Style="font-weight: 600;">SUV</MudText>
+    <MudText Typo="Typo.subtitle1" 
+             Class="text-black mx-4 px-4 mb-5 pt-2 pb-3"
+             Style="text-align: justify; 
+                    line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</MudText>
 </MudStack>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4" 
-    Style="background-color: white">
-    <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary" Class="mt-6 mb-16 pb-4 pt-3 align-content-center"
-        Style="font-weight: 600;">Another favorite course</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" 
+              Class="mt-4" 
+              Style="background-color: white">
+    <MudText Typo="Typo.h4" 
+             Align="Align.Center" 
+             Color="Color.Primary" 
+             Class="mt-6 mb-16 pb-4 pt-3 align-content-center"
+             Style="font-weight: 600;">Another favorite course</MudText>
 
     <!-- Courses card -->
     @if (courses is null)
@@ -29,22 +51,29 @@
     }
     else
     {
-        <MudGrid Spacing="3">
+        <MudGrid Spacing="6" Class="px-2 pb-8 mb-16">
             @foreach (var course in courses)
             {
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard>
-                        <MudCardContent>
+                    <MudLink Href="@($"/")" Style="text-decoration:none; color:inherit;">
+                        <MudCard Elevation="0" Class="pb-5 mb-8 course-card-hover" Style="display:flex; flex-direction:column; height:100%;">
+                            <MudCardContent Class="p-0" Style="flex-grow:1; display:flex; flex-direction:column;">
                             <MudImage Src="@course.ImageUrl"
                                       Alt="@course.Title"
-                                      Style="width:100%; height:200px; object-fit:cover; border-top-left-radius:4px; border-top-right-radius:4px;" />
-                            <MudText Typo="Typo.h6">@course.Title</MudText>
-                            <MudText Typo="Typo.body2">@course.Price</MudText>
+                                      Style="width: 100%;
+                                             object-fit:cover; 
+                                             border: 1px solid #BDBDBD" />
+                            <MudText Typo="Typo.h6" Class="px-4 pt-3"
+                                     Style="font-weight: 400; color: #828282; font-size: 16px">@course.Category</MudText>
+                            <MudText Typo="Typo.h6" Class="px-4 pb-4"
+                                     Style="font-weight: 600; color: #333333; font-size: 20px">@course.Title</MudText>
+
+                            <div style="flex-grow:1;"></div>
+                            <MudText Typo="Typo.h5" Class="px-4" Color="Color.Primary"
+                                     Style="font-weight:600">IDR @course.Price.ToString("N0")</MudText>
                         </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Outlined" Color="Color.Primary">View</MudButton>
-                        </MudCardActions>
                     </MudCard>
+                    </MudLink>
                 </MudItem>
             }
         </MudGrid>
@@ -59,12 +88,12 @@
         await Task.Delay(500);
         courses = new List<Course>
             {
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
-                new() { Title="Course Mitsubishi Pajero", Price=800000, ImageUrl="images/pajero.png" },
+                new() { Title="Course SUV Kijang Innova", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-SUV-Kijang-Innova.svg" },
+                new() { Title="Hyundai Palisade 2021", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Hyundai-Palisade-2021.svg" },
+                new() { Title="Course Suzuki XL7", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Suzuki-XL7.svg" },
+                new() { Title="Course Mitsubishi Pajero", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Mitsubishi-Pajero.svg" },
+                new() { Title="SUV Toyota Fortuner", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/SUV-Toyota-Fortuner.svg" },
+                new() { Title="Premium Mazda CX-5 Course", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
             };
     }
 
@@ -73,5 +102,6 @@
         public string Title { get; set; } = string.Empty;
         public int Price { get; set; } = 0;
         public string ImageUrl { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
     }
 }
