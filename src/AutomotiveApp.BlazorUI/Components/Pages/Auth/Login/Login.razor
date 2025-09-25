@@ -1,8 +1,12 @@
-@inject NavigationManager NavManager
-@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject IDialogService DialogService
 
-@page "/login"
+@rendermode InteractiveServer
 @layout AuthLayout
+@page "/login"
+
+@* kalo ga ditaro disini ga render sama sekali dialog nya :/ *@
+<MudDialogProvider />
 
 <AuthHeader Title="Welcome Back!" SubTitle="Please login first" />
 <EditForm OnValidSubmit="OnValidSubmit" Model="@_loginModel">
@@ -13,8 +17,8 @@
             Mode="AuthTextMode.Password" />
         <div class="d-flex gap-1 mt-2">
             <MudText Typo="Typo.body2" Color="Color.Secondary">Forgot Password?</MudText>
-            <MudLink OnClick="() => NavManager.NavigateTo(FORGOT_PASSWORD_PAGE)" Typo="Typo.body2"
-                Underline="Underline.None" Color="Color.Tertiary">Click here
+            <MudLink OnClick="() => Nav.NavigateTo(FORGOT_PASSWORD_PAGE)" Typo="Typo.body2" Underline="Underline.None"
+                Color="Color.Tertiary">Click here
             </MudLink>
         </div>
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
@@ -25,30 +29,24 @@
             <MudText Typo="Typo.body2">
                 Dont Have An Account?
             </MudText>
-            <MudLink OnClick="() => NavManager.NavigateTo(REGISTER_PAGE)" Typo="Typo.body2" Underline="Underline.None"
+            <MudLink OnClick="() => Nav.NavigateTo(REGISTER_PAGE)" Typo="Typo.body2" Underline="Underline.None"
                 Color="Color.Tertiary">Click here
             </MudLink>
         </div>
     </MudStack>
 </EditForm>
 
-@* TODO: Remove on Auth Implementation *@
-
-@if (success)
-{
-    <MudCard>
-        <MudCardContent>
-            <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
-            <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
-        </MudCardContent>
-    </MudCard>
-
-}
 @code {
     private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
+    private const string HOME_PAGE = "/";
     private const string REGISTER_PAGE = "/register";
-    private LoginRequestDto _loginModel = new LoginRequestDto();
-    private bool success = false;
+    private LoginViewModel _loginModel = new LoginViewModel();
+    private RenderFragment LoginDialogContent =>
+    @<div>
+        <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
+        <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
+    </div>;
+
     private bool IsFormFilled()
     {
         var props = _loginModel.GetType()
@@ -62,9 +60,25 @@
 
         return true;
     }
-    private void OnValidSubmit()
+
+    @* TODO: Remove on Auth Implementation *@
+    private async Task OpenDialogAsync(string location)
     {
-        success = true;
-        //navigate
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Login Successful",
+            ["Content"] = LoginDialogContent,
+            ["Location"] = location
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<AuthResultDialog>("Login Successful", parameters, options);
+    }
+
+    private async Task OnValidSubmit()
+    {
+        _loginModel.Success = true;
+        await OpenDialogAsync(HOME_PAGE);
     }
 }

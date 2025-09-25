@@ -1,6 +1,6 @@
 .auth-title-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
     color: var(--secondary-color);
 }

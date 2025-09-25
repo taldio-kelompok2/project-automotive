@@ -1,8 +1,11 @@
-@rendermode InteractiveServer
-@inject NavigationManager NavManager
-@page "/register"
-@layout AuthLayout
+@inject NavigationManager Nav
+@inject IDialogService DialogService
 
+@rendermode InteractiveServer
+@layout AuthLayout
+@page "/register"
+
+<MudDialogProvider />
 <AuthHeader Title="Lets Join Our Course!" SubTitle="Please Register first" />
 <EditForm OnValidSubmit="OnValidSubmit" Model="@_registerModel">
     <DataAnnotationsValidator />
@@ -21,28 +24,23 @@
             <MudText Typo="Typo.body2">
                 Have Account?
             </MudText>
-            <MudLink OnClick="() => NavManager.NavigateTo(LOGIN_PAGE)" Typo="Typo.body2" Underline="Underline.None"
+            <MudLink OnClick="() => Nav.NavigateTo(LOGIN_PAGE)" Typo="Typo.body2" Underline="Underline.None"
                 Color="Color.Tertiary">Login here
             </MudLink>
         </div>
     </MudStack>
 </EditForm>
-@* TODO: Remove on Auth Implementation *@
-@if (success)
-{
-    <MudCard>
-        <MudCardContent>
-            <MudText Typo="Typo.body2">Name: @_registerModel.Name</MudText>
-            <MudText Typo="Typo.body2">Email: @_registerModel.Email</MudText>
-            <MudText Typo="Typo.body2">Password: @_registerModel.Password</MudText>
-        </MudCardContent>
-    </MudCard>
-}
 
 @code {
     private const string LOGIN_PAGE = "/login";
-    private RegisterRequestDto _registerModel = new RegisterRequestDto();
-    private bool success = false;
+    private RegisterViewModel _registerModel = new RegisterViewModel();
+    private RenderFragment RegisterDialogContent =>
+    @<div>
+        <MudText Typo="Typo.body2">Name: @_registerModel.Name</MudText>
+        <MudText Typo="Typo.body2">Name: @_registerModel.Email</MudText>
+        <MudText Typo="Typo.body2">Password: @_registerModel.Password</MudText>
+    </div>;
+
     private bool IsFormFilled()
     {
         var props = _registerModel.GetType()
@@ -56,9 +54,26 @@
 
         return true;
     }
-    private void OnValidSubmit()
+
+    @* TODO: Remove on Auth Implementation *@
+    private async Task OpenDialogAsync(string location)
     {
-        success = true;
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Register Successful",
+            ["Content"] = RegisterDialogContent,
+            ["Location"] = location
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<AuthResultDialog>("Register Successful", parameters, options);
+    }
+
+    private async Task OnValidSubmit()
+    {
+        _registerModel.Success = true;
         //navigate
+        await OpenDialogAsync(LOGIN_PAGE);
     }
 }
