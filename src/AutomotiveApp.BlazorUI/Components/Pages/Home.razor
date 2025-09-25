@@ -1,5 +1,8 @@
 ﻿@page "/"
 
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
 <section class="main-banner container-fluid">
     <div class="banner-content-top">
         <MudText Typo="Typo.h3">We provide driving lessons for various types of cars</MudText>
@@ -61,7 +64,7 @@
     </div>
 </section>
 
-<section class="course-category">
+@* <section class="course-category">
     <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">More car type you can choose</MudText>
     <MudGrid>
         @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
@@ -72,6 +75,26 @@
                         ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
                     <MudText Typo="Typo.body1">@category.ToString()</MudText>
                 </MudStack>
+            </MudItem>
+        }
+    </MudGrid>
+</section> *@
+
+<section class="course-category">
+    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">More car type you can choose</MudText>
+    <MudGrid>
+        @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
+        {
+            <MudItem xs="6" sm="4" md="3">
+                <MudLink Href="@($"/courses/{category.ToString().ToLower()}")" Style="text-decoration: none; color: inherit;">
+                    <div class="category-card">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1" Class="hover-pointer">
+                            <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")"
+                                    Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
+                            <MudText Typo="Typo.body1">@category.ToString()</MudText>
+                        </MudStack>
+                    </div>
+                </MudLink>
             </MudItem>
         }
     </MudGrid>
@@ -87,4 +110,11 @@
     {
         CarViewModel.InitDummyData(cars);
     }
+
+    // Navigasi Ke Halaman Kategori
+    private void GoToCategory(string category)
+    {
+        Nav.NavigateTo($"/courses/{category.ToLowerInvariant()}");
+    }
+
 }

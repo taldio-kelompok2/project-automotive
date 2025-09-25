@@ -1,3 +1,7 @@
+@rendermode InteractiveServer
+
+@inject NavigationManager Nav
+
 <footer class="footer">
     <MudStack Spacing="1">
         <MudText Typo="Typo.body1" Color="Color.Primary">About Us</MudText>
@@ -9,7 +13,7 @@
     <MudStack Spacing="1">
         <MudText Typo="Typo.body1" Color="Color.Primary">Product</MudText>
         <div class="footer-text">
-            <ul>
+            @* <ul>
                 <li>Electric</li>
                 <li>Hatchback</li>
                 <li>LCGC</li>
@@ -18,7 +22,19 @@
                 <li>Sedan</li>
                 <li>SUV</li>
                 <li>Truck</li>
+            </ul> *@
+
+            <ul class="footer-text">
+                <li @onclick='@(() => GoToCategory("electric"))' role="button" tabindex="0">Electric</li>
+                <li @onclick='@(() => GoToCategory("hatchback"))' role="button" tabindex="0">Hatchback</li>
+                <li @onclick='@(() => GoToCategory("lcgc"))' role="button" tabindex="0">LCGC</li>
+                <li @onclick='@(() => GoToCategory("mpv"))' role="button" tabindex="0">MPV</li>
+                <li @onclick='@(() => GoToCategory("offroad"))' role="button" tabindex="0">Offroad</li>
+                <li @onclick='@(() => GoToCategory("sedan"))' role="button" tabindex="0">Sedan</li>
+                <li @onclick='@(() => GoToCategory("suv"))' role="button" tabindex="0">SUV</li>
+                <li @onclick='@(() => GoToCategory("truck"))' role="button" tabindex="0">Truck</li>
             </ul>
+
         </div>
     </MudStack>
 
@@ -55,3 +71,9 @@
         </MudStack>
     </MudStack>
 </footer>
+
+
+@code {
+    private void GoToCategory(string category)
+        => Nav.NavigateTo($"/courses/{category.ToLowerInvariant()}");
+}

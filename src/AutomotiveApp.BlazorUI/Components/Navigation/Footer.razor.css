@@ -28,6 +28,16 @@ ul li {
     word-wrap: break-word; 
 }
 
+.footer-text li {
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.2s;
+}
+
+.footer-text li:hover {
+  color: #1976d2;
+}
+
 
 /* Responsive Style: HP */
 @media (max-width: 599.98px) {
