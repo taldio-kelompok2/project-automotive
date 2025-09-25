@@ -23,3 +23,7 @@ wwwroot/_framework/blazor.*.js
 
 # Environment / secrets
 appsettings.Development.json
+
+# macOS system files
+.DS_Store
+src/.DS_Store
