@@ -135,6 +135,8 @@
     private List<Course>? courses = new();
     private Course chosenCourse = new();
 
+    private readonly Random _random = new();
+
     private string CategoryTitle => Category?.ToLower() switch
     {
         "electric" => "Electric",
@@ -177,8 +179,12 @@
             };
         // get courses
         if (!string.IsNullOrEmpty(Category))
-            courses = allCourses.Where(c =>
-                c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase)).ToList();
+            courses = allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
         else
             courses = allCourses;
 
@@ -198,6 +204,41 @@
 
         if (courses != null && chosenCourse != null)
             courses.RemoveAll(c => c.Title.ToLowerInvariant().Equals(normalizedTitle));
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (allCourses is null)
+            return Task.CompletedTask;
+
+        // get courses
+        if (!string.IsNullOrEmpty(Category))
+            courses = allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
+        else
+            courses = allCourses;
+
+        string normalizedTitle = Title.Replace("-", " ").Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(Title))
+        {
+            chosenCourse = allCourses
+                .FirstOrDefault(c => c.Title.ToLowerInvariant().Equals(normalizedTitle))
+                ?? new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+        else
+        {
+            // fallback when no title in route
+            chosenCourse = new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+
+        if (courses != null && chosenCourse != null)
+            courses.RemoveAll(c => c.Title.ToLowerInvariant().Equals(normalizedTitle));
+
+        return Task.CompletedTask;
     }
 
     private class Course

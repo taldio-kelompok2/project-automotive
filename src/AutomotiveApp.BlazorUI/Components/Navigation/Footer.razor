@@ -10,14 +10,10 @@
         <MudText Typo="Typo.body1" Color="Color.Primary">Product</MudText>
         <div class="footer-text">
             <ul>
-                <li>Electric</li>
-                <li>Hatchback</li>
-                <li>LCGC</li>
-                <li>MPV</li>
-                <li>Offroad</li>
-                <li>Sedan</li>
-                <li>SUV</li>
-                <li>Truck</li>
+                @foreach(string category in categories)
+                {
+                    <li @onclick="() => NavigateToCourseMenu(category)" style="cursor: pointer;">@category</li>
+                }
             </ul>
         </div>
     </MudStack>
@@ -55,3 +51,13 @@
         </MudStack>
     </MudStack>
 </footer>
+
+@code {
+    [Inject] NavigationManager Nav { get; set; }
+    private string[] categories = { "Electric", "Hatchback", "LCGC", "MPV", "Offroad", "Sedan", "SUV", "Truck" };
+
+    private void NavigateToCourseMenu(string category)
+    {
+        Nav.NavigateTo($"/{category.ToLowerInvariant()}");
+    }
+}

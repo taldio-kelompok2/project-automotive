@@ -10,16 +10,16 @@
         cursor: pointer;
     }
 
-    .course-card-hover:hover {
-        background-color: #f5f5f5;
-        transform: translateY(-5px);
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-    }
+        .course-card-hover:hover {
+            background-color: #f5f5f5;
+            transform: translateY(-5px);
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+        }
 </style>
 
 <PageTitle>Course Menu</PageTitle>
 
-<MudHidden Breakpoint="Breakpoint.SmAndDown" >
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
     <MudImage Src="@HeroImage" Class="p-0 m-0"
               ObjectFit="ObjectFit.Cover"
               Style="display:flex;
@@ -28,7 +28,7 @@
                          object-fit:cover;
                          border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
-<MudHidden Breakpoint="Breakpoint.MdAndUp" >
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
     <MudImage Src="@HeroImage" Class="p-0 m-0"
               ObjectFit="ObjectFit.Cover"
               Style="display:flex;
@@ -40,34 +40,34 @@
 
 <MudStack Class="p-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudText Typo="Typo.h4" 
-                 Class="text-black mx-4 px-4 mt-1" 
-                 Align="Align.Left" 
+        <MudText Typo="Typo.h4"
+                 Class="text-black mx-4 px-4 mt-1"
+                 Align="Align.Left"
                  Style="font-weight: 600;">@CategoryTitle</MudText>
-        <MudText Typo="Typo.subtitle1" 
+        <MudText Typo="Typo.subtitle1"
                  Class="text-black mx-4 px-4 mb-5 pt-2 pb-3"
-                 Style="text-align: justify; 
+                 Style="text-align: justify;
                         line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</MudText>
     </MudHidden>
     <MudHidden Breakpoint="Breakpoint.MdAndUp">
-        <MudText Typo="Typo.h4" 
-                 Class="text-black mt-1" 
-                 Align="Align.Left" 
+        <MudText Typo="Typo.h4"
+                 Class="text-black mt-1"
+                 Align="Align.Left"
                  Style="font-weight: 600;">@CategoryTitle</MudText>
-        <MudText Typo="Typo.subtitle1" 
+        <MudText Typo="Typo.subtitle1"
                  Class="text-black pt-2 pb-3"
-                 Style="text-align: justify; 
+                 Style="text-align: justify;
                         line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</MudText>
     </MudHidden>
 </MudStack>
 
-<MudContainer MaxWidth="MaxWidth.Large" 
-              Class="mt-4" 
+<MudContainer MaxWidth="MaxWidth.Large"
+              Class="mt-4"
               Style="background-color: white">
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudText Typo="Typo.h4" 
-                 Align="Align.Center" 
-                 Color="Color.Primary" 
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Color="Color.Primary"
                  Class="mt-6 mb-16 pb-4 pt-3 align-content-center"
                  Style="font-weight: 600;">Another favorite course</MudText>
     </MudHidden>
@@ -89,16 +89,16 @@
             @foreach (var course in courses)
             {
                 <MudItem xs="12" sm="6" md="4">
-                        <MudCard Elevation="0" 
-                                 Class="pb-5 mb-8 course-card-hover" 
-                                 @onclick="() => NavigateToCourseDetail(course.Title)"
+                    <MudCard Elevation="0"
+                             Class="pb-5 mb-8 course-card-hover"
+                             @onclick="() => NavigateToCourseDetail(course.Title)"
                              Style="display:flex; flex-direction:column; height:100%; cursor:pointer;">
-                            <MudCardContent Class="p-0" Style="flex-grow:1; display:flex; flex-direction:column;">
+                        <MudCardContent Class="p-0" Style="flex-grow:1; display:flex; flex-direction:column;">
                             <MudImage Src="@course.ImageUrl"
                                       Alt="@course.Title"
                                       Style="width: 100%;
-                                             object-fit:cover; 
-                                             border: 1px solid #BDBDBD" />
+                                                     object-fit:cover;
+                                                     border: 1px solid #BDBDBD" />
                             <MudText Typo="Typo.h6" Class="px-4 pt-3"
                                      Style="font-weight: 400; color: #828282; font-size: 16px">@course.Category</MudText>
                             <MudText Typo="Typo.h6" Class="px-4 pb-4"
@@ -120,8 +120,12 @@
 @code {
     [Parameter]
     public string? Category { get; set; }
+
     private List<Course>? allCourses;
     private List<Course>? courses;
+
+    private readonly Random _random = new();
+
     private string HeroImage => Category?.ToLower() switch
     {
         "electric" => "images/CourseMenu/Hero-Electric.svg",
@@ -176,10 +180,31 @@
             };
 
         if (!string.IsNullOrEmpty(Category))
-            courses = allCourses.Where(c =>
-                c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase)).ToList();
+            courses = allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
         else
             courses = allCourses;
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (allCourses is null)
+            return Task.CompletedTask;
+
+        courses = string.IsNullOrEmpty(Category)
+            ? allCourses
+            : allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
+
+        return Task.CompletedTask;
     }
 
     private class Course
