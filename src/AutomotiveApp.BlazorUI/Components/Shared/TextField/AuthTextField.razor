@@ -1,7 +1,7 @@
 <MudTextField T="string" Value="Value" ValueChanged="EventCallback.Factory.Create<string>(this, OnValueChanged)"
-    For="@For" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="@Placeholder" InputType="@GetInputType()"
-    Adornment="@GetAdornmentPlacement()" AdornmentColor="Color.Secondary" AdornmentIcon="@GetAdornmentIcon()"
-    OnAdornmentClick="@OnAdornmentClick" IconSize="Size.Small" />
+    For="@For" Variant="Variant.Outlined" Margin="Margin.Dense" Label="@Placeholder" ShrinkLabel="false"
+    InputType="@GetInputType()" Adornment="@GetAdornmentPlacement()" AdornmentColor="Color.Secondary"
+    AdornmentIcon="@GetAdornmentIcon()" OnAdornmentClick="@OnAdornmentClick" IconSize="Size.Small" />
 
 @code {
     [Parameter] public string Value { get; set; } = string.Empty;

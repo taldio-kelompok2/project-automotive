@@ -1,8 +1,8 @@
 .auth-container {
-    margin: 3rem auto 0 auto;
+    margin: 3.5rem auto 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+    gap: 2rem;
     max-width: 600px;
     width: 100%;
     max-height: fit-content;

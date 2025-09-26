@@ -1,0 +1,30 @@
+<MudDialog>
+    <TitleContent>
+        @Title
+    </TitleContent>
+    <DialogContent>
+        @Content
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string Title { get; set; } = null!;
+    [Parameter] public RenderFragment? Content { get; set; }
+    [Inject] public NavigationManager Nav { get; set; } = null!;
+    [Parameter] public string Location { get; set; } = null!;
+    private void Submit()
+    {
+        if (!string.IsNullOrWhiteSpace(Location))
+        {
+            MudDialog.Close(DialogResult.Ok(result: Location));
+            Nav.NavigateTo(Location);
+        }
+        else MudDialog.Close(DialogResult.Ok(result: false));
+    }
+    private void Cancel() => MudDialog.Cancel();
+}
