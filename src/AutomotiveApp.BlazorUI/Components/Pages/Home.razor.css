@@ -71,17 +71,18 @@ h5 {
     position: absolute;
     bottom: 0;
     left: 0%;        
-    width: 200%;     
+    width: 230%;     
     height: 100%;
     z-index: 0;
     object-fit: cover;
+    transform: translateX(0%);
 }
 
 .course-info-img {
     position: absolute;
     top: 0%;
     left: 90%;
-    transform: translate(-50%, -32%);
+    transform: translate(-45%, -32%);
     max-width: 400px; /* bigger than parent too */
     z-index: 1;
 }
@@ -94,6 +95,24 @@ h5 {
     align-items: center;
     flex-direction: column;
     text-align: center;
+}
+
+.category-card {
+  display: inline-block;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+}
+
+.category-card:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background-color: #f5f9ff; 
+}
+
+.category-card:hover {
+  cursor: pointer;
 }
 
 
