@@ -1,0 +1,257 @@
+﻿@page "/{category}/{title}"
+@using MudBlazor
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<style>
+    .course-card-hover {
+        background-color: white;
+        transition: background-color 0.1s;
+        cursor: pointer;
+    }
+
+    .course-card-hover:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-5px);
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    }
+
+    .schedule-dropdown {
+        width: 50%;
+    }
+</style>
+
+<PageTitle>Course Detail</PageTitle>
+
+<MudGrid Class="px-5 pt-4 my-2 mx-6">
+    <MudItem sm="12" md="5">
+        <MudImage Src="@chosenCourse.ImageUrl"
+                  Style="width: 90%; object-fit:cover; border: 1px solid #BDBDBD" />
+    </MudItem>
+
+    <MudItem sm="12" md="5" Class="pl-0" Style="flex-grow:1; display:flex; flex-direction:column;">
+        <MudText Typo="Typo.h6" Class="p-0"
+                 Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle</MudText>
+        <MudText Typo="Typo.h4" Class="pt-2"
+                 Style="font-weight: 600;">@chosenCourse.Title</MudText>
+        <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
+                 Style="font-weight:600">IDR @chosenCourse.Price.ToString("N0")</MudText>
+        @* width can't be set *@
+        <MudSelect T="string" Variant="Variant.Outlined" @bind-Value="_selectedSchedule"
+                    Class="pt-8"
+                    FitContent=true>
+            <MudSelectItem Value="DummySchedule">Wednesday, 27 July 2022</MudSelectItem>
+        </MudSelect>
+        <div style="flex-grow:1;"></div>
+        <MudStack Row=true>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="py-2"
+                       style="width: 250px; border-width: 2px; border-radius: 10px;"> <MudText Style="font-size: 17px;">Add to Cart</MudText></MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="py-2" DropShadow=false
+                       style="width: 250px; border-width: 2px; border-radius: 10px;"><MudText Style="font-size: 17px;">Buy Now</MudText></MudButton>
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+<MudStack Class="mt-10 px-5" Style="border-bottom: 1px solid #E0E0E0;">
+    <MudText Typo="Typo.h4"
+             Class="text-black mx-4 px-4 mt-1"
+             Align="Align.Left"
+             Style="font-weight: 600;">Description</MudText>
+    <MudText Typo="Typo.subtitle1"
+             Class="text-black mx-4 px-4 mb-5 pt-2 pb-5"
+             Style="text-align: justify; line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </MudText>
+</MudStack>
+
+
+<MudContainer MaxWidth="MaxWidth.Large"
+              Class="mt-4"
+              Style="background-color: white">
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Color="Color.Primary"
+                 Class="mt-6 mb-16 pb-4 pt-3 align-content-center"
+                 Style="font-weight: 600;">Another favorite course</MudText>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Color="Color.Primary"
+                 Class="mt-6 mb-10 pb-4 pt-3 align-content-center"
+                 Style="font-weight: 600;">Another favorite course</MudText>
+    </MudHidden>
+    <!-- Courses card -->
+    @if (courses is null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid Spacing="6" Class="px-2 pb-8 mb-16">
+            @foreach (var course in courses)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="0"
+                             Class="pb-5 mb-8 course-card-hover"
+                             @onclick="() => NavigateToCourseDetail(course.Title)"
+                             Style="display:flex; flex-direction:column; height:100%; cursor:pointer;">
+                        <MudCardContent Class="p-0" Style="flex-grow:1; display:flex; flex-direction:column;">
+                            <MudImage Src="@course.ImageUrl"
+                                      Alt="@course.Title"
+                                      Style="width: 100%;
+                                                             object-fit:cover;
+                                                             border: 1px solid #BDBDBD" />
+                            <MudText Typo="Typo.h6" Class="px-4 pt-3"
+                                     Style="font-weight: 400; color: #828282; font-size: 16px">@course.Category</MudText>
+                            <MudText Typo="Typo.h6" Class="px-4 pb-4"
+                                     Style="font-weight: 600; color: #333333; font-size: 20px">@course.Title</MudText>
+
+                            <div style="flex-grow:1;"></div>
+                            <MudText Typo="Typo.h5" Class="px-4" Color="Color.Primary"
+                                     Style="font-weight:600">IDR @course.Price.ToString("N0")</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+<Footer />
+
+@code {
+    [Parameter]
+    public string? Category { get; set; }
+    [Parameter]
+    public string? Title { get; set; }
+
+    public string DummySchedule = "Wednesday, 27 July 2022";
+    private string _selectedSchedule = "Select Schedule";
+
+    private List<Course>? allCourses = new();
+    private List<Course>? courses = new();
+    private Course chosenCourse = new();
+
+    private readonly Random _random = new();
+
+    private string CategoryTitle => Category?.ToLower() switch
+    {
+        "electric" => "Electric",
+        "hatchback" => "Hatchback",
+        "lcgc" => "LCGC",
+        "offroad" => "Offroad",
+        "truck" => "Truck",
+        "suv" => "SUV",
+        "mpv" => "MPV",
+        "sedan" => "Sedan",
+        _ => "SUV"
+    };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(200);
+        allCourses = new List<Course>
+            {
+                new() { Title="Course SUV Kijang Innova", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-SUV-Kijang-Innova.svg" },
+                new() { Title="Hyundai Palisade 2021", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Hyundai-Palisade-2021.svg" },
+                new() { Title="Course Suzuki XL7", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Suzuki-XL7.svg" },
+                new() { Title="Course Mitsubishi Pajero", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Mitsubishi-Pajero.svg" },
+                new() { Title="SUV Toyota Fortuner", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/SUV-Toyota-Fortuner.svg" },
+                new() { Title="Premium Mazda CX-5 Course", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                // mpv
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                // mpv
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
+            };
+        // get courses
+        if (!string.IsNullOrEmpty(Category))
+            courses = allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
+        else
+            courses = allCourses;
+
+        // get chosen course
+        string normalizedTitle = Title.Replace("-", " ").Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(Title))
+        {
+            chosenCourse = allCourses
+                .FirstOrDefault(c => c.Title.ToLowerInvariant().Equals(normalizedTitle))
+                ?? new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+        else
+        {
+            // fallback when no title in route
+            chosenCourse = new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+
+        if (courses != null && chosenCourse != null)
+            courses.RemoveAll(c => c.Title.ToLowerInvariant().Equals(normalizedTitle));
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (allCourses is null)
+            return Task.CompletedTask;
+
+        // get courses
+        if (!string.IsNullOrEmpty(Category))
+            courses = allCourses
+                .Where(c => string.IsNullOrEmpty(Category) ||
+                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(_ => _random.Next())
+                .Take(6)
+                .ToList();
+        else
+            courses = allCourses;
+
+        string normalizedTitle = Title.Replace("-", " ").Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(Title))
+        {
+            chosenCourse = allCourses
+                .FirstOrDefault(c => c.Title.ToLowerInvariant().Equals(normalizedTitle))
+                ?? new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+        else
+        {
+            // fallback when no title in route
+            chosenCourse = new Course { Title = "Course not found", ImageUrl = "", Price = 0, Category = CategoryTitle };
+        }
+
+        if (courses != null && chosenCourse != null)
+            courses.RemoveAll(c => c.Title.ToLowerInvariant().Equals(normalizedTitle));
+
+        return Task.CompletedTask;
+    }
+
+    private class Course
+    {
+        public string Title { get; set; } = string.Empty;
+        public int Price { get; set; } = 0;
+        public string ImageUrl { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+    }
+
+    private void NavigateToCourseDetail(string courseTitle)
+    {
+        string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
+        Navigation.NavigateTo($"/{Category}/{normalizedTitle}");
+    }
+}

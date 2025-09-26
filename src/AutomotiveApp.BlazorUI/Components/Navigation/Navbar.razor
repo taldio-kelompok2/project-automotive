@@ -1,4 +1,5 @@
-﻿@rendermode InteractiveServer
+﻿@inject NavigationManager NavManager
+@rendermode InteractiveServer
 
 <MudAppBar class="py-2 px-4" Fixed="false" Elevation="0" Dense="true">
     <img class="logo" src="icons/main.svg" />
@@ -6,9 +7,11 @@
     <MudSpacer />
     <div class="d-none d-md-flex">
         <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary">Sign Up
+            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
+                OnClick="@(() => NavManager.NavigateTo(REGISTER_PAGE))">Sign Up
             </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary">Login
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                OnClick="@(() => NavManager.NavigateTo(LOGIN_PAGE))">Login
             </MudButton>
         </div>
     </div>
@@ -20,10 +23,12 @@
             @if (expandMenu)
             {
                 <div class="dropdown-menu show mt-2">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                        OnClick="@(() => NavManager.NavigateTo(REGISTER_PAGE))">
                         Sign Up
                     </MudButton>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                        OnClick="@(() => NavManager.NavigateTo(LOGIN_PAGE))">
                         Login
                     </MudButton>
                 </div>
@@ -34,4 +39,6 @@
 
 @code {
     private bool expandMenu = false;
+    private const string LOGIN_PAGE = "/login";
+    private const string REGISTER_PAGE = "/register";
 }
