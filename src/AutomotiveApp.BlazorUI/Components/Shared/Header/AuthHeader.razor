@@ -1,0 +1,9 @@
+<div class="auth-title-group">
+    <MudText Typo="Typo.h5" Color="Color.Primary">@Title</MudText>
+    <MudText Typo="Typo.body2">@SubTitle</MudText>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = null!;
+    [Parameter] public string SubTitle { get; set; } = null!;
+}
