@@ -3,7 +3,7 @@
 <MudLayout>
     <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
     <MudPopoverProvider />
-    <MudDialogProvider />
+    <MudDialogProvider @rendermode="InteractiveServer" />
     <MudSnackbarProvider />
     <GuestNavbar />
     <MudMainContent Class="p-0">

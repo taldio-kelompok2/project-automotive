@@ -5,9 +5,6 @@
 @layout AuthLayout
 @page "/login"
 
-@* kalo ga ditaro disini ga render sama sekali dialog nya :/ *@
-<MudDialogProvider />
-
 <AuthHeader Title="Welcome Back!" SubTitle="Please login first" />
 <EditForm OnValidSubmit="OnValidSubmit" Model="@_loginModel">
     <DataAnnotationsValidator />
