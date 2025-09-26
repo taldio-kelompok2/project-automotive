@@ -1,0 +1,29 @@
+<div class="auth-title-group">
+    <MudText Typo="Typo.h5" Color="@GetTitleColor()" Style="@($"font-weight:{GetFontWeight()}")">@Title</MudText>
+    <MudText Typo="Typo.body2">@(SubTitle ?? "")</MudText>
+</div>
+
+@code {
+
+    public enum FontWeight
+    {
+        Normal = 400,
+        Bold = 500,
+    }
+    [Parameter] public string Title { get; set; } = null!;
+    [Parameter] public string? SubTitle { get; set; }
+    [Parameter] public AuthHeaderStyle Style { get; set; } = AuthHeaderStyle.Primary;
+
+    public Color GetTitleColor()
+    {
+        if (Style == AuthHeaderStyle.Primary) return Color.Primary;
+        else return Color.Default;
+    }
+
+    public string GetFontWeight()
+    {
+        if (Style == AuthHeaderStyle.Primary) return $"{(int)FontWeight.Bold}";
+        return $"{(int)FontWeight.Normal}";
+    }
+
+}

@@ -1,0 +1,30 @@
+
+.logo {
+    width: 60px;
+    height: auto;
+}
+
+.dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    max-width: 3px;
+    border: 1px solid var(--primary-color);
+}
+
+.mobile-dropdown-menu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; 
+    background-color: var(--bg-color);
+    padding: 0.5rem 1rem; 
+    border: 1px solid var(--primary-color);
+    border-radius: 0.25rem;
+    top: 40px;
+    right: 0px;
+    min-width: fit-content;
+    z-index: 1;
+}

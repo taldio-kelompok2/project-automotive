@@ -1,0 +1,52 @@
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<MudAppBar class="py-2 px-4" Fixed="false" Elevation="0" Dense="true">
+    <img class="logo" src="icons/main.svg" />
+    <MudText Typo="Typo.h6">Otomobil</MudText>
+    <MudSpacer />
+    <div class="d-none d-md-flex">
+        <div class="d-flex align-items-center justify-content-evenly gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" Color="Color.Primary"
+                aria-label="Shoppingcart" />
+            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary" Class="px-0"
+                OnClick="@(() => { })">My Class
+            </MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Invoice
+            </MudButton>
+            <span class="nav-seperator">|</span>
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <MudIconButton Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Primary"
+                    aria-label="Profile" />
+                <MudIconButton Icon="@Icons.Material.Outlined.ExitToApp" Size="Size.Small" Color="Color.Secondary"
+                    aria-label="Logout" />
+            </div>
+        </div>
+    </div>
+    <div class="d-md-none position-relative">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Primary" Edge="Edge.End"
+            OnClick="@(() => expandMenu = !expandMenu)" />
+
+        @if (expandMenu)
+        {
+            <div class="mobile-dropdown-menu">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">My Class
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Invoice
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Cart
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Profile
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Logout
+                </MudButton>
+            </div>
+        }
+    </div>
+</MudAppBar>
+
+@code {
+    private bool expandMenu = false;
+    private const string LOGIN_PAGE = "/login";
+    private const string REGISTER_PAGE = "/register";
+}

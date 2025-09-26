@@ -1,77 +1,84 @@
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+
 @rendermode InteractiveServer
+@layout AuthLayout
+@page "/login"
 
-@page "/Login"
+@* kalo ga ditaro disini ga render sama sekali dialog nya :/ *@
+<MudDialogProvider />
 
-<div class="auth-container">
-    <div class="auth-title-group">
-        <MudText Typo="Typo.h5" Color="Color.Primary">Welcome Back!</MudText>
-        <MudText Typo="Typo.body2">Please login first</MudText>
-    </div>
-    <EditForm OnValidSubmit="OnValidSubmit" EditContext="@_editContext">
-        <DataAnnotationsValidator />
-        <MudStack Spacing="2">
-            <MudTextField @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" Variant="Variant.Outlined"
-                Margin="Margin.Dense" placeholder="Email" OnBlur="UpdateFormValidity" />
-            <MudTextField @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)"
-                Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End"
-                InputType="@(_isPasswordVisible? InputType.Text: InputType.Password)"
-                AdornmentIcon="@(_isPasswordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
-                AdornmentColor="Color.Default" OnAdornmentClick="ViewPassword" IconSize="Size.Small"
-                AdornmentAriaLabel="Toggle password visibility" placeholder="Password" OnBlur="UpdateFormValidity" />
-            <div class="d-flex gap-1 mt-2">
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Forgot Password?</MudText>
-                <MudLink Href="#" Typo="Typo.body2" Underline="Underline.None" Color="Color.Tertiary">Click here
-                </MudLink>
-            </div>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                Disabled="@(!_isFormValid)" Class="ml-auto custom-form-button">
-                Login
-            </MudButton>
-            <div class="d-flex gap-1 justify-content-center p-4">
-                <MudText Typo="Typo.body2">
-                    Dont Have An Account?
-                </MudText>
-                <MudLink Href="#" Typo="Typo.body2" Underline="Underline.None" Color="Color.Tertiary">Click here
-                </MudLink>
-            </div>
-        </MudStack>
-    </EditForm>
-    @if (success)
-    {
-        <MudCard>
-            <MudCardContent>
-                <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
-                <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
-            </MudCardContent>
-        </MudCard>
-
-    }
-</div>
+<AuthHeader Title="Welcome Back!" SubTitle="Please login first" />
+<EditForm OnValidSubmit="OnValidSubmit" Model="@_loginModel">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <AuthTextField @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" Placeholder="Email" />
+        <AuthTextField @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)" Placeholder="Password"
+            Mode="AuthTextMode.Password" />
+        <div class="d-flex gap-1 mt-2">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Forgot Password?</MudText>
+            <MudLink OnClick="() => Nav.NavigateTo(FORGOT_PASSWORD_PAGE)" Typo="Typo.body2" Underline="Underline.None"
+                Color="Color.Tertiary">Click here
+            </MudLink>
+        </div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+            Disabled="@(!IsFormFilled())" Class="ml-auto custom-form-button">
+            Login
+        </MudButton>
+        <div class="d-flex gap-1 justify-content-center p-4">
+            <MudText Typo="Typo.body2">
+                Dont Have An Account?
+            </MudText>
+            <MudLink OnClick="() => Nav.NavigateTo(REGISTER_PAGE)" Typo="Typo.body2" Underline="Underline.None"
+                Color="Color.Tertiary">Click here
+            </MudLink>
+        </div>
+    </MudStack>
+</EditForm>
 
 @code {
-    private EditContext _editContext = null!;
-    private LoginRequestDto _loginModel = new LoginRequestDto();
-    private bool _isPasswordVisible = false;
-    private bool _isFormValid = false;
-    private bool success = false;
+    private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
+    private const string HOME_PAGE = "/";
+    private const string REGISTER_PAGE = "/register";
+    private LoginViewModel _loginModel = new LoginViewModel();
+    private RenderFragment LoginDialogContent =>
+    @<div>
+        <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
+        <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
+    </div>;
 
-    protected override void OnInitialized()
+    private bool IsFormFilled()
     {
-        _editContext = new EditContext(_loginModel);
+        var props = _loginModel.GetType()
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var prop in props)
+        {
+            var value = prop.GetValue(_loginModel);
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString())) return false;
+        }
+
+        return true;
     }
 
-    private void UpdateFormValidity(FocusEventArgs e)
+    @* TODO: Remove on Auth Implementation *@
+    private async Task OpenDialogAsync(string location)
     {
-        _editContext.Validate();
-        _isFormValid = !_editContext.GetValidationMessages().Any();
-        Console.WriteLine($"Form valid? {_isFormValid}");
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Login Successful",
+            ["Content"] = LoginDialogContent,
+            ["Location"] = location
+        };
 
-        StateHasChanged();
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<AuthResultDialog>("Login Successful", parameters, options);
     }
 
-    private void ViewPassword() => _isPasswordVisible = !_isPasswordVisible;
-    private void OnValidSubmit()
+    private async Task OnValidSubmit()
     {
-        success = true;
+        _loginModel.Success = true;
+        await OpenDialogAsync(HOME_PAGE);
     }
 }

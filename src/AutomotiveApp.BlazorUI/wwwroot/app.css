@@ -2,6 +2,7 @@
     --bg-color: #ffffff;
     --primary-color: #790B0A; 
     --secondary-color: #4F4F4F;
+    --adornment-color: #9e9b9bc8;
     --accent-color: #5596f0;
     --form-border-color: #CFD6E5;
     --font-primary-color: #333333;
@@ -75,24 +76,13 @@ a {
 }
 
 .custom-form-button {
-    padding: 7px 2.75rem !important;
+    padding: 5.5px 2.75rem !important;
     border-radius: 8px !important;;
 }
 
-.auth-container {
-    margin: 6rem auto 0 auto; /* top 5rem, horizontal auto */
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-    max-width: 600px;
-    max-height: fit-content;
-}
-
-.auth-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    color: var(--secondary-color);
+/* adornment logo only */
+.mud-input-adornment .mud-icon-root {
+    fill: var(--adornment-color) !important;
 }
 
 .footer-icons {
