@@ -79,14 +79,14 @@
                  Style="font-weight: 600;">Another favorite course</MudText>
     </MudHidden>
     <!-- Courses card -->
-    @if (courses is null)
-    {
-        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-    }
-    else
-    {
         <MudGrid Spacing="6" Class="px-2 pb-8 mb-16">
-            @foreach (var course in courses)
+            @foreach (var car in cars)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <CarCard Car="car" />
+                </MudItem>
+            }
+@*             @foreach (var course in courses)
             {
                 <MudItem xs="12" sm="6" md="4">
                     <MudCard Elevation="0"
@@ -110,9 +110,8 @@
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
-            }
+            } *@
         </MudGrid>
-    }
 </MudContainer>
 
 <Footer />
@@ -121,8 +120,9 @@
     [Parameter]
     public string? Category { get; set; }
 
-    private List<Course>? allCourses;
-    private List<Course>? courses;
+    private List<CarViewModel> allCars = new List<CarViewModel>();
+    private List<CarViewModel> cars = new List<CarViewModel>();
+
 
     private readonly Random _random = new();
 
@@ -155,64 +155,34 @@
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(200);
-        allCourses = new List<Course>
-            {
-                new() { Title="Course SUV Kijang Innova", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-SUV-Kijang-Innova.svg" },
-                new() { Title="Hyundai Palisade 2021", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Hyundai-Palisade-2021.svg" },
-                new() { Title="Course Suzuki XL7", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Suzuki-XL7.svg" },
-                new() { Title="Course Mitsubishi Pajero", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Course-Mitsubishi-Pajero.svg" },
-                new() { Title="SUV Toyota Fortuner", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/SUV-Toyota-Fortuner.svg" },
-                new() { Title="Premium Mazda CX-5 Course", Category="SUV", Price=800000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                // mpv
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="MPV", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                // mpv
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-                new() { Title="Course Avanza", Category="LCGC", Price=500000, ImageUrl="images/CourseMenu/Premium-Mazda-CX-5 Course.svg" },
-            };
+        CarViewModel.InitDummyData(allCars);
 
         if (!string.IsNullOrEmpty(Category))
-            courses = allCourses
+            cars = allCars
                 .Where(c => string.IsNullOrEmpty(Category) ||
-                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                            c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(_ => _random.Next())
                 .Take(6)
                 .ToList();
         else
-            courses = allCourses;
+            cars = allCars;
     }
 
     protected override Task OnParametersSetAsync()
     {
-        if (allCourses is null)
+        if (allCars is null)
             return Task.CompletedTask;
 
-        courses = string.IsNullOrEmpty(Category)
-            ? allCourses
-            : allCourses
+        cars = string.IsNullOrEmpty(Category)
+            ? allCars
+            : allCars
                 .Where(c => string.IsNullOrEmpty(Category) ||
-                            c.Category.Equals(Category, StringComparison.OrdinalIgnoreCase))
+                            c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(_ => _random.Next())
                 .Take(6)
                 .ToList();
 
         return Task.CompletedTask;
-    }
-
-    private class Course
-    {
-        public string Title { get; set; } = string.Empty;
-        public int Price { get; set; } = 0;
-        public string ImageUrl { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
     }
 
     private void NavigateToCourseDetail(string courseTitle)
