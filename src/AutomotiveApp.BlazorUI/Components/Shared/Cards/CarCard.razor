@@ -1,4 +1,8 @@
-<div class="card card-car">
+@rendermode InteractiveServer
+
+@inject NavigationManager Nav
+
+<div class="card card-car" @onclick="() => NavigateToCourseDetail(Car)">
     <img src=@Car.Image class="car-card-img-top">
     <div class="card-body card-car-body">
         <div class="d-flex flex-column gap-1">
@@ -17,4 +21,10 @@
 
 @code {
     [Parameter] public CarViewModel Car { get; set; } = null!;
+
+    private void NavigateToCourseDetail(CarViewModel car)
+    {
+        string normalizedTitle = car.Name.Replace(" ", "-").ToLowerInvariant();
+        Nav.NavigateTo($"/{car.Category.ToString().ToLowerInvariant()}/{normalizedTitle}");
+    }
 }

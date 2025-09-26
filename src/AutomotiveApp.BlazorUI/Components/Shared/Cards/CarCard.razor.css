@@ -3,7 +3,15 @@
     border: none;
     min-height: 400px;
     max-height: 450px;
+    cursor: pointer;
+    transition: background-color 0.1s;
 }
+
+    .card-car:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-5px);
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    }
 
 .card-car-body {
     display: flex;

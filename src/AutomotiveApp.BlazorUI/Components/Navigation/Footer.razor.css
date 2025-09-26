@@ -30,7 +30,7 @@ ul li {
 
 .footer-text li {
   cursor: pointer;
-  list-style: none;
+  list-style: inside;
   transition: color 0.2s;
 }
 
