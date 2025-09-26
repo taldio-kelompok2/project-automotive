@@ -1,15 +1,21 @@
+@rendermode InteractiveServer
+
+@inject NavigationManager Nav
+
 <footer class="footer">
     <MudStack Spacing="1">
         <MudText Typo="Typo.body1" Color="Color.Primary">About Us</MudText>
         <div class="footer-text">
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem
-            aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+            We are a trusted driving school dedicated to preparing drivers who are not only skilled but also disciplined on the road. With a strong track record and positive testimonials, we aim to deliver the best driving education experience for all learners.
         </div>
     </MudStack>
+
     <MudStack Spacing="1">
         <MudText Typo="Typo.body1" Color="Color.Primary">Product</MudText>
         <div class="footer-text">
-            <ul>
+          
+<!-- <<<<<<< Feature/D14-Navigation_Landing_Page
+            @* <ul>
                 <li>Electric</li>
                 <li>Hatchback</li>
                 <li>LCGC</li>
@@ -18,14 +24,34 @@
                 <li>Sedan</li>
                 <li>SUV</li>
                 <li>Truck</li>
+            </ul> *@
+
+            <ul class="footer-text">
+                <li @onclick='@(() => GoToCategory("electric"))' role="button" tabindex="0">Electric</li>
+                <li @onclick='@(() => GoToCategory("hatchback"))' role="button" tabindex="0">Hatchback</li>
+                <li @onclick='@(() => GoToCategory("lcgc"))' role="button" tabindex="0">LCGC</li>
+                <li @onclick='@(() => GoToCategory("mpv"))' role="button" tabindex="0">MPV</li>
+                <li @onclick='@(() => GoToCategory("offroad"))' role="button" tabindex="0">Offroad</li>
+                <li @onclick='@(() => GoToCategory("sedan"))' role="button" tabindex="0">Sedan</li>
+                <li @onclick='@(() => GoToCategory("suv"))' role="button" tabindex="0">SUV</li>
+                <li @onclick='@(() => GoToCategory("truck"))' role="button" tabindex="0">Truck</li>
+======= -->
+          
+            <ul>
+                @foreach(string category in categories)
+                {
+                    <li @onclick="() => NavigateToCourseMenu(category)" style="cursor: pointer;">@category</li>
+                }
             </ul>
+
         </div>
     </MudStack>
+
     <MudStack>
         <MudStack Spacing="1">
             <MudText Typo="Typo.body1" Color="Color.Primary">Address</MudText>
             <div class="footer-text">
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.
+                1234 Learning Road, Training City, Education State, 56789
             </div>
         </MudStack>
         <MudStack Spacing="1">
@@ -54,3 +80,19 @@
         </MudStack>
     </MudStack>
 </footer>
+
+<!-- <<<<<<< Feature/D14-Navigation_Landing_Page
+@code {
+    private void GoToCategory(string category)
+        => Nav.NavigateTo($"/courses/{category.ToLowerInvariant()}");
+}
+======= -->
+@code {
+    [Inject] NavigationManager Nav { get; set; }
+    private string[] categories = { "Electric", "Hatchback", "LCGC", "MPV", "Offroad", "Sedan", "SUV", "Truck" };
+
+    private void NavigateToCourseMenu(string category)
+    {
+        Nav.NavigateTo($"/{category.ToLowerInvariant()}");
+    }
+}
