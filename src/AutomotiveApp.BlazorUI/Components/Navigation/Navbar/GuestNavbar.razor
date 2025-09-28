@@ -7,12 +7,12 @@
     <MudSpacer />
     <div class="d-none d-md-flex">
         <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
+            <AppBaseButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
                 OnClick="@(() => Nav.NavigateTo(REGISTER_PAGE))">Sign Up
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Nav.NavigateTo(LOGIN_PAGE))">
+            </AppBaseButton>
+            <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Nav.NavigateTo(LOGIN_PAGE))">
                 Login
-            </MudButton>
+            </AppBaseButton>
         </div>
     </div>
     <div class="d-md-none position-relative">
@@ -22,12 +22,12 @@
         @if (expandMenu)
         {
             <div class="mobile-dropdown-menu">
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                <AppBaseButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
                     OnClick="@(() => {Nav.NavigateTo(REGISTER_PAGE);})">Sign Up
-                </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                </AppBaseButton>
+                <AppBaseButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
                     OnClick="@(() => {Nav.NavigateTo(LOGIN_PAGE);})">Login
-                </MudButton>
+                </AppBaseButton>
             </div>
         }
     </div>

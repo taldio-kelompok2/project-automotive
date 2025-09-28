@@ -12,13 +12,13 @@
         <AuthTextField @bind-Value="_registerModel.Name" For="@(() => _registerModel.Name)" Placeholder="Name" />
         <AuthTextField @bind-Value="_registerModel.Email" For="@(() => _registerModel.Email)" Placeholder="Email" />
         <AuthTextField @bind-Value="_registerModel.Password" For="@(() => _registerModel.Password)"
-            Placeholder="Password" Mode="AuthTextMode.Password" />
+            Placeholder="Password" Mode="AuthTextFieldMode.Password" />
         <AuthTextField @bind-Value="_registerModel.ConfirmPassword" For="@(() => _registerModel.ConfirmPassword)"
-            Placeholder="Confirm Password" Mode="AuthTextMode.ConfirmPassword" />
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-            Disabled="@(!IsFormFilled())" Class="ml-auto custom-form-button mt-3">
+            Placeholder="Confirm Password" Mode="AuthTextFieldMode.ConfirmPassword" />
+        <AppBaseButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+            Disabled="@(!IsFormFilled())" Width="ButtonWidth.Medium" Class="mt-3 ml-auto">
             Sign Up
-        </MudButton>
+        </AppBaseButton>
         <div class="d-flex gap-1 justify-content-center p-4">
             <MudText Typo="Typo.body2">
                 Have Account?

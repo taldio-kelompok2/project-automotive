@@ -11,17 +11,17 @@
     <MudStack Spacing="2">
         <AuthTextField @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" Placeholder="Email" />
         <AuthTextField @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)" Placeholder="Password"
-            Mode="AuthTextMode.Password" />
+            Mode="AuthTextFieldMode.Password" />
         <div class="d-flex gap-1 mt-2">
             <MudText Typo="Typo.body2" Color="Color.Secondary">Forgot Password?</MudText>
             <MudLink OnClick="() => Nav.NavigateTo(FORGOT_PASSWORD_PAGE)" Typo="Typo.body2" Underline="Underline.None"
                 Color="Color.Tertiary">Click here
             </MudLink>
         </div>
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-            Disabled="@(!IsFormFilled())" Class="ml-auto custom-form-button">
+        <AppBaseButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+            Disabled="@(!IsFormFilled())" Width="ButtonWidth.Medium" Class="ml-auto">
             Login
-        </MudButton>
+        </AppBaseButton>
         <div class="d-flex gap-1 justify-content-center p-4">
             <MudText Typo="Typo.body2">
                 Dont Have An Account?

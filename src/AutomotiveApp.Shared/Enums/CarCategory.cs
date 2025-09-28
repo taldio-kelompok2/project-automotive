@@ -1,11 +1,14 @@
-public enum CarCategory
+namespace AutomotiveApp.Shared.Enums
 {
-    Electric,
-    Hatchback,
-    LCGC,
-    MPV,
-    Offroad,
-    Sedan,
-    SUV,
-    Truck,
+    public enum CarCategory
+    {
+        Electric,
+        Hatchback,
+        LCGC,
+        MPV,
+        Offroad,
+        Sedan,
+        SUV,
+        Truck,
+    }
 }
