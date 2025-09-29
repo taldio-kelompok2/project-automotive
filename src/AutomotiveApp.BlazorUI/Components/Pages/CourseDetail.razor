@@ -5,37 +5,55 @@
 
 <PageTitle>Course Detail</PageTitle>
 
-<MudGrid Class="px-0 pt-0 mt-4 mb-2 mx-0 px-md-5 pt-md-4 justify-content-center justify-content-md-start" Spacing="0">
-    <MudItem xs="10" sm="12" md="5" Class="m-0 ps-md-5 d-flex justify-content-center justify-content-md-start" Style="align-self:center;">
-        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+<MudGrid Class="px-0 pt-0 mt-4 mb-2 mx-0 px-lg-5 pt-lg-4 justify-content-center justify-content-lg-start" Spacing="0">
+    <MudItem xs="10" sm="10" md="6" lg="5" Class="m-0 pb-sm-0 pb-md-0 ps-lg-5 d-flex justify-content-center justify-content-lg-start" Style="align-self:center;">
+        <!-- Mobile (xs, sm) -->
         <MudImage Src="@chosenCar.Image"
-                  Class="responsive-img"
-                  Style="width: 90%; object-fit:cover; border: 1px solid #BDBDBD;" />
-        </MudHidden>
-        <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <MudImage Src="@chosenCar.Image"
-                      Class="responsive-img"
-                      Style="width: 100%; object-fit:cover; border: 1px solid #BDBDBD;" />
-        </MudHidden>
+                  Class="d-block d-md-none"
+                  Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+
+        <!-- Tablet (md only) -->
+        <MudImage Src="@chosenCar.Image"
+                  Class="d-none d-md-block d-lg-none"
+                  Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+
+        <!-- Desktop (lg and up) -->
+        <MudImage Src="@chosenCar.Image"
+                  Class="d-none d-md-none d-lg-block"
+                  Style="width:90%; object-fit:cover; border:1px solid #BDBDBD;" />
     </MudItem>
 
+    @* have to apply flex on both to work*@
     <MudItem xs="10" md="5" Class="pt-4 pt-md-0 d-flex justify-content-center justify-content-md-start" Style="flex-grow:1; display:flex; flex-direction:column;">
         <div class="px-0 mx-0" style="flex:1; display:flex; flex-direction:column;">
-            @* have to apply flex on both to work*@
             <MudText Typo="Typo.h6" Class="p-0"
-                    Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle</MudText>
+                    Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle.ToString()</MudText>
             <MudText Typo="Typo.h4" Class="pt-2"
                     Style="font-weight: 600;">@chosenCar.Name</MudText>
             <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
                     Style="font-weight:600">IDR @chosenCar.Price.ToString("N0")</MudText>
-            <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
-                        Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true>
-                <MudSelectItem Value="DummySchedule">
-                    <MudText Typo="Typo.body2" >
-                        Wednesday, 27 July 2022
-                    </MudText>
-                </MudSelectItem>
-            </MudSelect>
+
+            <!-- schedule dropdown -->
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
+                           Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true>
+                    <MudSelectItem Value="DummySchedule">
+                        <MudText Typo="Typo.body2">
+                            Wednesday, 27 July 2022
+                        </MudText>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
+                           Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true FullWidth=true>
+                    <MudSelectItem Value="DummySchedule">
+                        <MudText Typo="Typo.body2">
+                            Wednesday, 27 July 2022
+                        </MudText>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudHidden>
         <div class="d-block d-lg-none d-flex justify-content-center" Style="width:100%;margin-top: auto;">
             <MudStack Spacing="3" Class="justify-center w-100">
                 <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Medium">
@@ -49,10 +67,10 @@
             <div class="d-none d-lg-block" Style=" margin-top: auto;">
             <MudStack Row="true" Spacing="2">
                 <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Long" FullWidth=true Style="border-radius:10px; border-width: 2px !important;">
-                    <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px;">Add to Cart</MudText>
+                    <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Add to Cart</MudText>
                 </AppBaseButton>
                 <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="ButtonWidth.Long" FullWidth=true Style="border-radius:10px;">
-                        <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px">Buy Now</MudText>
+                        <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Buy Now</MudText>
                 </AppBaseButton>
             </MudStack>
         </div>
@@ -123,17 +141,17 @@
 
     private readonly Random _random = new();
 
-    private string CategoryTitle => Category?.ToLower() switch
+    private CarCategory CategoryTitle => Category?.ToLowerInvariant() switch
     {
-        "electric" => "Electric",
-        "hatchback" => "Hatchback",
-        "lcgc" => "LCGC",
-        "offroad" => "Offroad",
-        "truck" => "Truck",
-        "suv" => "SUV",
-        "mpv" => "MPV",
-        "sedan" => "Sedan",
-        _ => "SUV"
+        "electric" => CarCategory.Electric,
+        "hatchback" => CarCategory.Hatchback,
+        "lcgc" => CarCategory.LCGC,
+        "offroad" => CarCategory.Offroad,
+        "truck" => CarCategory.Truck,
+        "suv" => CarCategory.SUV,
+        "mpv" => CarCategory.MPV,
+        "sedan" => CarCategory.Sedan,
+        _ => CarCategory.SUV
     };
 
 
@@ -141,7 +159,19 @@
     {
         await Task.Delay(200);
         CarViewModel.InitDummyData(allCars);
+        LoadData();
+    }
 
+    protected override Task OnParametersSetAsync()
+    {
+        if (allCars is not null)
+            LoadData();
+
+        return Task.CompletedTask;
+    }
+
+    private void LoadData()
+    {
         // get cars
         if (!string.IsNullOrEmpty(Category))
             cars = allCars
@@ -163,47 +193,11 @@
         }
         else
         {
-            // fallback when no title in route
-            chosenCar = new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
+            chosenCar = new CarViewModel { Name = "Car not found", Category = CarCategory.Electric, Image = "", Price = 0 };
         }
 
         if (cars != null && chosenCar != null)
             cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
-    }
-
-    protected override Task OnParametersSetAsync()
-    {
-        if (allCars is null)
-            return Task.CompletedTask;
-
-        // get courses
-        if (!string.IsNullOrEmpty(Category))
-            cars = allCars
-                .Where(c => string.IsNullOrEmpty(Category) ||
-                            c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(_ => _random.Next())
-                .Take(6)
-                .ToList();
-        else
-            cars = allCars;
-
-        string normalizedTitle = Name.Replace("-", " ").Trim().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(Name))
-        {
-            chosenCar = allCars
-                .FirstOrDefault(c => c.Name.ToLowerInvariant().Equals(normalizedTitle))
-                ?? new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
-        }
-        else
-        {
-            // fallback when no title in route
-            chosenCar = new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
-        }
-
-        if (cars != null && chosenCar != null)
-            cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
-
-        return Task.CompletedTask;
     }
 
     private void NavigateToCourseDetail(string courseTitle)
