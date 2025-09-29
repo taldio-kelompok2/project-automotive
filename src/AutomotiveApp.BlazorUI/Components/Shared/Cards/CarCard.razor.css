@@ -20,9 +20,10 @@
 }
 
 .car-card-img-top {
-    width: 100%;         
-    height: 233px;       
+    width: 100%;
+    height: 233px;
     object-fit: cover;
+    border: 1px solid #BDBDBD;
 }
 
 .card-car-title {
