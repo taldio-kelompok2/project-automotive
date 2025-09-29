@@ -3,74 +3,104 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 
-<style>
-    .course-card-hover {
-        background-color: white;
-        transition: background-color 0.1s;
-        cursor: pointer;
-    }
-
-    .course-card-hover:hover {
-        background-color: #f5f5f5;
-        transform: translateY(-5px);
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-    }
-
-    .schedule-dropdown {
-        width: 50%;
-    }
-</style>
-
 <PageTitle>Course Detail</PageTitle>
 
-<MudGrid Class="px-5 pt-4 my-2 mx-6">
-    <MudItem sm="12" md="5">
+<MudGrid Class="px-0 pt-0 mt-4 mb-2 mx-0 px-lg-5 pt-lg-4 justify-content-center justify-content-lg-start" Spacing="0">
+    <MudItem xs="10" sm="10" md="6" lg="5" Class="m-0 pb-sm-0 pb-md-0 ps-lg-5 d-flex justify-content-center justify-content-lg-start" Style="align-self:center;">
+        <!-- Mobile (xs, sm) -->
         <MudImage Src="@chosenCar.Image"
-                  Style="width: 90%; object-fit:cover; border: 1px solid #BDBDBD" />
+                  Class="d-block d-md-none"
+                  Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+
+        <!-- Tablet (md only) -->
+        <MudImage Src="@chosenCar.Image"
+                  Class="d-none d-md-block d-lg-none"
+                  Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+
+        <!-- Desktop (lg and up) -->
+        <MudImage Src="@chosenCar.Image"
+                  Class="d-none d-md-none d-lg-block"
+                  Style="width:90%; object-fit:cover; border:1px solid #BDBDBD;" />
     </MudItem>
 
-    <MudItem sm="12" md="5" Class="pl-0" Style="flex-grow:1; display:flex; flex-direction:column;">
-        <MudText Typo="Typo.h6" Class="p-0"
-                 Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle</MudText>
-        <MudText Typo="Typo.h4" Class="pt-2"
-                 Style="font-weight: 600;">@chosenCar.Name</MudText>
-        <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
-                 Style="font-weight:600">IDR @chosenCar.Price.ToString("N0")</MudText>
-        @* width can't be set *@
-        <MudSelect T="string" Variant="Variant.Outlined" @bind-Value="_selectedSchedule"
-                    Class="pt-8"
-                    FitContent=true>
-            <MudSelectItem Value="DummySchedule">Wednesday, 27 July 2022</MudSelectItem>
-        </MudSelect>
-        <div style="flex-grow:1;"></div>
-        <MudStack Row=true>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="py-2"
-                       style="width: 250px; border-width: 2px; border-radius: 10px;"> <MudText Style="font-size: 17px;">Add to Cart</MudText></MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="py-2" DropShadow=false
-                       style="width: 250px; border-width: 2px; border-radius: 10px;"><MudText Style="font-size: 17px;">Buy Now</MudText></MudButton>
-        </MudStack>
+    @* have to apply flex on both to work*@
+    <MudItem xs="10" md="5" Class="pt-4 pt-md-0 d-flex justify-content-center justify-content-md-start" Style="flex-grow:1; display:flex; flex-direction:column;">
+        <div class="px-0 mx-0" style="flex:1; display:flex; flex-direction:column;">
+            <MudText Typo="Typo.h6" Class="p-0"
+                    Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle.ToString()</MudText>
+            <MudText Typo="Typo.h4" Class="pt-2"
+                    Style="font-weight: 600;">@chosenCar.Name</MudText>
+            <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
+                    Style="font-weight:600">IDR @chosenCar.Price.ToString("N0")</MudText>
+
+            <!-- schedule dropdown -->
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
+                           Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true>
+                    <MudSelectItem Value="DummySchedule">
+                        <MudText Typo="Typo.body2">
+                            Wednesday, 27 July 2022
+                        </MudText>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
+                           Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true FullWidth=true>
+                    <MudSelectItem Value="DummySchedule">
+                        <MudText Typo="Typo.body2">
+                            Wednesday, 27 July 2022
+                        </MudText>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudHidden>
+        <div class="d-block d-lg-none d-flex justify-content-center" Style="width:100%;margin-top: auto;">
+            <MudStack Spacing="3" Class="justify-center w-100">
+                <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Medium">
+                    <MudText Typo="Typo.body1">Add to Cart</MudText>
+                </AppBaseButton>
+                <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="ButtonWidth.Medium">
+                    <MudText Typo="Typo.body1">Buy Now</MudText>
+                </AppBaseButton>
+            </MudStack>
+        </div>
+            <div class="d-none d-lg-block" Style=" margin-top: auto;">
+            <MudStack Row="true" Spacing="2">
+                <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Long" FullWidth=true Style="border-radius:10px; border-width: 2px !important;">
+                    <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Add to Cart</MudText>
+                </AppBaseButton>
+                <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="ButtonWidth.Long" FullWidth=true Style="border-radius:10px;">
+                        <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Buy Now</MudText>
+                </AppBaseButton>
+            </MudStack>
+        </div>
+    </div>
     </MudItem>
 </MudGrid>
 
-<MudStack Class="mt-10 px-5" Style="border-bottom: 1px solid #E0E0E0;">
-    <MudText Typo="Typo.h4"
-             Class="text-black mx-4 px-4 mt-1"
+<MudStack Class="mt-12 px-4 px-md-5" Style="border-bottom: 1px solid #E0E0E0;">
+    <MudText Typo="Typo.h3"
+             Class="text-black mx-2 px-0 mt-1 pt-2 px-md-4 mx-md-4 pt-md-0"
              Align="Align.Left"
              Style="font-weight: 600;">Description</MudText>
     <MudText Typo="Typo.subtitle1"
-             Class="text-black mx-4 px-4 mb-5 pt-2 pb-5"
-             Style="text-align: justify; line-height: 1.5; ">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+             Class="text-black mx-0 px-0 pt-2 pb-2 px-md-4 mx-md-4"
+             Style="text-align: justify; line-height: 1.3; font-size: 20px ">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </MudText>
+    <MudText Typo="Typo.subtitle1"
+             Class="text-black mx-0 px-0 mb-5 pt-2 pb-5 px-md-4 mx-md-4"
+             Style="text-align: justify; line-height: 1.5; font-size: 20px; font-family: 'Poppins', sans-serif;">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.  
     </MudText>
 </MudStack>
 
 
 <MudContainer MaxWidth="MaxWidth.Large"
-              Class="mt-4"
+              Class="mt-12 mt-md-16"
               Style="background-color: white">
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudText Typo="Typo.h4"
+        <MudText Typo="Typo.h3"
                  Align="Align.Center"
                  Color="Color.Primary"
                  Class="mt-6 mb-16 pb-4 pt-3 align-content-center"
@@ -91,31 +121,6 @@
                 <CarCard Car="car" />
             </MudItem>
         }
-@*             @foreach (var car in cars)
-            {
-                <MudItem xs="12" sm="6" md="4">
-                    <MudCard Elevation="0"
-                             Class="pb-5 mb-8 course-card-hover"
-                             @onclick="() => NavigateToCourseDetail(car.Name)"
-                             Style="display:flex; flex-direction:column; height:100%; cursor:pointer;">
-                        <MudCardContent Class="p-0" Style="flex-grow:1; display:flex; flex-direction:column;">
-                            <MudImage Src="@car.Image"
-                                      Alt="@car.Name"
-                                      Style="width: 100%;
-                                                             object-fit:cover;
-                                                             border: 1px solid #BDBDBD" />
-                            <MudText Typo="Typo.h6" Class="px-4 pt-3"
-                                     Style="font-weight: 400; color: #828282; font-size: 16px">@car.Category.ToString()</MudText>
-                            <MudText Typo="Typo.h6" Class="px-4 pb-4"
-                                 Style="font-weight: 600; color: #333333; font-size: 20px">@car.Name</MudText>
-
-                            <div style="flex-grow:1;"></div>
-                            <MudText Typo="Typo.h5" Class="px-4" Color="Color.Primary"
-                                     Style="font-weight:600">IDR @car.Price.ToString("N0")</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            } *@
         </MudGrid>
 </MudContainer>
 
@@ -125,7 +130,7 @@
     [Parameter]
     public string? Category { get; set; }
     [Parameter]
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public string DummySchedule = "Wednesday, 27 July 2022";
     private string _selectedSchedule = "Select Schedule";
@@ -136,17 +141,17 @@
 
     private readonly Random _random = new();
 
-    private string CategoryTitle => Category?.ToLower() switch
+    private CarCategory CategoryTitle => Category?.ToLowerInvariant() switch
     {
-        "electric" => "Electric",
-        "hatchback" => "Hatchback",
-        "lcgc" => "LCGC",
-        "offroad" => "Offroad",
-        "truck" => "Truck",
-        "suv" => "SUV",
-        "mpv" => "MPV",
-        "sedan" => "Sedan",
-        _ => "SUV"
+        "electric" => CarCategory.Electric,
+        "hatchback" => CarCategory.Hatchback,
+        "lcgc" => CarCategory.LCGC,
+        "offroad" => CarCategory.Offroad,
+        "truck" => CarCategory.Truck,
+        "suv" => CarCategory.SUV,
+        "mpv" => CarCategory.MPV,
+        "sedan" => CarCategory.Sedan,
+        _ => CarCategory.SUV
     };
 
 
@@ -154,7 +159,19 @@
     {
         await Task.Delay(200);
         CarViewModel.InitDummyData(allCars);
+        LoadData();
+    }
 
+    protected override Task OnParametersSetAsync()
+    {
+        if (allCars is not null)
+            LoadData();
+
+        return Task.CompletedTask;
+    }
+
+    private void LoadData()
+    {
         // get cars
         if (!string.IsNullOrEmpty(Category))
             cars = allCars
@@ -176,47 +193,11 @@
         }
         else
         {
-            // fallback when no title in route
-            chosenCar = new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
+            chosenCar = new CarViewModel { Name = "Car not found", Category = CarCategory.Electric, Image = "", Price = 0 };
         }
 
         if (cars != null && chosenCar != null)
             cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
-    }
-
-    protected override Task OnParametersSetAsync()
-    {
-        if (allCars is null)
-            return Task.CompletedTask;
-
-        // get courses
-        if (!string.IsNullOrEmpty(Category))
-            cars = allCars
-                .Where(c => string.IsNullOrEmpty(Category) ||
-                            c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(_ => _random.Next())
-                .Take(6)
-                .ToList();
-        else
-            cars = allCars;
-
-        string normalizedTitle = Name.Replace("-", " ").Trim().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(Name))
-        {
-            chosenCar = allCars
-                .FirstOrDefault(c => c.Name.ToLowerInvariant().Equals(normalizedTitle))
-                ?? new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
-        }
-        else
-        {
-            // fallback when no title in route
-            chosenCar = new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
-        }
-
-        if (cars != null && chosenCar != null)
-            cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
-
-        return Task.CompletedTask;
     }
 
     private void NavigateToCourseDetail(string courseTitle)

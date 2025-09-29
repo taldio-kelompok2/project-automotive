@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <None Include="wwwroot\images\CourseMenu\CourseMenuHero.svg" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
     <ProjectReference Include="..\AutomotiveApp.Shared\AutomotiveApp.Shared.csproj" />
     <ProjectReference Include="..\AutomotiveApp.Client\AutomotiveApp.Client.csproj" />

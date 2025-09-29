@@ -44,15 +44,18 @@
             <MudStack Spacing="3">
                 <MudText Typo=" Typo.h3" Color="Color.Primary" style="font-size: 2.5rem;">Gets your best benefit
                 </MudText>
-                <MudText Typo="Typo.body1">We provide trusted programs that are tailored to help you achieve the highest 
-                    standards of driving skills. Our training modules are designed to enhance both theory and practice, 
-                    ensuring you are ready to face real driving situations with confidence. From basic lessons to advanced courses, 
+                <MudText Typo="Typo.body1">We provide trusted programs that are tailored to help you achieve the highest
+                    standards of driving skills. Our training modules are designed to enhance both theory and practice,
+                    ensuring you are ready to face real driving situations with confidence. From basic lessons to
+                    advanced courses,
                     we cover every need for beginners and experienced drivers.
                 </MudText>
 
                 <MudText Typo="Typo.body1">
-                    Every session is focused on safety, comfort, and excellence, so you gain the confidence to drive on any road. 
-                    With supportive guidance and proven techniques, we guarantee your journey to become a skilled driver will be both 
+                    Every session is focused on safety, comfort, and excellence, so you gain the confidence to drive on
+                    any road.
+                    With supportive guidance and proven techniques, we guarantee your journey to become a skilled driver
+                    will be both
                     enjoyable and rewarding.
                 </MudText>
             </MudStack>
@@ -88,9 +91,10 @@
             <MudItem xs="6" sm="4" md="3">
                 <MudLink Href="@($"/{category.ToString().ToLower()}")" Style="text-decoration: none; color: inherit;">
                     <div class="category-card">
-                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1" Class="hover-pointer">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1"
+                            Class="hover-pointer">
                             <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")"
-                                    Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
+                                Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
                             <MudText Typo="Typo.body1">@category.ToString()</MudText>
                         </MudStack>
                     </div>
