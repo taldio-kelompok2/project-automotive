@@ -199,10 +199,4 @@
         if (cars != null && chosenCar != null)
             cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
     }
-
-    private void NavigateToCourseDetail(string courseTitle)
-    {
-        string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo($"/{Category}/{normalizedTitle}");
-    }
 }
