@@ -30,25 +30,42 @@
     </MudItem>
 
     <MudItem sm="12" md="5" Class="pl-0" Style="flex-grow:1; display:flex; flex-direction:column;">
-        <MudText Typo="Typo.h6" Class="p-0"
-                 Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle</MudText>
-        <MudText Typo="Typo.h4" Class="pt-2"
-                 Style="font-weight: 600;">@chosenCar.Name</MudText>
-        <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
-                 Style="font-weight:600">IDR @chosenCar.Price.ToString("N0")</MudText>
-        @* width can't be set *@
-        <MudSelect T="string" Variant="Variant.Outlined" @bind-Value="_selectedSchedule"
-                    Class="pt-8"
-                    FitContent=true>
-            <MudSelectItem Value="DummySchedule">Wednesday, 27 July 2022</MudSelectItem>
-        </MudSelect>
-        <div style="flex-grow:1;"></div>
-        <MudStack Row=true>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="py-2"
-                       style="width: 250px; border-width: 2px; border-radius: 10px;"> <MudText Style="font-size: 17px;">Add to Cart</MudText></MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="py-2" DropShadow=false
-                       style="width: 250px; border-width: 2px; border-radius: 10px;"><MudText Style="font-size: 17px;">Buy Now</MudText></MudButton>
-        </MudStack>
+        <div class="container-sm px-4 mx-0">
+            <MudText Typo="Typo.h6" Class="p-0"
+                    Style="font-weight: 400; color: #828282; font-size: 20px">@CategoryTitle</MudText>
+            <MudText Typo="Typo.h4" Class="pt-2"
+                    Style="font-weight: 600;">@chosenCar.Name</MudText>
+            <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" 
+                    Style="font-weight:600">IDR @chosenCar.Price.ToString("N0")</MudText>
+            <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
+                        Class="my-8 select-schedule" Dense=true FitContent=true>
+                <MudSelectItem Value="DummySchedule">
+                    <MudText Typo="Typo.body2" >
+                        Wednesday, 27 July 2022
+                    </MudText>
+                </MudSelectItem>
+            </MudSelect>
+        <div class="d-block d-lg-none" Style="min-width: 350px;">
+            <MudStack Row="true" Spacing="3">
+                <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Medium">
+                    <MudText Typo="Typo.body1">Add to Cart</MudText>
+                </AppBaseButton>
+                <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="ButtonWidth.Medium">
+                    <MudText Typo="Typo.body1">Buy Now</MudText>
+                </AppBaseButton>
+            </MudStack>
+        </div>
+        <div class="d-none d-lg-block" Style="min-width: 490px;">
+            <MudStack Row="true" Spacing="2">
+                <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Long">
+                    <MudText Typo="Typo.body1">Add to Cart</MudText>
+                </AppBaseButton>
+                <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="ButtonWidth.Long">
+                    <MudText Typo="Typo.body1">Buy Now</MudText>
+                </AppBaseButton>
+            </MudStack>
+        </div>
+    </div>
     </MudItem>
 </MudGrid>
 
@@ -125,7 +142,7 @@
     [Parameter]
     public string? Category { get; set; }
     [Parameter]
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public string DummySchedule = "Wednesday, 27 July 2022";
     private string _selectedSchedule = "Select Schedule";

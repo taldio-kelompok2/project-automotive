@@ -8,7 +8,7 @@
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public Expression<Func<string>>? For { get; set; }
     [Parameter] public string? Placeholder { get; set; }
-    [Parameter] public AuthTextMode Mode { get; set; } = AuthTextMode.Text;
+    [Parameter] public AuthTextFieldMode Mode { get; set; } = AuthTextFieldMode.Text;
 
     private bool _isPasswordVisible;
 
@@ -16,24 +16,25 @@
     {
         Value = newValue;
         return ValueChanged.InvokeAsync(newValue); // -> update to the parent model
+
     }
 
     private InputType GetInputType()
     {
-        if (Mode == AuthTextMode.Password)
+        if (Mode == AuthTextFieldMode.Password)
         {
             if (_isPasswordVisible) return InputType.Text;
             return InputType.Password;
         }
 
-        if (Mode == AuthTextMode.ConfirmPassword) return InputType.Password;
+        if (Mode == AuthTextFieldMode.ConfirmPassword) return InputType.Password;
 
         return InputType.Text;
     }
 
     private Adornment GetAdornmentPlacement()
     {
-        if (Mode == AuthTextMode.Password) return Adornment.End;
+        if (Mode == AuthTextFieldMode.Password) return Adornment.End;
 
         return Adornment.None;
 
@@ -41,7 +42,7 @@
 
     private string? GetAdornmentIcon()
     {
-        if (Mode == AuthTextMode.Password)
+        if (Mode == AuthTextFieldMode.Password)
         {
             if (_isPasswordVisible) return Icons.Material.Filled.Visibility;
             return Icons.Material.Filled.VisibilityOff;

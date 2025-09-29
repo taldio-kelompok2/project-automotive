@@ -71,7 +71,7 @@ h5 {
     position: absolute;
     bottom: 0;
     left: 0%;        
-    width: 230%;     
+    width: 200%;     
     height: 100%;
     z-index: 0;
     object-fit: cover;
@@ -81,9 +81,9 @@ h5 {
 .course-info-img {
     position: absolute;
     top: 0%;
-    left: 90%;
-    transform: translate(-45%, -32%);
-    max-width: 400px; /* bigger than parent too */
+    left: 70%;
+    transform: translate(-45%, -27%);
+    max-width: 350px; /* bigger than parent too */
     z-index: 1;
 }
 
