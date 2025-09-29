@@ -1,0 +1,90 @@
+@using MudBlazor
+@page "/detail-invoice"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<PageTitle>Details Invoice</PageTitle>
+
+<div style="min-height:calc(100vh - 200px); display:flex; flex-direction:column;">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudBreadcrumbs Class="mb-2" Style="margin-left:-10px;" Items="@Crumbs" />
+
+        <MudText Typo="Typo.h5" Class="mb-4" Style="color:#4F4F4F; font-weight:600;">
+            Details Invoice
+        </MudText>
+
+        <MudGrid Class="mb-4" Style="color:#4F4F4F;">
+            <MudItem xs="12" md="6">
+                <MudStack Spacing="1">
+                    <MudText><b>No. Invoice :</b> @InvoiceNo</MudText>
+                    <MudText><b>Date :</b> @InvoiceDate.ToString("dd MMMM yyyy", new CultureInfo("en-US"))</MudText>
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" md="6" Class="d-flex justify-end align-end">
+                <MudText Typo="Typo.subtitle1" Class="mr-2"><b>Total Price</b></MudText>
+                <MudText Typo="Typo.subtitle1"><b>@FormatIdr(TotalPrice)</b></MudText>
+            </MudItem>
+        </MudGrid>
+
+        <MudTable Items="Items" Dense="true" Hover="true" Class="w-100" Elevation="0">
+            <HeaderContent>
+                <MudTh Style="@HeaderStyle" Class="text-white"><b>No</b></MudTh>
+                <MudTh Style="@HeaderStyle" Class="text-white"><b>Course Name</b></MudTh>
+                <MudTh Style="@HeaderStyle" Class="text-white"><b>Type</b></MudTh>
+                <MudTh Style="@HeaderStyle" Class="text-white"><b>Schedule</b></MudTh>
+                <MudTh Style="@HeaderStyle" Class="text-white"><b>Price</b></MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.No</MudTd>
+                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.CourseName</MudTd>
+                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.Type</MudTd>
+                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">
+                    @context.Schedule.ToString("dddd, dd MMMM yyyy", new CultureInfo("en-US"))
+                </MudTd>
+                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@FormatIdr(context.Price)</MudTd>
+            </RowTemplate>
+
+            <NoRecordsContent>
+                <MudText class="p-4">No Data Available</MudText>
+            </NoRecordsContent>
+        </MudTable>
+    </MudContainer>
+</div>
+
+<Footer />
+
+@code {
+    private readonly CultureInfo Indo = new("id-ID");
+
+    private string HeaderStyle => "background-color:#790b0a; height:40px; text-align:center; vertical-align:middle;";
+
+    private List<BreadcrumbItem> Crumbs => new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("Invoice", href: "/invoice"),
+        new BreadcrumbItem("Details Invoice", href: null, disabled: true),
+    };
+
+    // Dummy Data
+    private string InvoiceNo = "OTO00003";
+    private DateTime InvoiceDate = new(2022, 6, 12);
+    private List<InvoiceItem> Items = new()
+    {
+        new() { No=1, CourseName="Hyundai Palisade 2021", Type="SUV", Schedule=new(2022,7,27), Price=850_000m }
+    };
+
+    private decimal TotalPrice => Items.Sum(i => i.Price);
+
+    private string FormatIdr(decimal value)
+        => string.Format(Indo, "IDR {0:N0}", value);
+
+    public class InvoiceItem
+    {
+        public int No { get; set; }
+        public string CourseName { get; set; } = "";
+        public string Type { get; set; } = "";
+        public DateTime Schedule { get; set; }
+        public decimal Price { get; set; }
+    }
+}
