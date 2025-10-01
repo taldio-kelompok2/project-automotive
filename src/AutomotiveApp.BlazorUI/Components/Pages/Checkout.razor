@@ -1,0 +1,59 @@
+@page "/checkout"
+@rendermode InteractiveServer
+@layout MainLayout
+
+<section class="checkout-container">
+    <div class="checkout-header fluid">
+        <MudCheckBox @bind-Checked="_selectAll" T="bool" />
+        <MudText Typo="Typo.h6">Pilih Semua</MudText>
+    </div>
+    <div class="checkout-seperator" />
+    <MudStack Spacing="4" Class="fluid" AlignItems="AlignItems.Baseline" Justify="Justify.FlexStart">
+        @foreach (var cart in RentalCart.Take(3))
+        {
+            <div class="rental-cart-group fluid">
+                <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center">
+                    <MudCheckBox @bind-Checked="@cart.Selected" T="bool"></MudCheckBox>
+                    <MudImage Src="@cart.Car.Image" Class="d-block" Width="200" Height="200"
+                        ObjectFit="ObjectFit.Contain" />
+                    <div class="rental-cart-content">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Car.Category</MudText>
+                        <MudText Typo="Typo.h5">@cart.Car.Name</MudText>
+                        <MudText Typo="Typo.body2"> Schedule : @cart.Car.Schedule.ToString("dddd, dd MMMM yyyy") </MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Primary" style="font-weight: 600;">
+                            IDR @cart.Car.Price.ToString("N0")
+                        </MudText>
+                    </div>
+                    <MudIconButton Icon="@Icons.Material.Rounded.DeleteForever" Variant="Variant.Text" Color="Color.Error"
+                        Size="Size.Large" />
+                </MudStack>
+                <div class="checkout-seperator" />
+            </div>
+        }
+    </MudStack>
+</Section>
+
+<section class="checkout-actions fluid">
+    <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="3" Row=true AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.body2">Total Price </MudText>
+            <MudText Typo="Typo.h5" style="font-weight:600" Color="Color.Primary">IDR @_totalPrice.ToString("N0")
+            </MudText>
+        </MudStack>
+        <AppBaseButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
+            Width="ButtonWidth.Long">Pay Now
+        </AppBaseButton>
+    </MudStack>
+</section>
+
+@code {
+    List<RentalCartViewModel> RentalCart = new();
+    private bool _selectAll = false;
+    private bool _loading = false;
+    private int _totalPrice = 200000;
+
+    protected override void OnInitialized()
+    {
+        RentalCart = RentalCartViewModel.InitDummyData();
+    }
+}
