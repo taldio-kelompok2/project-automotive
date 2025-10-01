@@ -1,0 +1,45 @@
+﻿@page "/success-purchase"
+
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+@layout AuthLayout
+
+<PageTitle>Success Purchase</PageTitle>
+
+<!-- TODO: remove signup/login on navbar of this page-->
+<div class="confirmed-container">
+    <div class="confirmed-img">
+        <MudImage Src="@ConfirmedImage" Style="width:300px;" />
+    </div>
+    <div class="confirmed-text-group">
+        <MudText Typo="Typo.h4" Color="Color.Primary">Purchase Successfully</MudText>
+        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Style="font-size: 18px">That’s Great! We’re ready for driving day</MudText>
+    </div>
+    <MudStack Row=true Spacing="4">
+        <AppBaseButton DropShadow=false Color="Color.Primary" @onclick="() => NavigateToHome()" Width="ButtonWidth.Medium"
+                       style="padding: 1rem 2rem; border-width: 2px; border-style: solid;"
+                       StartIcon="@Icons.Material.Filled.Home">
+            <MudText Style="font-weight:600;">Back to Home</MudText>
+        </AppBaseButton>
+        <AppBaseButton Variant="Variant.Filled" DropShadow=false Color="Color.Primary" @onclick="() => NavigateToInvoice()" Width="ButtonWidth.Medium"
+                       style="padding: 1rem 2rem;"
+                       StartIcon="@Icons.Material.Filled.ArrowForward">
+            <MudText Style="font-weight:600;">Open Invoice</MudText>
+        </AppBaseButton>
+    </MudStack>
+</div>
+
+@code {
+    private string ConfirmedImage = "/images/confirmed.svg";
+
+    // TODO: pass user/invoice info here
+    private void NavigateToInvoice()
+    {
+        Nav.NavigateTo("/invoice");
+    }
+
+    private void NavigateToHome()
+    {
+        Nav.NavigateTo("/");
+    }
+}

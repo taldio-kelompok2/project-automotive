@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 
 <MudAppBar class="py-2 px-4" Fixed="false" Elevation="0" Dense="true">
-    <img class="logo" src="icons/main.svg" />
-    <MudText Typo="Typo.h6">Otomobil</MudText>
+    <img class="logo" src="icons/main.svg" @onclick="() => Nav.NavigateTo(LANDING_PAGE)" style="cursor: pointer;" />
+    <MudText Typo="Typo.h6" @onclick="() => Nav.NavigateTo(LANDING_PAGE)" style="cursor: pointer;">
+        Otomobil
+    </MudText>
     <MudSpacer />
     <div class="d-none d-md-flex">
         <div class="d-flex gap-2">
@@ -37,4 +39,5 @@
     private bool expandMenu = false;
     private const string LOGIN_PAGE = "/login";
     private const string REGISTER_PAGE = "/register";
+    private const string LANDING_PAGE = "/";
 }

@@ -72,7 +72,7 @@ namespace AutomotiveApp.BlazorUI.Themes
                 White = "#FFFFFF",
 
                 Primary = "#790B0A",
-                Secondary = "#4F4F4F",
+                Secondary = "#828282",
                 Tertiary = "#5596f0",
 
                 Background = "#ffffff",
