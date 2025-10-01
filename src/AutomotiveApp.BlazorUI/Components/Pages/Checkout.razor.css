@@ -1,0 +1,35 @@
+.checkout-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin: 2rem 3.75rem;
+    min-height: calc(100vh + 300px);
+}
+
+.checkout-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.rental-cart-content {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+}
+
+.checkout-seperator {
+    border-bottom: 1.5px solid var(--form-border-color);
+    width: 100%;
+}
+
+.checkout-actions {
+    position: sticky;
+    bottom: 0;
+    border-top: 3px solid var(--form-border-color);
+    padding: 1rem 3.75rem;
+    background-color: var(--bg-color);
+    z-index: 1;
+}
