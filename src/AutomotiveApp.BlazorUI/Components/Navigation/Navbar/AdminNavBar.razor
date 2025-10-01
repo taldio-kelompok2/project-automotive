@@ -1,0 +1,28 @@
+﻿@* @inject NavigationManager NavManager *@
+@rendermode InteractiveServer
+
+<MudDrawer @bind-Open="_drawerOpen"
+           Anchor="Anchor.Left"
+           Variant="DrawerVariant.Mini"
+           Elevation="2"
+           Class="">
+    <MudNavMenu>
+        <div class="d-flex justify-content-end">
+            <MudIconButton OnClick="@ToggleDrawer" Icon="@(_drawerOpen? Icons.Material.Filled.KeyboardArrowLeft : Icons.Material.Filled.KeyboardArrowRight)" />
+        </div>
+        @* TODO: implement navigation manager *@
+        <MudNavLink Href="/admin" Icon="@Icons.Material.Filled.Dashboard" >Dashboard</MudNavLink>
+        <MudNavLink Href="/admin/user" Icon="@Icons.Material.Filled.AccountBox" >User</MudNavLink>
+        <MudNavLink Href="/admin/course" Icon="@Icons.Material.Filled.DirectionsCar" >Course</MudNavLink>
+        <MudNavLink Href="/admin/category" Icon="@Icons.Material.Outlined.Category" >Category</MudNavLink>
+        <MudNavLink Href="/admin/payment-method" Icon="@Icons.Material.Filled.AccountBalanceWallet" >Payment Method</MudNavLink>
+        <MudNavLink Href="/admin/invoice" Icon="@Icons.Material.Filled.Article" >Invoice</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    private bool _drawerOpen = true;
+
+    void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    // TODO: implement navigation manager
+}

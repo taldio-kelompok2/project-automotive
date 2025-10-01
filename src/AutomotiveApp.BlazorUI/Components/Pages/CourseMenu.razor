@@ -121,7 +121,7 @@
 
     protected override Task OnParametersSetAsync()
     {
-        if (allCars is null)
+        if (allCars is not null)
             LoadData();
 
         return Task.CompletedTask;
