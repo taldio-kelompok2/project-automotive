@@ -7,33 +7,48 @@
 
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
-        <MudGrid Class="m-0 pt-4 pb-4" Justify="Justify.Center" >
-            @foreach (var car in somecars)
+        <MudGrid Class="m-0 pt-4 pb-4 px-5" Justify="Justify.Center" >
+            @foreach (var car in pageData)
             {
                 // TODO: tidy up component file name/location
                 <ClassScheduleRow Car="car"></ClassScheduleRow>              
             }
+
+            <MudPagination Count="@pageCount"
+                           Selected="@_selectedPage"
+                           SelectedChanged="OnPageChange"
+                           Class="mt-4 px-0"/>
         </MudGrid>
+
+
     </div>
 </div>
 
 <Footer />
 
 @code {
+    [Inject] IJSRuntime JS { get; set; } = default!;
+    private int _selectedPage = 1;
+    private int pageSize = 6;
+    private int pageCount => (int)Math.Ceiling((double) cars.Count() / pageSize);
+    private List<CarViewModel> pageData = new List<CarViewModel>();
+
     // temporary code based on cars
-    // TODO: change to use dynamic user & class/course
+    // TODO: change to use dynamic class/course based on user instead of cars
     private List<CarViewModel> cars = new List<CarViewModel>();
-    private List<CarViewModel> somecars = new List<CarViewModel>();
-    private CarViewModel testcar = new CarViewModel();
 
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(100);
         CarViewModel.InitDummyData(cars);
+        pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList();
+    }
 
-        somecars = cars.Where(c => c.Category.Equals(CarCategory.SUV)).Take(6).ToList();
-
-        testcar = cars.FirstOrDefault(c => c.Name.Contains("Hyundai Palisade 2021"))
-        ?? new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
+    private async Task OnPageChange(int newPage)
+    {
+        _selectedPage = newPage;
+        pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList();
+        await InvokeAsync(StateHasChanged);
+        await JS.InvokeVoidAsync("scrollToTop");
     }
 }
