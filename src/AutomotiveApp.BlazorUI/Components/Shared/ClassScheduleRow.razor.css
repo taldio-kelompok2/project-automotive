@@ -1,0 +1,11 @@
+﻿.image-responsive {
+    width: 100%;
+    object-fit: cover;
+    border: 1px solid #BDBDBD;
+}
+
+@media (min-width: 768px) {
+    .image-responsive {
+        max-width: 233px;
+    }
+}

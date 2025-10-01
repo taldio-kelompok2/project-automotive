@@ -3,24 +3,31 @@
 
 @rendermode InteractiveServer
 
-<PageTitle>CourseUser</PageTitle>
+<PageTitle>My Class</PageTitle>
 
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
-        <MudGrid Class="m-0 pt-4 pb-4 px-5" Justify="Justify.Center" >
+        <MudGrid Class="m-0 pt-4 pb-4 px-md-5 px-4" Justify="Justify.Center" >
             @foreach (var car in pageData)
             {
                 // TODO: tidy up component file name/location
                 <ClassScheduleRow Car="car"></ClassScheduleRow>              
             }
 
-            <MudPagination Count="@pageCount"
-                           Selected="@_selectedPage"
-                           SelectedChanged="OnPageChange"
-                           Class="mt-4 px-0"/>
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudPagination Count="@pageCount"
+                               Selected="@_selectedPage"
+                               SelectedChanged="OnPageChange"
+                               Class="mt-4 px-0"/>
+            </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudPagination Count="@pageCount"
+                               Selected="@_selectedPage"
+                               SelectedChanged="OnPageChange"
+                               ShowPageButtons="false" ShowFirstButton="true" ShowLastButton="true"
+                               Class="mt-4 pe-5 me-3" />
+            </MudHidden>
         </MudGrid>
-
-
     </div>
 </div>
 
@@ -29,7 +36,7 @@
 @code {
     [Inject] IJSRuntime JS { get; set; } = default!;
     private int _selectedPage = 1;
-    private int pageSize = 6;
+    private int pageSize = 5;
     private int pageCount => (int)Math.Ceiling((double) cars.Count() / pageSize);
     private List<CarViewModel> pageData = new List<CarViewModel>();
 
