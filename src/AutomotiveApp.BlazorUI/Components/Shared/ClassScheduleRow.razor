@@ -1,0 +1,18 @@
+﻿@rendermode InteractiveServer
+
+<MudItem lg="10" Class="m-2 p-0" Style="border-bottom: 1px solid #BDBDBD;">
+    <MudStack Row=true Class="py-3">
+        <MudImage Src="@Car.Image" Style="height: 150px;" />
+        <MudStack Justify="Justify.Center" Spacing="2" Class="ps-md-2">
+            <MudText Style="font-weight: 400; color: #828282; font-family: 'Poppins', sans-serif;">@Car.Category</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight: 600; font-family: 'Poppins', sans-serif;">@Car.Name</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Primary"
+                     Style="font-weight: 500;">Schedule : Wednesday, 27 July 2022</MudText>
+        </MudStack>
+    </MudStack>
+</MudItem>
+
+@code {
+    // maybe change to class later
+    [Parameter] public CarViewModel Car { get; set; } = null!;
+}

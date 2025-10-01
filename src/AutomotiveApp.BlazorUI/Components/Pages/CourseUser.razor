@@ -1,0 +1,39 @@
+﻿@* TODO: change url *@
+@page "/user-courses" 
+
+@rendermode InteractiveServer
+
+<PageTitle>CourseUser</PageTitle>
+
+<div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
+    <div style="flex:1;">
+        <MudGrid Class="m-0 pt-4 pb-4" Justify="Justify.Center" >
+            @foreach (var car in somecars)
+            {
+                // TODO: tidy up component file name/location
+                <ClassScheduleRow Car="car"></ClassScheduleRow>              
+            }
+        </MudGrid>
+    </div>
+</div>
+
+<Footer />
+
+@code {
+    // temporary code based on cars
+    // TODO: change to use dynamic user & class/course
+    private List<CarViewModel> cars = new List<CarViewModel>();
+    private List<CarViewModel> somecars = new List<CarViewModel>();
+    private CarViewModel testcar = new CarViewModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(100);
+        CarViewModel.InitDummyData(cars);
+
+        somecars = cars.Where(c => c.Category.Equals(CarCategory.SUV)).Take(6).ToList();
+
+        testcar = cars.FirstOrDefault(c => c.Name.Contains("Hyundai Palisade 2021"))
+        ?? new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
+    }
+}
