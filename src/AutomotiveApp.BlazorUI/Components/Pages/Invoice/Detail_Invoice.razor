@@ -7,7 +7,7 @@
 
 <div style="min-height:calc(100vh - 200px); display:flex; flex-direction:column;">
     <MudContainer MaxWidth="MaxWidth.Large">
-        <MudBreadcrumbs Class="mb-2" Style="margin-left:-10px;" Items="@Crumbs" />
+        <MudBreadcrumbs Class="mb-2" Style="margin-left:-10px;" Items="@Crumbs" Separator=">" />
 
         <MudText Typo="Typo.h5" Class="mb-4" Style="color:#4F4F4F; font-weight:600;">
             Details Invoice
@@ -53,6 +53,23 @@
 </div>
 
 <Footer />
+
+
+<style>
+/* initial breadcrumb */
+.mud-breadcrumbs li a,
+.mud-breadcrumbs li .mud-typography {
+    color: #828282 !important;
+}
+
+/* last breadcrumb */
+.mud-breadcrumbs li:last-child a,
+.mud-breadcrumbs li:last-child .mud-typography {
+    color: #790b0a !important;
+    font-weight: 600; 
+}
+</style>
+
 
 @code {
     private readonly CultureInfo Indo = new("id-ID");
