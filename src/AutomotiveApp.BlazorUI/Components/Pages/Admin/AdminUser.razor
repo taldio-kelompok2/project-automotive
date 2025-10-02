@@ -8,25 +8,16 @@
 <MudPaper Class="m-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">User Management</MudText>
     <AppBaseButton Width="ButtonWidth.Short" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add User</AppBaseButton>
-    <!-- styling belum selesai -->
-    <MudTable Items="@users">
-        <HeaderContent>
-            <MudTh>Name</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Name</MudTd>
-        </RowTemplate>
-    </MudTable>
-    <MudSpacer />
+    <AdminTable TItem="User" Items="users" Columns="userColumns" OnEdit="OnUserEdit"/>
 </MudPaper>
 
 @code {
     public class User
     {
-        public string Email { get; set; }
-        public string Name { get; set; }
-        public string Role { get; set; }
-        public string Status { get; set; }
+        public required string Email { get; set; }
+        public required string Name { get; set; }
+        public required string Role { get; set; }
+        public required string Status { get; set; }
     }
 
     private List<User> users = new()
@@ -37,5 +28,25 @@
         new User { Email="iniemaildummysaya@gmail.com", Name="Dummy User", Role="User", Status="Inactive"},
         new User { Email="yusrisahrul.works@gmail.com", Name="yusri sahrul", Role="User", Status="Active"},
         new User { Email="yusribootcamp@gmail.com", Name="yusri sahrul test", Role="Admin", Status="Active"},
+        new User { Email="adasdasda@gmail.com", Name="yusri test", Role="Admin", Status="Active"},
+        new User { Email="asdasd@gmail.com", Name="yusri sahrul test", Role="Admin", Status="Active"},
+        new User { Email="dssdsdsd@gmail.com", Name="yusri sahrul test", Role="Admin", Status="Active"},
+        new User { Email="dssd6767d@gmail.com", Name="yusri sahrul test", Role="Admin", Status="Active"},
+        new User { Email="iniemail@gmail.com", Name="Dummy User", Role="User", Status="Inactive"},
     };
+
+    List<ColumnDefinition<User>> userColumns = new()
+    {
+        new ColumnDefinition<User> { Header = "Name", CellTemplate = u => u.Name, IsSearchable = true, IsStatusColumn = false },
+        new ColumnDefinition<User> { Header = "Email", CellTemplate = u => u.Email, IsSearchable = true, IsStatusColumn = false },
+        new ColumnDefinition<User> { Header = "Role", CellTemplate = u => u.Role, IsSearchable = false, IsStatusColumn = false },
+        new ColumnDefinition<User> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = true, IsStatusColumn = true },
+        new ColumnDefinition<User> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false, IsStatusColumn = false, IsActionColumn = true },
+    };
+
+    private void OnUserEdit(User user)
+    {
+        // TODO: Handle edit logic 
+        Console.WriteLine($"Editing user: {user.Name}");
+    }
 }

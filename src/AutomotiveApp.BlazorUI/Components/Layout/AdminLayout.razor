@@ -1,13 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
-<MudLayout Style="background-color: var(--mud-palette-surface); height: 100vh;">
+<MudLayout Style="background-color: var(--mud-palette-surface); min-height: 100vh;" Class="pb-3">
     <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
     <MudPopoverProvider />
     <MudDialogProvider @rendermode="InteractiveServer" />
     <MudSnackbarProvider />
     <AdminNavBar />
     <MudMainContent Class="p-0">
-        <div style="padding-top: 55px;">
+        <div style="padding-top: 55px;" class="admin-layout">
             @Body
         </div>
     </MudMainContent>
