@@ -1,59 +1,225 @@
+@inject IRentalCartService Cart
+@inject NavigationManager Nav
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+
 @page "/checkout"
 @rendermode InteractiveServer
 @layout MainLayout
 
 <section class="checkout-container">
-    <div class="checkout-header fluid">
-        <MudCheckBox @bind-Checked="_selectAll" T="bool" />
-        <MudText Typo="Typo.h6">Pilih Semua</MudText>
-    </div>
-    <div class="checkout-seperator" />
-    <MudStack Spacing="4" Class="fluid" AlignItems="AlignItems.Baseline" Justify="Justify.FlexStart">
-        @foreach (var cart in RentalCart.Take(3))
-        {
-            <div class="rental-cart-group fluid">
-                <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center">
-                    <MudCheckBox @bind-Checked="@cart.Selected" T="bool"></MudCheckBox>
-                    <MudImage Src="@cart.Car.Image" Class="d-block" Width="200" Height="200"
-                        ObjectFit="ObjectFit.Contain" />
-                    <div class="rental-cart-content">
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Car.Category</MudText>
-                        <MudText Typo="Typo.h5">@cart.Car.Name</MudText>
-                        <MudText Typo="Typo.body2"> Schedule : @cart.Car.Schedule.ToString("dddd, dd MMMM yyyy") </MudText>
-                        <MudText Typo="Typo.h6" Color="Color.Primary" style="font-weight: 600;">
-                            IDR @cart.Car.Price.ToString("N0")
-                        </MudText>
+    @if (Cart.RentalCart != null && Cart.RentalCart.Any())
+    {
+        <!-- large screen header -->
+        <div class="checkout-header fluid d-none d-md-flex">
+            <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
+                <MudCheckBox @bind-Value="Cart.SelectedAll" T="bool"
+                    @bind-Value:after="() => Cart.ToggleSelectAll(Cart.SelectedAll)" Disabled="@Cart.IsCartEmpty" />
+                <MudText Typo="Typo.h6">Pilih Semua</MudText>
+            </MudStack>
+            <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Short" @onclick="DeleteAll">
+                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-1" /> Delete All
+            </AppBaseButton>
+        </div>
+        <!-- small-medium screen header -->
+        <div class="checkout-header fluid d-flex d-md-none">
+            <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
+                <MudCheckBox Size="Size.Small" @bind-Value="Cart.SelectedAll" T="bool"
+                    @bind-Value:after="() => Cart.ToggleSelectAll(Cart.SelectedAll)" Disabled="@Cart.IsCartEmpty" />
+                <MudText Typo="Typo.body2">Pilih Semua</MudText>
+            </MudStack>
+            <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Short" @onclick="DeleteAll">
+                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-1" /> Delete All
+            </AppBaseButton>
+        </div>
+        <div class="checkout-seperator" />
+        <MudStack Spacing="4" Class="fluid" AlignItems="AlignItems.Baseline" Justify="Justify.FlexStart">
+            @foreach (var cart in Cart.RentalCart)
+            {
+                <div class="rental-cart-group fluid " @key="cart.Id">
+                    <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center">
+                        <MudCheckBox @bind-Value="@cart.Selected" T="bool"
+                            @bind-Value:after="() => OnItemSelectionChanged(cart)" />
+                        <!-- large Image -->
+                        <MudImage Src="@cart.Car.Image" Class="d-none d-md-block" Width="200" Height="200"
+                            ObjectFit="ObjectFit.Contain" />
+                        <!-- small-medium Image -->
+                        <MudImage Src="@cart.Car.Image" Class="d-block d-md-none" Width="100" Height="100"
+                            ObjectFit="ObjectFit.Contain" />
+                        <!-- large content screen -->
+                        <div class="rental-cart-content d-none d-md-block">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Car.Category</MudText>
+                            <MudText Typo="Typo.h5">@cart.Car.Name</MudText>
+                            <MudText Typo="Typo.body2">Schedule: @cart.Car.Schedule?.ToString("dddd, dd MMMM yyyy", new
+                                                        System.Globalization.CultureInfo("en-US"))</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Primary" style="font-weight:600">
+                        IDR @cart.Car.Price.ToString("N0")
+                    </MudText>
+                </div>
+                <!-- small-medium content screen -->
+                <div class="d-flex flex-column flex-grow-1 d-md-none text-truncate">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@cart.Car.Category</MudText>
+                    <div class="row">
+                        <div class="text-truncate">
+                            @cart.Car.Name
+                        </div>
                     </div>
-                    <MudIconButton Icon="@Icons.Material.Rounded.DeleteForever" Variant="Variant.Text" Color="Color.Error"
-                        Size="Size.Large" />
-                </MudStack>
-                <div class="checkout-seperator" />
-            </div>
-        }
-    </MudStack>
-</Section>
+                    <MudText Typo="Typo.caption">@cart.Car.Schedule?.ToString("ddd, dd-MM-yy", new
+                                                System.Globalization.CultureInfo("en-US"))</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Primary" style="font-weight:600">
+                        IDR @cart.Car.Price.ToString("N0")
+                    </MudText>
+                </div>
+                <!-- large screen Icon -->
+                <MudIconButton Class="d-none d-md-block" Icon="@Icons.Material.Rounded.DeleteForever"
+                    Variant="Variant.Text" Color="Color.Error" Size="Size.Large" @onclick="() => RemoveItem(cart)" />
+                <!-- small-medium screen Icon -->
+                <MudIconButton Class="d-block d-md-none" Icon="@Icons.Material.Rounded.DeleteForever"
+                    Variant="Variant.Text" Color="Color.Error" Size="Size.Medium" @onclick="() => RemoveItem(cart)" />
+            </MudStack>
+            <div class="checkout-seperator" />
+        </div>
+                }
+        </MudStack>
+    }
+    else
+    {
+        <div class="empty-cart-container d-none d-md-flex">
+            <MudImage Src="Images/Cart/emptyCart.svg" Width="250" Height="250"></MudImage>
+            <MudText Typo="Typo.h4" Color="Color.Primary">Cart is empty..</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Start browsing to find your perfect rental
+            </MudText>
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
+                @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
+            </AppBaseButton>
+        </div>
+
+        <div class="empty-cart-container d-flex d-md-none">
+            <MudImage Src="Images/Cart/emptyCart.svg" Width="150" Height="150"></MudImage>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Cart is empty..</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Start browsing to find your perfect rental
+            </MudText>
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
+                @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
+            </AppBaseButton>
+        </div>
+    }
+</section>
+
 
 <section class="checkout-actions fluid">
     <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
         <MudStack Spacing="3" Row=true AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.body2">Total Price </MudText>
-            <MudText Typo="Typo.h5" style="font-weight:600" Color="Color.Primary">IDR @_totalPrice.ToString("N0")
-            </MudText>
+            <MudText Typo="Typo.body2">Total Price</MudText>
+            <!-- large screen price -->
+            <div class="d-none d-md-block">
+                <MudText Typo="Typo.h5" style="font-weight:600" Color="Color.Primary">IDR
+                    @Cart.TotalPrice.ToString("N0")
+                </MudText>
+            </div>
+            <!-- small screen price -->
+            <div class="d-md-none d-block">
+                <MudText Typo="Typo.body1" style="font-weight:600" Color="Color.Primary">IDR
+                    @Cart.TotalPrice.ToString("N0")
+                </MudText>
+            </div>
         </MudStack>
-        <AppBaseButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
-            Width="ButtonWidth.Long">Pay Now
-        </AppBaseButton>
+        <!-- large screen button -->
+        <div class="d-none d-md-block">
+            <AppBaseButton ButtonType="@ButtonType.Submit" Color="@Color.Primary" Variant="@Variant.Filled"
+                Width="@ButtonWidth.Long" @onclick="PaymentHandler" Disabled="@(Cart.TotalPrice == 0)">Pay Now
+            </AppBaseButton>
+        </div>
+        <!-- small screen button -->
+        <div class="d-md-none d-flex">
+            <AppBaseButton ButtonType="@ButtonType.Submit" Color="@Color.Primary" Variant="@Variant.Filled"
+                Width="@ButtonWidth.Medium" @onclick="PaymentHandler" Disabled="@(Cart.TotalPrice == 0)">
+                <MudText Typo="Typo.caption">Pay Now</MudText>
+            </AppBaseButton>
+        </div>
     </MudStack>
 </section>
 
 @code {
-    List<RentalCartViewModel> RentalCart = new();
-    private bool _selectAll = false;
-    private bool _loading = false;
-    private int _totalPrice = 200000;
+
+    private const string HOME_PAGE = "/";
+    private void RemoveItem(RentalCartViewModel cartItem)
+    {
+        if (!Cart.TryRemoveItem(cartItem))
+            Snackbar.Add("Failed to delete item on the cart", Severity.Error);
+        else
+            Snackbar.Add($"{cartItem.Car.Name} is removed", Severity.Info);
+    }
+
+    private void DeleteAll()
+    {
+        Cart.ClearAll();
+        Snackbar.Add($"Cart is Cleared", Severity.Info);
+    }
+
+    private void OnItemSelectionChanged(RentalCartViewModel cart)
+    {
+        if (cart.Selected)
+            Cart.TotalPrice += cart.Car.Price;
+        else
+            Cart.TotalPrice -= cart.Car.Price;
+
+        Cart.SelectedAll = Cart.RentalCart.All(c => c.Selected);
+    }
+
+    private async Task PaymentHandler()
+    {
+        try
+        {
+            if (!await OpenDialogAsync())
+            {
+                Snackbar.Add("Payment successful, Redirecting in 2 second", Severity.Success,
+                config =>
+                {
+                    config.VisibleStateDuration = 2000;
+                });
+                await Task.Delay(2000);
+                Nav.NavigateTo("/success-purchase");
+            }
+            else
+            {
+                Snackbar.Add("Payment Not Successful", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task<bool> OpenDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            ["OnSubmit"] = EventCallback.Factory.Create<TransactionViewModel>(this, HandleDialogSubmit)
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialogRef = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters, options);
+        var transactionResult = await dialogRef.Result;
+
+        return transactionResult?.Canceled! ?? true;
+    }
+
+    private async Task HandleDialogSubmit(TransactionViewModel transaction)
+    {
+        await Cart.FinalizePaymentAsync();
+    }
+
 
     protected override void OnInitialized()
     {
-        RentalCart = RentalCartViewModel.InitDummyData();
+        Cart.OnCartChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Cart.OnCartChanged -= StateHasChanged;
     }
 }

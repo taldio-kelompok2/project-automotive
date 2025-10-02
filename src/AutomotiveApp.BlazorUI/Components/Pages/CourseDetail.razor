@@ -1,30 +1,33 @@
 ﻿@page "/{category}/{name}"
 @using MudBlazor
 @rendermode InteractiveServer
+@inject IRentalCartService Cart
+@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IDialogService Dialog
 
 <PageTitle>Course Detail</PageTitle>
 
 <MudGrid Class="px-0 pt-0 mt-4 mb-2 mx-0 px-lg-5 pt-lg-4 justify-content-center justify-content-lg-start" Spacing="0">
-    <MudItem xs="10" sm="10" md="6" lg="5"
+    <MudItem xs="10" sm="10" md="5" lg="6"
         Class="m-0 pb-sm-0 pb-md-0 ps-lg-5 d-flex justify-content-center justify-content-lg-start"
         Style="align-self:center;">
         <!-- Mobile (xs, sm) -->
         <MudImage Src="@chosenCar.Image" Class="d-block d-md-none"
             Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
 
-        <!-- Tablet (md only) -->
+        @* <!-- Tablet (md only) -->
         <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-none"
-            Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+            Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" /> *@
 
         <!-- Desktop (lg and up) -->
-        <MudImage Src="@chosenCar.Image" Class="d-none d-md-none d-lg-block"
+        <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-block"
             Style="width:90%; object-fit:cover; border:1px solid #BDBDBD;" />
     </MudItem>
 
     @* have to apply flex on both to work*@
     <MudItem xs="10" md="5" Class="pt-4 pt-md-0 d-flex justify-content-center justify-content-md-start"
-        Style="flex-grow:1; display:flex; flex-direction:column;">
+        Style=" display:flex; flex-direction:column;">
         <div class="px-0 mx-0" style="flex:1; display:flex; flex-direction:column;">
             <MudText Typo="Typo.h6" Class="p-0" Style="font-weight: 400; color: #828282; font-size: 20px">
                 @CategoryTitle.ToString()</MudText>
@@ -33,52 +36,49 @@
                 @chosenCar.Price.ToString("N0")</MudText>
 
             <!-- schedule dropdown -->
-            <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
-                    Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true>
-                    <MudSelectItem Value="DummySchedule">
-                        <MudText Typo="Typo.body2">
-                            Wednesday, 27 July 2022
-                        </MudText>
-                    </MudSelectItem>
-                </MudSelect>
-            </MudHidden>
-            <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                <MudSelect T="string" Variant="Variant.Outlined" IconSize="Size.Large" @bind-Value="_selectedSchedule"
-                    Class="my-8 pb-8 pb-md-0 select-schedule" Dense=true FitContent=true FullWidth=true>
-                    <MudSelectItem Value="DummySchedule">
-                        <MudText Typo="Typo.body2">
-                            Wednesday, 27 July 2022
-                        </MudText>
-                    </MudSelectItem>
-                </MudSelect>
-            </MudHidden>
-            <div class="d-block d-lg-none d-flex justify-content-center" Style="width:100%;margin-top: auto;">
-                <MudStack Spacing="3" Class="justify-center w-100">
-                    <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Medium">
-                        <MudText Typo="Typo.body1">Add to Cart</MudText>
-                    </AppBaseButton>
-                    <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false"
-                        Width="ButtonWidth.Medium">
-                        <MudText Typo="Typo.body1">Buy Now</MudText>
-                    </AppBaseButton>
-                </MudStack>
-            </div>
-            <div class="d-none d-lg-block" Style=" margin-top: auto;">
-                <MudStack Row="true" Spacing="2">
-                    <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Long"
-                        FullWidth=true Style="border-radius:10px; border-width: 2px !important;">
-                        <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Add to
-                            Cart</MudText>
-                    </AppBaseButton>
-                    <AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false"
-                        Width="ButtonWidth.Long" FullWidth=true Style="border-radius:10px;">
-                        <MudText Typo="Typo.body1" Class="py-1" Style="font-size: 20px; white-space: nowrap;">Buy Now
-                        </MudText>
-                    </AppBaseButton>
-                </MudStack>
-            </div>
+            <MudForm @ref="ScheduleForm">
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <MudSelect T="DateTime ?" Class="my-8 pb-8 pb-md-0 select-schedule" 
+                        Variant="Variant.Outlined" IconSize="Size.Large"
+                        @bind-Value="_selectedSchedule" Required="true"
+                        Placeholder="Select schedule" Dense="true" FitContent="true"
+                        RequiredError="Please select a schedule">
+                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 27))">
+                            <MudText Typo="Typo.body2">Wednesday, 27 July 2022</MudText>
+                        </MudSelectItem>
+                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 29))">
+                            <MudText Typo="Typo.body2">Friday, 29 July 2022</MudText>
+                        </MudSelectItem>
+                    </MudSelect>
+                </MudHidden>
+
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    <MudSelect T="DateTime ?" @bind-Value="_selectedSchedule" Required="true" 
+                        Class="my-8 pb-8 pb-md-0 select-schedule" 
+                        Variant="Variant.Outlined" IconSize="Size.Large"
+                        Placeholder="Select schedule" Dense="true" FitContent="true" FullWidth="true"
+                        RequiredError="Please select a schedule">
+                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 27))">
+                            <MudText Typo="Typo.body2">Wednesday, 27 July 2022</MudText>
+                        </MudSelectItem>
+                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 29))">
+                            <MudText Typo="Typo.body2">Friday, 29 July 2022</MudText>
+                        </MudSelectItem>
+                    </MudSelect>
+                </MudHidden>
+            </MudForm>
+
+        <div class="d-block d-lg-none d-flex justify-content-center" Style="width:100%;margin-top: auto;">
+            <MudStack Spacing="2" Class="justify-center w-100">
+                <PurchaseButtonGroup Width="ButtonWidth.Medium" AddToCart="@AddToCartHandler" InstantPayment="@InstantPaymentHandler" /> 
+            </MudStack>
         </div>
+        <div class="d-none d-lg-block" Style=" margin-top: auto;">
+            <MudStack Row="true" Spacing="2">
+                <PurchaseButtonGroup Width="ButtonWidth.Long" AddToCart="@AddToCartHandler" InstantPayment="@InstantPaymentHandler" /> 
+            </MudStack> 
+        </div> 
+    </div>
     </MudItem>
 </MudGrid>
 
@@ -133,15 +133,25 @@
     public string? Category { get; set; }
     [Parameter]
     public string Name { get; set; } = null!;
-
-    public string DummySchedule = "Wednesday, 27 July 2022";
-    private string _selectedSchedule = "Select Schedule";
+    private DateTime? _selectedSchedule = null;
+    private MudForm ScheduleForm = null!;
 
     private List<CarViewModel> allCars = new List<CarViewModel>();
     private List<CarViewModel> cars = new List<CarViewModel>();
     private CarViewModel chosenCar = new CarViewModel();
-
     private readonly Random _random = new();
+
+    private RenderFragment SnackbarToCart =>
+    @<MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.body1">
+            Added to your cart
+        </MudText>
+        <AppBaseButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Inherit" DisableElevation="true"
+            OnClick="GoCheckout">
+            <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" Class="mr-1" />
+            View Cart
+        </AppBaseButton>
+    </MudStack>;
 
     private CarCategory CategoryTitle => Category?.ToLowerInvariant() switch
     {
@@ -156,14 +166,12 @@
         _ => CarCategory.SUV
     };
 
-
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(200);
         allCars = CarViewModel.InitDummyData();
         LoadData();
     }
-
     protected override Task OnParametersSetAsync()
     {
         if (allCars is not null)
@@ -205,6 +213,72 @@
     private void NavigateToCourseDetail(string courseTitle)
     {
         string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo($"/{Category}/{normalizedTitle}");
+        Navigation.NavigateTo(uri: $"/{Category}/{normalizedTitle}");
     }
+
+    private async Task AddToCartHandler()
+    {
+        await ScheduleForm.Validate();
+
+        if (!ScheduleForm.IsValid) return;
+
+        try
+        {
+            Cart.AddItem(chosenCar, _selectedSchedule);
+            Snackbar.Add(SnackbarToCart, Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task InstantPaymentHandler() {
+        await ScheduleForm.Validate();
+        if (!ScheduleForm.IsValid) return;
+
+        try
+        {
+            if(!await OpenDialogAsync()) {
+                Snackbar.Add("Payment successful, Redirecting in 2 second", Severity.Success,
+                config =>
+                {
+                    config.VisibleStateDuration = 2000;
+                });
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/success-purchase");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task<bool> OpenDialogAsync() {
+        var parameters = new DialogParameters
+        {
+            ["OnSubmit"] = EventCallback.Factory.Create<TransactionViewModel>(this, HandleDialogSubmit)
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialogRef = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters, options);
+        var transactionResult = await dialogRef.Result;
+
+        return transactionResult?.Canceled! ?? true;
+    }
+
+    private async Task HandleDialogSubmit(TransactionViewModel transaction)
+    {
+        await Cart.FinalizeInstantPaymentAsync(chosenCar, transaction, _selectedSchedule);
+    }
+
+    private void GoCheckout()
+    {
+        Navigation.NavigateTo(uri: $"checkout");
+    }
+
+
+
 }

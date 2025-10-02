@@ -4,12 +4,13 @@
     justify-content: flex-start;
     align-items: flex-start;
     margin: 2rem 3.75rem;
-    min-height: calc(100vh + 300px);
+    min-height: 100vh;
 }
 
 .checkout-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
 }
@@ -17,7 +18,8 @@
 .rental-cart-content {
     display: flex;
     flex-direction: column;
-    width: 70%;
+    flex: 1 1 0;  /* grow=1, shrink=1, basis=0 */
+    min-width: 0;  /* penting supaya teks bisa shrink */
 }
 
 .checkout-seperator {
@@ -32,4 +34,17 @@
     padding: 1rem 3.75rem;
     background-color: var(--bg-color);
     z-index: 1;
+}
+
+.empty-cart-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   
+    align-items: center;       
+    width: 100%;
+    gap: 1rem;
+}
+
+.checkout-actions {
+    min-width: 500px
 }

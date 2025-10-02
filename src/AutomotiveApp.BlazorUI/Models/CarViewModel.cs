@@ -4,12 +4,13 @@ namespace AutomotiveApp.BlazorUI.Models
 {
     public class CarViewModel
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public readonly string ImagePath = "Images/Cars/";
         public CarCategory Category { get; set; } = CarCategory.SUV;
         public string Name { get; set; } = null!;
         public string Image { get; set; } = null!;
         public int Price { get; set; } = 0;
-        public DateTime Schedule { get; set; } = DateTime.UtcNow;
+        public DateTime? Schedule { get; set; } = null;
 
         public CarViewModel(CarCategory category, string name, int price, string imagePath)
         {
@@ -21,6 +22,31 @@ namespace AutomotiveApp.BlazorUI.Models
 
         // temporary
         public CarViewModel() { }
+
+        public CarViewModel Clone()
+        {
+            return new CarViewModel
+            {
+                Id = Id,
+                Category = Category,
+                Name = Name,
+                Price = Price,
+                Image = Image,
+            };
+        }
+
+        public CarViewModel Clone(DateTime rentalDate)
+        {
+            return new CarViewModel
+            {
+                Id = Id,
+                Category = Category,
+                Name = Name,
+                Price = Price,
+                Image = Image,
+                Schedule = rentalDate
+            };
+        }
 
         public static List<CarViewModel> InitDummyData()
         {

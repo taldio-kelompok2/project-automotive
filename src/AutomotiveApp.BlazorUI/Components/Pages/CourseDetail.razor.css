@@ -1,0 +1,119 @@
+/* Image */
+.responsive-image {
+    width: 100%;
+    object-fit: cover;
+    border: 1px solid #BDBDBD;
+}
+
+@media (min-width: 768px) { /* md */
+    .responsive-image {
+        width: 90%;
+    }
+}
+
+/* Content */
+.content-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1rem;
+}
+
+.category-text {
+    font-weight: 400;
+    color: #828282;
+    font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  .category-text { font-size: 20px; }
+}
+
+.name-text {
+  font-weight: 600;
+  font-size: 20px;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .name-text { font-size: 28px; }
+}
+
+.price-text {
+  font-weight: 600;
+  font-size: 20px;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .price-text { font-size: 24px; }
+}
+
+/* Schedule select */
+.select-schedule {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .select-schedule {
+    width: auto;
+    min-width: 250px;
+  }
+}
+
+/* Buttons */
+.purchase-buttons {
+  margin-top: auto;
+}
+
+.purchase-buttons .mud-button {
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .purchase-buttons .mud-button {
+    width: auto;
+    min-width: 200px;
+  }
+}
+
+/* Description */
+.description-section {
+  border-bottom: 1px solid #E0E0E0;
+  padding: 1rem;
+  margin-top: 3rem;
+}
+
+.section-title {
+  font-weight: 600;
+  text-align: center;
+  color: var(--mud-palette-primary);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+.section-body {
+  text-align: justify;
+  line-height: 1.5;
+  font-size: 16px;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-body {
+    font-size: 20px;
+  }
+}
+
+/* Favorite section */
+.favorite-section {
+  background-color: white;
+  margin-top: 4rem;
+}
