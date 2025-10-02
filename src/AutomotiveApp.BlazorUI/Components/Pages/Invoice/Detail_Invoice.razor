@@ -7,8 +7,8 @@
 
 <div style="min-height:calc(100vh - 200px); display:flex; flex-direction:column;">
     <MudContainer MaxWidth="MaxWidth.Large">
-        <MudBreadcrumbs Class="mb-2" Style="margin-left:-10px;" Items="@Crumbs" Separator=">" />
 
+        <MudBreadcrumbs Class="mb-2" Style="margin-left:-10px;" Items="@Crumbs" Separator=">" />
         <MudText Typo="Typo.h5" Class="mb-4" Style="color:#4F4F4F; font-weight:600;">
             Details Invoice
         </MudText>
@@ -26,29 +26,63 @@
             </MudItem>
         </MudGrid>
 
-        <MudTable Items="Items" Dense="true" Hover="true" Class="w-100" Elevation="0">
-            <HeaderContent>
-                <MudTh Style="@HeaderStyle" Class="text-white"><b>No</b></MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white"><b>Course Name</b></MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white"><b>Type</b></MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white"><b>Schedule</b></MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white"><b>Price</b></MudTh>
-            </HeaderContent>
+        <!-- View Desktop -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <div class="table-responsive">
+                <MudTable Items="Items" Dense="true" Hover="true" Elevation="0" Class="w-100">
+                    <HeaderContent>
+                        <MudTh Style="@HeaderStyle" Class="text-white"><b>No</b></MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white"><b>Course Name</b></MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white"><b>Type</b></MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white"><b>Schedule</b></MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-end"><b>Price</b></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.No</MudTd>
+                        <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.CourseName</MudTd>
+                        <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.Type</MudTd>
+                        <MudTd Style="height:55px; vertical-align:middle; text-align:center;">
+                            @context.Schedule.ToString("dddd, dd MMMM yyyy", new CultureInfo("en-US"))
+                        </MudTd>
+                        <MudTd Style="height:55px; vertical-align:middle;" Class="text-end">
+                            @FormatIdr(context.Price)
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+        </MudHidden>
 
-            <RowTemplate>
-                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.No</MudTd>
-                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.CourseName</MudTd>
-                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@context.Type</MudTd>
-                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">
-                    @context.Schedule.ToString("dddd, dd MMMM yyyy", new CultureInfo("en-US"))
-                </MudTd>
-                <MudTd Style="height:55px; vertical-align:middle; text-align:center;">@FormatIdr(context.Price)</MudTd>
-            </RowTemplate>
+        <!-- View Mobile Phone -->
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudStack Spacing="2">
+                @foreach (var row in Items)
+                {
+                    <MudPaper Class="mobile-card" Elevation="0">
+                        <div class="kv">
+                            <span class="k">No</span>
+                            <span class="v">@row.No</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Course Name</span>
+                            <span class="v">@row.CourseName</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Type</span>
+                            <span class="v">@row.Type</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Schedule</span>
+                            <span class="v">@row.Schedule.ToString("dddd, dd MMMM yyyy", new CultureInfo("en-US"))</span>
+                        </div>
+                        <div class="kv total">
+                            <span class="k">Price</span>
+                            <span class="v">@FormatIdr(row.Price)</span>
+                        </div>
+                    </MudPaper>
+                }
+            </MudStack>
+        </MudHidden>
 
-            <NoRecordsContent>
-                <MudText class="p-4">No Data Available</MudText>
-            </NoRecordsContent>
-        </MudTable>
     </MudContainer>
 </div>
 
@@ -56,7 +90,7 @@
 
 
 <style>
-/* initial breadcrumb */
+/* first breadcrumb */
 .mud-breadcrumbs li a,
 .mud-breadcrumbs li .mud-typography {
     color: #828282 !important;
@@ -68,13 +102,48 @@
     color: #790b0a !important;
     font-weight: 600; 
 }
+
+.mobile-card{
+    border:1px solid #E0E0E0;
+    border-radius:10px;
+    padding:12px 14px;
+}
+.mobile-card:last-child {
+    margin-bottom: 35px; 
+}
+.mobile-card .kv{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 0;
+    border-bottom:1px solid #F2F2F2;
+}
+.mobile-card .kv:last-child{ border-bottom:none; }
+.mobile-card .k{
+    color:#7A7A7A;       
+    font-weight:500;
+}
+.mobile-card .v{
+    color:#333;
+    font-weight:600;
+    text-align:right;
+}
+.mobile-card .total .k{ color:#5A5A5A; }
+.mobile-card .total .v{
+    color:#790b0a;          
+    font-weight:700;
+}
+
+@@media (max-width: 600px){
+    .mobile-card .k, .mobile-card .v { font-size:.92rem; }
+}
 </style>
 
 
 @code {
     private readonly CultureInfo Indo = new("id-ID");
 
-    private string HeaderStyle => "background-color:#790b0a; height:40px; text-align:center; vertical-align:middle;";
+    private string HeaderStyle => "background-color:#790b0a; height:55px; text-align:center; vertical-align:middle;";
 
     private List<BreadcrumbItem> Crumbs => new()
     {
@@ -88,7 +157,8 @@
     private DateTime InvoiceDate = new(2022, 6, 12);
     private List<InvoiceItem> Items = new()
     {
-        new() { No=1, CourseName="Hyundai Palisade 2021", Type="SUV", Schedule=new(2022,7,27), Price=850_000m }
+        new() { No=1, CourseName="Hyundai Palisade 2021", Type="SUV", Schedule=new(2022,7,27), Price=850_000m },
+        new() { No=2, CourseName="Mitsubishi Fuso Canter", Type="TRUCK", Schedule=new(2022,7,27), Price=900_000m }
     };
 
     private decimal TotalPrice => Items.Sum(i => i.Price);
