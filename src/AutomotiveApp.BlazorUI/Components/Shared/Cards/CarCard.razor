@@ -25,6 +25,6 @@
     private void NavigateToCourseDetail(CarViewModel car)
     {
         string normalizedTitle = car.Name.Replace(" ", "-").ToLowerInvariant();
-        Nav.NavigateTo($"/{car.Category.ToString().ToLowerInvariant()}/{normalizedTitle}");
+        Nav.NavigateTo($"/course/{car.Category.ToString().ToLowerInvariant()}/{normalizedTitle}");
     }
 }

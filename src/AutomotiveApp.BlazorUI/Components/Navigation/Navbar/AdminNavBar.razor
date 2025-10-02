@@ -1,10 +1,8 @@
 ﻿@* @inject NavigationManager NavManager *@
 @rendermode InteractiveServer
 
-<MudAppBar Elevation="2" Color="Color.Primary" Style="height:55px;">
+<MudAppBar Elevation="2" Color="Color.Primary" Fixed=true style="height:55px;">
     <MudText Typo="Typo.h6">Dashboard</MudText>
-    <MudSpacer />
-    <MudIconButton Color="Color.Primary" />
 </MudAppBar>
 
 <MudDrawer @bind-Open="_drawerOpen"
