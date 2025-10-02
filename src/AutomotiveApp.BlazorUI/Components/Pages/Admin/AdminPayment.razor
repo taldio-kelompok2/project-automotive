@@ -3,10 +3,10 @@
 
 @layout AdminLayout
 
-<PageTitle>Payment Method Management</PageTitle>
+<PageTitle>Payment Method</PageTitle>
 
-<MudPaper Class="m-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
-    <MudText Typo="Typo.h3" Class="pb-2">Payment Method Management</MudText>
+<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+    <MudText Typo="Typo.h3" Class="pb-2">Payment Method</MudText>
     <AppBaseButton Width="ButtonWidth.Short" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Payment Method</AppBaseButton>
     <AdminTable TItem="PaymentMethod" Items="paymentMethods" Columns="paymentMethodColumns" OnEdit="OnPaymentMethodEdit" />
 </MudPaper>

@@ -126,3 +126,11 @@ a {
     padding: 0;
     margin: 0;
 }
+
+@media (max-width: 768px) {
+    .responsive-table .mud-table .mud-table-row .mud-table-cell {
+        justify-content: flex-start !important;
+        text-align: left !important;
+        border-bottom: 1px solid #eee;
+    }
+}

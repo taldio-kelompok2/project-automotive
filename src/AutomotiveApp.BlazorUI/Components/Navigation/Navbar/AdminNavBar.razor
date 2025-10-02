@@ -22,7 +22,9 @@
         <MudNavLink Href="/admin/payment-method" Icon="@Icons.Material.Filled.AccountBalanceWallet" >Payment Method</MudNavLink>
         <MudNavLink Href="/admin/invoice" Icon="@Icons.Material.Filled.Article" >Invoice</MudNavLink>    
     </MudNavMenu>
-    <MudSpacer />
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudSpacer/>
+    </MudHidden>
     <MudNavMenu Class="mb-3">
         <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
     </MudNavMenu>

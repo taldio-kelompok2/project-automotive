@@ -1,6 +1,6 @@
 ﻿@typeparam TItem
 
-<MudPaper Class="w-25 p-1 mb-3">
+<MudPaper Class="w-100 p-2 mb-3">
 <MudTextField @bind-Value="SearchText" 
               Placeholder="Search..." 
               Adornment="Adornment.Start" 
@@ -9,6 +9,7 @@
               OnKeyUp="@(e => ApplySearch())" />
 </MudPaper>
 
+<div class="responsive-table">
 <MudTable Items="FilteredItems" Hover="true" Dense=true Striped=true
           Style="background-color: white;">
     <HeaderContent>
@@ -21,7 +22,7 @@
     <RowTemplate>
         @foreach (var column in Columns)
         {
-            <MudTd Class="text-center">
+            <MudTd Class="text-center" DataLabel="@column.Header" s>
                 @if (column.IsStatusColumn)
                 {
                     <MudChip T="string" Color="@(GetStatusColor(context, column))" 
@@ -34,7 +35,6 @@
                 {
                     @if (column.ShowDetails)
                     {
-                        // alternate icon = visibility
                         <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                        Color="Color.Primary"
                                        OnClick="@(() => OnDetailsClick(context))"
@@ -71,9 +71,15 @@
         }
     </RowTemplate>
     <PagerContent>
-        <MudTablePager />
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudTablePager HidePageNumber=true HideRowsPerPage />
+        </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudTablePager />
+            </MudHidden>
     </PagerContent>
 </MudTable>
+</div>
 
 @code {
     [Parameter] public required IEnumerable<TItem> Items { get; set; }
