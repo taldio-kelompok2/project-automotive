@@ -1,5 +1,73 @@
-﻿<h3>AdminInvoice</h3>
+﻿@page "/admin/invoice"
+@rendermode InteractiveServer
+
+@layout AdminLayout
+
+<PageTitle>Invoice Management</PageTitle>
+
+<MudPaper Class="m-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+    <MudText Typo="Typo.h3" Class="pb-2">Invoice Management</MudText>
+    <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" OnDetails="OnInvoiceDetails" />
+</MudPaper>
 
 @code {
+    // TODO: add list of courses
+    public class Invoice
+    {
+        public required string InvoiceNumber { get; set; }
+        public required string Date { get; set; }
+        public required string TotalPrice { get; set; }
+    }
 
+    private List<Invoice> invoices = new()
+    {
+        new Invoice { InvoiceNumber = "INV-001", Date = "2024-01-15", TotalPrice = "$299.99" },
+        new Invoice { InvoiceNumber = "INV-002", Date = "2024-01-16", TotalPrice = "$499.99" },
+        new Invoice { InvoiceNumber = "INV-003", Date = "2024-01-17", TotalPrice = "$399.99" },
+        new Invoice { InvoiceNumber = "INV-004", Date = "2024-01-18", TotalPrice = "$349.99" },
+        new Invoice { InvoiceNumber = "INV-005", Date = "2024-01-19", TotalPrice = "$899.99" },
+        new Invoice { InvoiceNumber = "INV-006", Date = "2024-01-20", TotalPrice = "$279.99" },
+        new Invoice { InvoiceNumber = "INV-007", Date = "2024-01-21", TotalPrice = "$459.99" },
+        new Invoice { InvoiceNumber = "INV-008", Date = "2024-01-22", TotalPrice = "$199.99" },
+        new Invoice { InvoiceNumber = "INV-009", Date = "2024-01-23", TotalPrice = "$329.99" },
+        new Invoice { InvoiceNumber = "INV-010", Date = "2024-01-24", TotalPrice = "$1,299.99" },
+        new Invoice { InvoiceNumber = "INV-011", Date = "2024-01-25", TotalPrice = "$599.99" },
+        new Invoice { InvoiceNumber = "INV-012", Date = "2024-01-26", TotalPrice = "$799.99" }
+    };
+
+    List<ColumnDefinition<Invoice>> invoiceColumns = new()
+    {
+        new ColumnDefinition<Invoice>
+        {
+            Header = "Invoice Number",
+            CellTemplate = invoice => invoice.InvoiceNumber,
+            IsSearchable = true
+        },
+        new ColumnDefinition<Invoice>
+        {
+            Header = "Date",
+            CellTemplate = invoice => invoice.Date,
+            IsSearchable = true
+        },
+        new ColumnDefinition<Invoice>
+        {
+            Header = "Total Price",
+            CellTemplate = invoice => invoice.TotalPrice,
+            IsSearchable = false
+        },
+        new ColumnDefinition<Invoice>
+        {
+            Header = "Details",
+            CellTemplate = invoice => "Details",
+            IsSearchable = false,
+            IsActionColumn = true,
+            ShowDetails = true
+        }
+    };
+
+    private void OnInvoiceDetails(Invoice invoice)
+    {
+        // TODO: Handle details logic, show courses
+        Console.WriteLine($"Details invoice: {invoice.InvoiceNumber}");
+    }
 }

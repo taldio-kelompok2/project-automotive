@@ -41,7 +41,7 @@
         new ColumnDefinition<User> { Header = "Email", CellTemplate = u => u.Email, IsSearchable = true, IsStatusColumn = false },
         new ColumnDefinition<User> { Header = "Role", CellTemplate = u => u.Role, IsSearchable = false, IsStatusColumn = false },
         new ColumnDefinition<User> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = true, IsStatusColumn = true },
-        new ColumnDefinition<User> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false, IsStatusColumn = false, IsActionColumn = true },
+        new ColumnDefinition<User> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false, IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
     };
 
     private void OnUserEdit(User user)

@@ -32,10 +32,36 @@
                 }
                 else if (column.IsActionColumn)
                 {
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                   Color="Color.Primary" 
-                                   OnClick="@(() => OnEditClick(context))" 
-                                   Title="Edit" />
+                    @if (column.ShowDetails)
+                    {
+                        // alternate icon = visibility
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => OnDetailsClick(context))"
+                                       Title="Details" />
+                    }
+
+                    @if (column.ShowEdit)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => OnEditClick(context))"
+                                       Title="Edit" />
+                    }
+                }
+                else if (column.IsImageColumn)
+                {
+                    var imageUrl = column.CellTemplate(context)?.ToString();
+                    @if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        
+                            <MudImage Src="@imageUrl" Height="30" Class="p-1" />
+                        
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Image" Color="Color.Inherit" />
+                    }
                 }
                 else
                 {
@@ -53,6 +79,7 @@
     [Parameter] public required IEnumerable<TItem> Items { get; set; }
     [Parameter] public required List<ColumnDefinition<TItem>> Columns { get; set; }
     [Parameter] public EventCallback<TItem> OnEdit { get; set; }
+    [Parameter] public EventCallback<TItem> OnDetails { get; set; }
 
 
     private string SearchText { get; set; } = "";
@@ -95,6 +122,14 @@
         if (OnEdit.HasDelegate)
         {
             await OnEdit.InvokeAsync(item);
+        }
+    }
+
+    private async Task OnDetailsClick(TItem item)
+    {
+        if (OnDetails.HasDelegate)
+        {
+            await OnDetails.InvokeAsync(item);
         }
     }
 }
