@@ -1,5 +1,119 @@
-﻿<h3>AdminDashboard</h3>
+﻿@page "/admin"
+@rendermode InteractiveServer
+
+@layout AdminLayout
+
+<PageTitle>Dashboard</PageTitle>
+
+<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+    <MudText Typo="Typo.h3" Class="pb-2">Welcome, Admin</MudText>
+
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="4">
+            <MudPaper Class="stat-card stat-red" Elevation="0">
+                <div class="stat-left">
+                    <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" />
+                    <MudText Typo="Typo.subtitle2">Total User Active</MudText>
+                </div>
+                <MudText Typo="Typo.h3" Class="stat-value">@TotalActiveUsers</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudPaper Class="stat-card stat-blue" Elevation="0">
+                <div class="stat-left">
+                    <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Large" />
+                    <MudText Typo="Typo.subtitle2">Total Payment</MudText>
+                </div>
+                <MudText Typo="Typo.h3" Class="stat-value">@TotalPayments</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudPaper Class="stat-card stat-purple" Elevation="0">
+                <div class="stat-left">
+                    <MudIcon Icon="@Icons.Material.Filled.GroupAdd" Size="Size.Large" />
+                    <MudText Typo="Typo.subtitle2">Total Member</MudText>
+                </div>
+                <MudText Typo="Typo.h3" Class="stat-value">@TotalMembers</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <AdminTable TItem="InvoiceRow" Items="Invoices" Columns="InvoiceColumns" OnDetails="OnViewDetail" />
+</MudPaper>
+
+
+<style>
+.stat-card{
+    display:flex; 
+    justify-content:space-between; 
+    align-items:center;
+    border-radius:10px; 
+    padding:18px 20px; 
+    color:#fff;
+    margin-bottom:16px;
+    margin-top:2px;
+}
+.stat-left{ display:flex; gap:12px; align-items:center; }
+.stat-value{ font-weight:800; }
+.stat-red   { background:#c70e18; }      
+.stat-blue  { background:#062b76; }      
+.stat-purple{ background:#6a2b7a; }      
+
+.table-responsive{ width:100%; overflow-x:auto; }
+.mud-table tbody tr:hover { background-color:#0000000D !important; }
+.btn-details {
+    border-radius:8px !important;
+    text-transform:none !important;
+    font-weight:700 !important;
+    padding:6px 18px !important;
+}
+</style>
+
 
 @code {
+    private readonly CultureInfo Indo = new("id-ID");
 
+    private string FormatIdr(decimal v) => string.Format(Indo, "IDR {0:N0}", v);
+
+    // Statistik
+    private int TotalActiveUsers => 3;
+    private int TotalPayments    => 7;
+    private int TotalMembers     => 2;
+
+    // Table
+    public class InvoiceRow
+    {
+        public string Email { get; set; } = "";
+        public string InvoiceNo { get; set; } = "";
+        public DateTime Date { get; set; }
+        public int TotalCourse { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+
+    private List<InvoiceRow> Invoices = new()
+    {
+        new() { Email="adityapratamafebriono@gmail.com", InvoiceNo="DLA00002", Date=new(2023,5,20), TotalCourse=3, TotalPrice=1_450_000 },
+        new() { Email="kietpascalasmara@gmail.com", InvoiceNo="DLA00003", Date=new(2023,5,25), TotalCourse=2, TotalPrice=500_000 },
+        new() { Email="gregoriusivanhalim@gmail.com", InvoiceNo="DLA00003", Date=new(2023,5,30), TotalCourse=1, TotalPrice=250_000 }
+    };
+
+    private List<ColumnDefinition<InvoiceRow>> InvoiceColumns => new()
+    {
+        new ColumnDefinition<InvoiceRow> { Header = "Email", CellTemplate = x => x.Email, IsSearchable = true },
+        new ColumnDefinition<InvoiceRow> { Header = "No. Invoice", CellTemplate = x => x.InvoiceNo, IsSearchable = true },
+        new ColumnDefinition<InvoiceRow> { Header = "Date", CellTemplate = x => x.Date.ToString("dddd, dd MMM yyyy", new CultureInfo("en-US")), IsSearchable = true },
+        new ColumnDefinition<InvoiceRow> { Header = "Total Course", CellTemplate = x => x.TotalCourse.ToString(), IsSearchable = false },
+        new ColumnDefinition<InvoiceRow> { Header = "Total Price", CellTemplate = x => FormatIdr(x.TotalPrice), IsSearchable = false },
+        new ColumnDefinition<InvoiceRow> { Header = "Action", IsActionColumn = true, ShowDetails = true }
+    };
+
+    // Action Detail
+    private void OnViewDetail(InvoiceRow row)
+    {
+        NavigationManager.NavigateTo($"/detail-invoice?no={row.InvoiceNo}");
+    }
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 }
