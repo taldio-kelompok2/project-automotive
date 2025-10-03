@@ -13,35 +13,12 @@
     <MudStack Spacing="1">
         <MudText Typo="Typo.body1" Color="Color.Primary">Product</MudText>
         <div>
-          
-            @* <ul>
-                <li>Electric</li>
-                <li>Hatchback</li>
-                <li>LCGC</li>
-                <li>MPV</li>
-                <li>Offroad</li>
-                <li>Sedan</li>
-                <li>SUV</li>
-                <li>Truck</li>
-            </ul> *@
-
             <ul class="footer-text">
-                <li @onclick='@(() => GoToCategory("electric"))' role="button" tabindex="0">Electric</li>
-                <li @onclick='@(() => GoToCategory("hatchback"))' role="button" tabindex="0">Hatchback</li>
-                <li @onclick='@(() => GoToCategory("lcgc"))' role="button" tabindex="0">LCGC</li>
-                <li @onclick='@(() => GoToCategory("mpv"))' role="button" tabindex="0">MPV</li>
-                <li @onclick='@(() => GoToCategory("offroad"))' role="button" tabindex="0">Offroad</li>
-                <li @onclick='@(() => GoToCategory("sedan"))' role="button" tabindex="0">Sedan</li>
-                <li @onclick='@(() => GoToCategory("suv"))' role="button" tabindex="0">SUV</li>
-                <li @onclick='@(() => GoToCategory("truck"))' role="button" tabindex="0">Truck</li> 
-            </ul>
-          
-@*             <ul class="footer-text">
                 @foreach(string category in categories)
                 {
-                    <li @onclick="() => NavigateToCourseMenu(category)" style="cursor: pointer;">@category</li>
+                    <li @onclick="() => GoToCategory(category)" role="button" tabindex="0">@category</li>
                 }
-            </ul> *@
+            </ul>
 
         </div>
     </MudStack>
@@ -81,15 +58,8 @@
 </footer>
 
 @code {
+    private List<string> categories = Enum.GetNames(typeof(CarCategory)).ToList();
+
     private void GoToCategory(string category)
-        => Nav.NavigateTo($"/{category.ToLowerInvariant()}");
+        => Nav.NavigateTo($"/course/{category.ToLowerInvariant()}");
 }
-
-@* @code {
-    private string[] categories = { "Electric", "Hatchback", "LCGC", "MPV", "Offroad", "Sedan", "SUV", "Truck" };
-
-    private void NavigateToCourseMenu(string category)
-    {
-        Nav.NavigateTo($"/{category.ToLowerInvariant()}");
-    }
-} *@

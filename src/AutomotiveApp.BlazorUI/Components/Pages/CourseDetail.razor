@@ -1,4 +1,4 @@
-﻿@page "/{category}/{name}"
+@page "/course/{category}/{name}"
 @using MudBlazor
 @rendermode InteractiveServer
 @inject IRentalCartService Cart
@@ -213,7 +213,7 @@
     private void NavigateToCourseDetail(string courseTitle)
     {
         string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo(uri: $"/{Category}/{normalizedTitle}");
+        Navigation.NavigateTo(uri: $"course/{Category}/{normalizedTitle}");
     }
 
     private async Task AddToCartHandler()
@@ -277,6 +277,7 @@
     private void GoCheckout()
     {
         Navigation.NavigateTo(uri: $"checkout");
+
     }
 
 

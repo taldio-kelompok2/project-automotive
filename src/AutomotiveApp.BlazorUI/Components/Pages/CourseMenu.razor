@@ -1,4 +1,4 @@
-﻿@page "/{category}"
+﻿@page "/course/{category}"
 @using MudBlazor
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
@@ -113,7 +113,7 @@
 
     protected override Task OnParametersSetAsync()
     {
-        if (allCars is null)
+        if (allCars is not null)
             LoadData();
 
         return Task.CompletedTask;
@@ -134,6 +134,6 @@
     private void NavigateToCourseDetail(string courseTitle)
     {
         string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo($"/{Category}/{normalizedTitle}");
+        Navigation.NavigateTo($"course/{Category}/{normalizedTitle}");
     }
 }

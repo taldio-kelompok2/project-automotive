@@ -1,0 +1,44 @@
+﻿@media (max-width: 768px) {
+    .responsive-table table,
+    .responsive-table thead,
+    .responsive-table tbody,
+    .responsive-table th,
+    .responsive-table td,
+    .responsive-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .responsive-table thead {
+        display: none; 
+    }
+
+    .responsive-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        background: #fff;
+    }
+
+    .responsive-table td {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        padding: 0.5rem;
+        border: none;
+        border-bottom: 1px solid #eee;
+    }
+
+        .responsive-table td:last-child {
+            border-bottom: none;
+        }
+
+        .responsive-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #555;
+            margin-right: 0.5rem;
+        }
+}

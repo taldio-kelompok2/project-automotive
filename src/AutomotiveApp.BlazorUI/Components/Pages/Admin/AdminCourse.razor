@@ -1,0 +1,81 @@
+﻿@page "/admin/course"
+@rendermode InteractiveServer
+
+@layout AdminLayout
+
+<PageTitle>Course Management</PageTitle>
+
+<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+    <MudText Typo="Typo.h3" Class="pb-2">Course Management</MudText>
+    <AppBaseButton Width="ButtonWidth.Short" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
+    <AdminTable TItem="Course" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdit" />
+</MudPaper>
+
+@code {
+    // TODO: finalize fields
+    public class Course
+    {
+        public required string Name { get; set; }
+        public required double Price { get; set; }
+        public required string Category { get; set; }
+        public required string Status { get; set; }
+    }
+
+    private List<Course> courses = new()
+{
+    new Course { Name = "Basic Driving Course", Price = 299.99, Category = "Beginner", Status = "Active" },
+    new Course { Name = "Advanced Driving Techniques", Price = 499.99, Category = "Advanced", Status = "Active" },
+    new Course { Name = "Defensive Driving", Price = 399.99, Category = "Safety", Status = "Active" },
+    new Course { Name = "Motorcycle Safety Course", Price = 349.99, Category = "Motorcycle", Status = "Inactive" },
+    new Course { Name = "Commercial License Training", Price = 899.99, Category = "Commercial", Status = "Active" },
+    new Course { Name = "Winter Driving Skills", Price = 279.99, Category = "Seasonal", Status = "Active" },
+    new Course { Name = "Highway Driving Mastery", Price = 459.99, Category = "Advanced", Status = "Active" },
+    new Course { Name = "Parallel Parking Pro", Price = 199.99, Category = "Skills", Status = "Active" },
+    new Course { Name = "Eco Driving Course", Price = 329.99, Category = "Eco-Friendly", Status = "Inactive" },
+    new Course { Name = "Racing Fundamentals", Price = 1299.99, Category = "Performance", Status = "Active" },
+    new Course { Name = "Off-Road Adventure Driving", Price = 599.99, Category = "Adventure", Status = "Active" }
+};
+
+    List<ColumnDefinition<Course>> courseColumns = new()
+{
+    new ColumnDefinition<Course>
+    {
+        Header = "Course Name",
+        CellTemplate = course => @course.Name,
+        IsSearchable = true,
+    },
+    new ColumnDefinition<Course>
+    {
+        Header = "Price",
+        CellTemplate = course => @course.Price.ToString("C2"),
+        IsSearchable = false,
+    },
+    new ColumnDefinition<Course>
+    {
+        Header = "Category",
+        CellTemplate = course => @course.Category,
+        IsSearchable = true,
+    },
+    new ColumnDefinition<Course>
+    {
+        Header = "Status",
+        CellTemplate = course => @course.Status,
+        IsSearchable = true,
+        IsStatusColumn = true,
+    },
+    new ColumnDefinition<Course>
+    {
+        Header = "Action",
+        CellTemplate = course => "Edit",
+        IsSearchable = false,
+        IsActionColumn = true,
+        ShowEdit = true
+    }
+};
+
+    private void OnCourseEdit(Course course)
+    {
+        // TODO: Handle edit logic
+        Console.WriteLine($"Editing course: {course.Name}");
+    }
+}

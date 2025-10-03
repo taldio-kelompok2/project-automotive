@@ -1,0 +1,141 @@
+﻿@typeparam TItem
+
+<MudPaper Class="w-100 p-2 mb-3">
+<MudTextField @bind-Value="SearchText" 
+              Placeholder="Search..." 
+              Adornment="Adornment.Start" 
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Immediate="true"
+              OnKeyUp="@(e => ApplySearch())" />
+</MudPaper>
+
+<div class="responsive-table">
+<MudTable Items="FilteredItems" Hover="true" Dense=true Striped=true
+          Style="background-color: white;">
+    <HeaderContent>
+        @foreach (var column in Columns) 
+        {
+            <!-- TODO: change styling -->
+            <MudTh Class="text-center py-3" Style="background-color: #FFA896;">@column.Header</MudTh>
+        }
+    </HeaderContent>
+    <RowTemplate>
+        @foreach (var column in Columns)
+        {
+            <MudTd Class="text-center" DataLabel="@column.Header" s>
+                @if (column.IsStatusColumn)
+                {
+                    <MudChip T="string" Color="@(GetStatusColor(context, column))" 
+                             Variant="Variant.Filled" 
+                             Size="Size.Small">
+                        @column.CellTemplate(context)
+                    </MudChip>
+                }
+                else if (column.IsActionColumn)
+                {
+                    @if (column.ShowDetails)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => OnDetailsClick(context))"
+                                       Title="Details" />
+                    }
+
+                    @if (column.ShowEdit)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => OnEditClick(context))"
+                                       Title="Edit" />
+                    }
+                }
+                else if (column.IsImageColumn)
+                {
+                    var imageUrl = column.CellTemplate(context)?.ToString();
+                    @if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        
+                            <MudImage Src="@imageUrl" Height="30" Class="p-1" />
+                        
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Image" Color="Color.Inherit" />
+                    }
+                }
+                else
+                {
+                    @column.CellTemplate(context)
+                }
+            </MudTd>
+        }
+    </RowTemplate>
+    <PagerContent>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudTablePager HidePageNumber=true HideRowsPerPage />
+        </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudTablePager />
+            </MudHidden>
+    </PagerContent>
+</MudTable>
+</div>
+
+@code {
+    [Parameter] public required IEnumerable<TItem> Items { get; set; }
+    [Parameter] public required List<ColumnDefinition<TItem>> Columns { get; set; }
+    [Parameter] public EventCallback<TItem> OnEdit { get; set; }
+    [Parameter] public EventCallback<TItem> OnDetails { get; set; }
+
+
+    private string SearchText { get; set; } = "";
+    private IEnumerable<TItem> FilteredItems { get; set; } = new List<TItem>();
+
+    protected override void OnParametersSet()
+    {
+        // Reset when Items change
+        ApplySearch();
+    }
+
+    private void ApplySearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            FilteredItems = Items;
+            return;
+        }
+
+        FilteredItems = Items.Where(item =>
+            Columns.Where(c => c.IsSearchable)
+                   .Any(c => (c.CellTemplate(item)?.ToString() ?? "")
+                        .Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
+    }
+
+    private Color GetStatusColor(TItem item, ColumnDefinition<TItem> column)
+    {
+        var status = column.CellTemplate(item)?.ToString()?.ToLower();
+        return status switch
+        {
+            "active" => Color.Success,
+            "inactive" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private async Task OnEditClick(TItem item)
+    {
+        if (OnEdit.HasDelegate)
+        {
+            await OnEdit.InvokeAsync(item);
+        }
+    }
+
+    private async Task OnDetailsClick(TItem item)
+    {
+        if (OnDetails.HasDelegate)
+        {
+            await OnDetails.InvokeAsync(item);
+        }
+    }
+}

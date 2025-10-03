@@ -89,7 +89,7 @@
         @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
         {
             <MudItem xs="6" sm="4" md="3">
-                <MudLink Href="@($"/{category.ToString().ToLower()}")" Style="text-decoration: none; color: inherit;">
+                <MudLink Href="@($"/course/{category.ToString().ToLower()}")" Style="text-decoration: none; color: inherit;">
                     <div class="category-card">
                         <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1"
                             Class="hover-pointer">
@@ -118,7 +118,7 @@
     // Navigasi Ke Halaman Kategori
     private void GoToCategory(string category)
     {
-        Nav.NavigateTo($"/{category.ToLowerInvariant()}");
+        Nav.NavigateTo($"/course/{category.ToLowerInvariant()}");
     }
 
 }
