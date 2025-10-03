@@ -2,6 +2,7 @@ namespace AutomotiveApp.BlazorUI.Models.Cart
 {
     public class RentalCartViewModel
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public required CarViewModel Car { get; set; }
         public bool Selected { get; set; } = false;
 

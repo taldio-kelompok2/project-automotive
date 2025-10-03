@@ -15,42 +15,90 @@
             Menu Invoice
         </MudText>
 
-        <MudTable Items="Invoices" Dense="true" Hover="true" Elevation="0" Class="w-100 custom-table">
-            <HeaderContent>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">No</MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">No. Invoice</MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">Date</MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">Total Course</MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">Total Price</MudTh>
-                <MudTh Style="@HeaderStyle" Class="text-white text-center">Action</MudTh>
-            </HeaderContent>
+        <!-- View Desktop -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <div class="table-responsive">
+                <MudTable Items="Invoices" Dense="true" Hover="true" Elevation="0" Class="w-100 custom-table">
+                    <HeaderContent>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">No</MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">No. Invoice</MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">Date</MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">Total Course</MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">Total Price</MudTh>
+                        <MudTh Style="@HeaderStyle" Class="text-white text-center">Action</MudTh>
+                    </HeaderContent>
 
-            <RowTemplate>
-                <MudTd Style="@RowStyle">@context.No</MudTd>
-                <MudTd Style="@RowStyle">@context.InvoiceNo</MudTd>
-                <MudTd Style="@RowStyle">@context.Date.ToString("dd MMMM yyyy", new CultureInfo("en-US"))</MudTd>
-                <MudTd Style="@RowStyle">@context.TotalCourse</MudTd>
-                <MudTd Style="@RowStyle">@FormatIdr(context.TotalPrice)</MudTd>
-                <MudTd Style="@RowStyle">
-                    <AppBaseButton Variant="Variant.Outlined"
-                        Color="Color.Primary"
-                        Width="ButtonWidth.Long"
-                        Class="custom-details-btn"
-                        OnClick="@(() => GoToDetail(context.InvoiceNo))">
-                        Details
-                    </AppBaseButton>
+                    <RowTemplate>
+                        <MudTd Style="@RowStyle">@context.No</MudTd>
+                        <MudTd Style="@RowStyle">@context.InvoiceNo</MudTd>
+                        <MudTd Style="@RowStyle">@context.Date.ToString("dd MMMM yyyy", new CultureInfo("en-US"))</MudTd>
+                        <MudTd Style="@RowStyle">@context.TotalCourse</MudTd>
+                        <MudTd Style="@RowStyle">@FormatIdr(context.TotalPrice)</MudTd>
+                        <MudTd Style="@RowStyle">
+                            <AppBaseButton Variant="Variant.Outlined"
+                                        Color="Color.Primary"
+                                        Width="ButtonWidth.Long"
+                                        Class="custom-details-btn"
+                                        OnClick="@(() => GoToDetail(context.InvoiceNo))">
+                                Details
+                            </AppBaseButton>
+                        </MudTd>
+                    </RowTemplate>
 
-                </MudTd>
-            </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Class="p-4">No Data Available</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </div>
+        </MudHidden>
 
-            <NoRecordsContent>
-                <MudText Class="p-4">No Data Available</MudText>
-            </NoRecordsContent>
-        </MudTable>
+        <!-- View Mobile -->
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudStack Spacing="2">
+                @foreach (var row in Invoices)
+                {
+                    <MudPaper Class="mobile-card" Elevation="0">
+                        <div class="kv">
+                            <span class="k">No</span>
+                            <span class="v">@row.No</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">No. Invoice</span>
+                            <span class="v">@row.InvoiceNo</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Date</span>
+                            <span class="v">@row.Date.ToString("dd MMMM yyyy", new CultureInfo("en-US"))</span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Total Course</span>
+                            <span class="v">@row.TotalCourse</span>
+                        </div>
+                        <div class="kv total">
+                            <span class="k">Total Price</span>
+                            <span class="v">@FormatIdr(row.TotalPrice)</span>
+                        </div>
+
+                        <!-- action -->
+                        <div class="mobile-actions">
+                            <AppBaseButton Variant="Variant.Outlined"
+                                        Color="Color.Primary"
+                                        Width="ButtonWidth.Long"
+                                        Class="custom-details-btn"
+                                        OnClick="@(() => GoToDetail(row.InvoiceNo))">
+                                Details
+                            </AppBaseButton>
+                        </div>
+                    </MudPaper>
+                }
+            </MudStack>
+        </MudHidden>
+
     </MudContainer>
 </div>
 
 <Footer />
+
 
 <style>
     .custom-table tbody tr:hover {
@@ -82,11 +130,56 @@
         background-color: #790b0a !important;
         color: white !important;
     }
+
+    .mobile-card{
+        border:1px solid #E0E0E0;
+        border-radius:10px;
+        padding:12px 14px;
+        margin-bottom: 20px;
+    }
+
+    .mobile-card:last-child { 
+        margin-bottom: 35px; 
+    }
+
+    .mobile-card .kv{
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        padding:8px 0;
+        border-bottom:1px solid #F2F2F2;
+    }
+    
+    .mobile-card .kv:last-child{ border-bottom:none; }
+    .mobile-card .k{ color:#7A7A7A; font-weight:500; }
+    .mobile-card .v{ color:#333; font-weight:600; text-align:right; }
+    .mobile-card .total .k{ color:#5A5A5A; }
+    .mobile-card .total .v{ color:#790b0a; font-weight:700; }
+
+    .mobile-actions{
+        display:flex;
+        justify-content: center; 
+        margin-top:12px;
+    }
+
+    .custom-details-btn{
+        border: 1.5px solid var(--mud-palette-primary) !important;
+        color: var(--mud-palette-primary) !important;
+        text-transform: none !important;
+    }
+
+    .custom-details-btn .mud-button-label{ 
+        font-weight:700 !important; 
+    }
+
+    @@media (max-width: 600px){
+        .mobile-card .k, .mobile-card .v { font-size:.92rem; }
+    }
 </style>
 
 
 @code {
-    private string HeaderStyle => "background-color:#790b0a; height:50px; text-align:center; vertical-align:middle; font-weight:bold;";
+    private string HeaderStyle => "background-color:#790b0a; height:55px; text-align:center; vertical-align:middle; font-weight:bold;";
     
     private string RowStyle => "height:55px; vertical-align:middle; text-align:center;";
 
@@ -98,9 +191,10 @@
 
     private List<InvoiceItem> Invoices = new()
     {
-        new() { No = 1, InvoiceNo = "OTO00003", Date = new DateTime(2022, 7, 12), TotalCourse = 1, TotalPrice = 900_000 },
-        new() { No = 2, InvoiceNo = "OTO00002", Date = new DateTime(2022, 2, 5), TotalCourse = 2, TotalPrice = 750_000 },
-        new() { No = 3, InvoiceNo = "OTO00001", Date = new DateTime(2021, 8, 30), TotalCourse = 3, TotalPrice = 600_000 }
+        new() { No = 1, InvoiceNo = "OTO00004", Date = new DateTime(2022, 7, 12), TotalCourse = 1, TotalPrice = 900_000 },
+        new() { No = 2, InvoiceNo = "OTO00003", Date = new DateTime(2022, 2, 5), TotalCourse = 2, TotalPrice = 750_000 },
+        new() { No = 3, InvoiceNo = "OTO00002", Date = new DateTime(2021, 8, 30), TotalCourse = 3, TotalPrice = 600_000 },
+        new() { No = 4, InvoiceNo = "OTO00001", Date = new DateTime(2021, 8, 30), TotalCourse = 3, TotalPrice = 850_000 },
     };
 
     private string FormatIdr(decimal value)

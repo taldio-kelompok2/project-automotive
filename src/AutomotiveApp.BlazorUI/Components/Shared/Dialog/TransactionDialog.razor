@@ -1,0 +1,78 @@
+@using System.Data
+@inject ISnackbar Snackbar
+@inject IRentalCartService Cart
+
+@implements IDisposable
+<MudDialog Class="rounded-3 py-2 px-4">
+    <TitleContent>
+        <MudText Class="text-center" Typo="Typo.h6" Color="Color.Dark" Style="font-weight: 500; font-family: Poppins;">
+            Select Payment Method</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudList T="TransactionViewModel" Class="pb-3 fluid" Color="@Color.Primary"
+            @bind-SelectedValue="SelectedTransaction" SelectionMode="SelectionMode.SingleSelection">
+            @foreach (var trans in transactions)
+            {
+                <MudListItem Value="@trans">
+                    <MudStack @key="trans.Id" Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+                        <MudImage Src="@trans.Image" Width="39" Height="39" />
+                        <MudText Style="font-size: 1.125rem; font-weight:500; font-family: Poppins;" Color="Color.Dark">
+                            @trans.Category.ToString()
+                        </MudText>
+                    </MudStack>
+                </MudListItem>
+            }
+        </MudList>
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+            <AppBaseButton Class="py-2" Width="ButtonWidth.Medium" Variant="Variant.Outlined" Color="Color.Primary"
+                OnClick="Cancel" Style="font-weight: 600;">
+                <MudText Typo="Typo.body1" Style="font-weight: 600;">Cancel</MudText>
+            </AppBaseButton>
+            <AppBaseButton Disabled="@Cart.IsLoading" Class="py-2" Width="ButtonWidth.Medium" Loading
+                Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleOnSubmit">
+                @if (Cart.IsLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">Pay Now</MudText>
+                }
+            </AppBaseButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public EventCallback<TransactionViewModel> OnSubmit { get; set; }
+    List<TransactionViewModel> transactions = new();
+    private TransactionViewModel? SelectedTransaction;
+    protected override void OnInitialized()
+    {
+        transactions = TransactionViewModel.InitDummyData();
+        Cart.OnLoadingChanged += StateHasChanged;
+
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        Cart.OnLoadingChanged -= StateHasChanged;
+    }
+
+    private async Task HandleOnSubmit()
+    {
+        if (SelectedTransaction == null)
+        {
+            Snackbar.Add("Please select a payment method.", Severity.Warning);
+            return;
+        }
+
+        await OnSubmit.InvokeAsync(SelectedTransaction);
+        MudDialog.Close(DialogResult.Ok(SelectedTransaction));
+    }
+    private void Cancel() => MudDialog.Cancel();
+}
