@@ -1,4 +1,4 @@
-﻿@page "/{category}/{name}"
+﻿@page "/course/{category}/{name}"
 @using MudBlazor
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
@@ -205,6 +205,6 @@
     private void NavigateToCourseDetail(string courseTitle)
     {
         string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo($"/{Category}/{normalizedTitle}");
+        Navigation.NavigateTo($"/course/{Category}/{normalizedTitle}");
     }
 }
