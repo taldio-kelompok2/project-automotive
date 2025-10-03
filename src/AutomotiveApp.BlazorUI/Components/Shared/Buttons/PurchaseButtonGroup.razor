@@ -1,0 +1,15 @@
+<AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="@Width">
+    <MudText Typo="Typo.body1" Class="@Class" Style="@Style" @onclick="AddToCart">Add to Cart</MudText>
+</AppBaseButton>
+<AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="@Width">
+    <MudText Typo="Typo.body1" Class="@Class" Style="@Style" @onclick="InstantPayment">Buy Now</MudText>
+</AppBaseButton>
+
+@code {
+    [Parameter] public ButtonWidth Width { get; set; } = ButtonWidth.Medium;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public EventCallback AddToCart { get; set; }
+    [Parameter] public EventCallback InstantPayment { get; set; }
+
+}
