@@ -1,0 +1,77 @@
+﻿@using AutomotiveApp.Shared.Enums
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using Enums
+
+<MudDialog Class="m-2">
+    <DialogContent>
+
+        <MudSelect T="CarCategory" @bind-Value="_course.Category" Label="Category" Required="true" Class="my-2">
+            @foreach (var cat in Enum.GetValues<CarCategory>())
+            {
+                <MudSelectItem Value="cat">@cat</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudTextField @bind-Value="_course.Name" Label="Course Name" Required="true" Class="my-2" />
+
+        <MudItem Class="pb-1">
+            <MudText Typo="Typo.body2">Course Image</MudText>
+            <InputFile class="p-1" OnChange="OnFileSelected" />
+            @if (!string.IsNullOrEmpty(_course.Image))
+            {
+                <MudText Typo="Typo.body2" Class="mt-1">Current: @_course.Image</MudText>
+            }
+        </MudItem>
+
+        <MudNumericField @bind-Value="_course.Price" Label="Price" Required="true" Min="0" Class="my-2" />
+        <MudDatePicker @bind-Date="_course.Schedule" Label="Schedule" Class="my-2" />
+        <MudSelect T="Status"
+                   Label="Status"
+                   @bind-Value="_course.Status"
+                   Required="true">
+            <MudSelectItem Value="Status.Active">Active</MudSelectItem>
+            <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public CourseViewModel? Item { get; set; }
+
+    private CourseViewModel _course = new();
+
+    protected override void OnInitialized()
+    {
+        if (Item != null)
+        {
+            _course = new CourseViewModel
+            {
+                Category = Item.Category,
+                Name = Item.Name,
+                Image = Item.Image,
+                Price = Item.Price,
+                Status = Item.Status,
+                Schedule = Item.Schedule
+            };
+        }
+    }
+
+    private void Save() => MudDialog.Close(DialogResult.Ok(_course));
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            _course.Image = file.Name; // only storing filename
+            StateHasChanged();
+        }
+    }
+}

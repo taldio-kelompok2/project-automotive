@@ -1,4 +1,5 @@
 ﻿@typeparam TItem
+@inject IDialogService DialogService
 
 <MudPaper Class="w-100 p-2 mb-3">
 <MudTextField @bind-Value="SearchText" 
@@ -125,17 +126,42 @@
 
     private async Task OnEditClick(TItem item)
     {
-        if (OnEdit.HasDelegate)
+        DialogParameters parameters = new() { ["Item"] = item };
+        IDialogReference? dialog = null;
+        switch (item)
         {
-            await OnEdit.InvokeAsync(item);
+            case UserViewModel u:
+                dialog = DialogService.Show<EditUserDialog>("Edit User", parameters);
+                break;
+
+            case CategoryViewModel c:
+                dialog = DialogService.Show<EditCategoryDialog>("Edit Category", parameters);
+                break;
+
+            case CourseViewModel course:
+                dialog = DialogService.Show<EditCourseDialog>("Edit Course", parameters);
+                break;
+
+            case PaymentMethodViewModel p:
+                dialog = DialogService.Show<EditPaymentDialog>("Edit Payment Method", parameters);
+                break;
+        }
+
+        if (dialog is null)
+            return;
+
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            var edited = (TItem)result.Data!;
+            await OnEdit.InvokeAsync(edited);
         }
     }
 
     private async Task OnDetailsClick(TItem item)
     {
-        if (OnDetails.HasDelegate)
-        {
-            await OnDetails.InvokeAsync(item);
-        }
+        var parameters = new DialogParameters { ["Item"] = item };
+        var dialog = DialogService.Show<DetailsDashboardDialog<TItem>>("Item Details", parameters);
+        await dialog.Result; // just wait for close
     }
 }

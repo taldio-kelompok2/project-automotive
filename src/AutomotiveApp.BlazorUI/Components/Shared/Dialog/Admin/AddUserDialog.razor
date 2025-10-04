@@ -1,0 +1,70 @@
+﻿@using AutomotiveApp.BlazorUI.Enums
+
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form">
+      <MudTextField T="string"
+                    Label="Email"
+                    @bind-Value="NewUser.Email"
+                    Required="true"
+                    For="@(() => NewUser.Email)" />
+
+      <MudTextField T="string"
+                    Label="Name"
+                    @bind-Value="NewUser.Name"
+                    Required="true"
+                    For="@(() => NewUser.Name)" />
+
+      <MudSelect T="UserRole"
+                 Label="Role"
+                 @bind-Value="NewUser.Role"
+                 Required="true">
+                <MudSelectItem Value="UserRole.User">User</MudSelectItem>
+                <MudSelectItem Value="UserRole.Admin">Admin</MudSelectItem>
+      </MudSelect>
+
+      <MudSelect T="Status"
+                 Label="Status"
+                 @bind-Value="NewUser.Status"
+                 Required="true">
+                <MudSelectItem Value="Status.Active">Active</MudSelectItem>
+                <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
+      </MudSelect>
+    </MudForm>
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Add</MudButton>
+    <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private UserViewModel NewUser = default!;
+
+    protected override void OnInitialized()
+    {
+        NewUser = new UserViewModel
+        {
+            Email = string.Empty,
+            Name  = string.Empty,
+            Role  = UserRole.User, 
+            Status = Status.Active 
+        };
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // return the created user to caller
+            MudDialog.Close(DialogResult.Ok(NewUser));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,48 @@
+﻿@using AutomotiveApp.Shared.Enums
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using Enums
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Add Payment Method</MudText>
+
+        <MudTextField @bind-Value="_paymentMethod.Name" Label="Name" Required="true" Class="my-2" />
+
+        <MudItem>
+            <label>Logo</label>
+            <InputFile OnChange="OnFileSelected" />
+            @if (!string.IsNullOrEmpty(_paymentMethod.Logo))
+            {
+                <MudText Typo="Typo.body2" Class="mt-1">Selected: @_paymentMethod.Logo</MudText>
+            }
+        </MudItem>
+
+        <MudSelect T="Status" @bind-Value="_paymentMethod.Status" Label="Status" Required="true" Class="my-2">
+            <MudSelectItem Value="Status.Active">Active</MudSelectItem>
+            <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private PaymentMethodViewModel _paymentMethod = new();
+
+    private void Save() => MudDialog.Close(DialogResult.Ok(_paymentMethod));
+    private void Cancel() => MudDialog.Cancel();
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            _paymentMethod.Logo = file.Name; // only storing file name for now
+        }
+    }
+}

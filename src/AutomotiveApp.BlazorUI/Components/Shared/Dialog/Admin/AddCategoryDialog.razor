@@ -1,0 +1,26 @@
+﻿@using Enums
+
+<MudDialog>
+    <DialogContent>
+
+        <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="my-3" />
+        <MudSelect @bind-Value="_category.Status" Label="Status" Required="true">
+            <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
+            <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private CategoryViewModel _category = new() { Name = string.Empty, Status = Status.Active };
+
+    private void Save() => MudDialog.Close(DialogResult.Ok(_category));
+    private void Cancel() => MudDialog.Cancel();
+}
