@@ -1,21 +1,34 @@
 using System.Linq.Expressions;
 using AutomotiveApp.Base.Entities;
+using AutomotiveApp.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace AutomotiveApp.Domain.Interface
 {
     public interface IRepository<T> where T : class, IBaseEntity
     {
-        Task<T?> GetByIdAsync(Guid id);
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
+        Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<IEnumerable<T>> GetAllAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default);
+        Task<PaginatedResult<T>> GetAllPagedAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            int page = 1,
+            int itemTaken = 6,
+            CancellationToken ct = default);
+        Task<T?> FirstOrDefaultAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
+            CancellationToken ct = default);
+        Task<IEnumerable<T>> FindAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default);
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
-        Task<bool> DataExistAsync(Guid id);
-        Task<int> CountAsync();
-
-        // Task<int> CountAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> DataExistAsync(Guid id, CancellationToken ct = default);
+        Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null,
+            CancellationToken ct = default);
     }
 }
