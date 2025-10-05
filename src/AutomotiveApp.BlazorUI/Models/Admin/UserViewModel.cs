@@ -7,7 +7,7 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
     {
         public  string Email { get; set; }
         public  string Name { get; set; }
-        public  UserRole Role { get; set; }
+        public AdminUserRole Role { get; set; }
         public Status Status { get; set; } = Status.Active; // default
 
     }

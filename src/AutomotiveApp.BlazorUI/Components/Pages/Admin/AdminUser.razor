@@ -17,17 +17,17 @@
 
     private List<UserViewModel> users = new()
     {
-        new UserViewModel { Email="admin@dlanguage.com", Name="Super Admin", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="nurimamiskandar@gmail.com", Name="Nur Imam Iskandar", Role=UserRole.User, Status=Status.Active},
-        new UserViewModel { Email="imam.stmik15@gmail.com", Name="Iskandar", Role=UserRole.User, Status=Status.Active},
-        new UserViewModel { Email="iniemaildummysaya@gmail.com", Name="Dummy User", Role=UserRole.User, Status=Status.Inactive},
-        new UserViewModel { Email="yusrisahrul.works@gmail.com", Name="yusri sahrul", Role=UserRole.User, Status=Status.Active},
-        new UserViewModel { Email="yusribootcamp@gmail.com", Name="yusri sahrul test", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="adasdasda@gmail.com", Name="yusri test", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="asdasd@gmail.com", Name="yusri sahrul test", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="dssdsdsd@gmail.com", Name="yusri sahrul test", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="dssd6767d@gmail.com", Name="yusri sahrul test", Role=UserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="iniemail@gmail.com", Name="Dummy User", Role=UserRole.User, Status=Status.Inactive},
+        new UserViewModel { Email="admin@dlanguage.com", Name="Super Admin", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="nurimamiskandar@gmail.com", Name="Nur Imam Iskandar", Role=AdminUserRole.User, Status=Status.Active},
+        new UserViewModel { Email="imam.stmik15@gmail.com", Name="Iskandar", Role=AdminUserRole.User, Status=Status.Active},
+        new UserViewModel { Email="iniemaildummysaya@gmail.com", Name="Dummy User", Role=AdminUserRole.User, Status=Status.Inactive},
+        new UserViewModel { Email="yusrisahrul.works@gmail.com", Name="yusri sahrul", Role=AdminUserRole.User, Status=Status.Active},
+        new UserViewModel { Email="yusribootcamp@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="adasdasda@gmail.com", Name="yusri test", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="asdasd@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="dssdsdsd@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="dssd6767d@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
+        new UserViewModel { Email="iniemail@gmail.com", Name="Dummy User", Role=AdminUserRole.User, Status=Status.Inactive},
     };
 
     List<ColumnDefinition<UserViewModel>> userColumns = new()
