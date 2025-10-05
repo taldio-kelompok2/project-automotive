@@ -1,5 +1,6 @@
 ﻿@page "/admin/course"
 @rendermode InteractiveServer
+@inject IDialogService DialogService
 
 @layout AdminLayout
 
@@ -7,63 +8,51 @@
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Course Management</MudText>
-    <AppBaseButton Width="ButtonWidth.Short" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
-    <AdminTable TItem="Course" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdit" />
+    <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCourseDialog"  Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
+    <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdit" />
 </MudPaper>
 
 @code {
-    // TODO: finalize fields
-    public class Course
-    {
-        public required string Name { get; set; }
-        public required double Price { get; set; }
-        public required string Category { get; set; }
-        public required string Status { get; set; }
-    }
 
-    private List<Course> courses = new()
+    private List<CourseViewModel> courses = new()
 {
-    new Course { Name = "Basic Driving Course", Price = 299.99, Category = "Beginner", Status = "Active" },
-    new Course { Name = "Advanced Driving Techniques", Price = 499.99, Category = "Advanced", Status = "Active" },
-    new Course { Name = "Defensive Driving", Price = 399.99, Category = "Safety", Status = "Active" },
-    new Course { Name = "Motorcycle Safety Course", Price = 349.99, Category = "Motorcycle", Status = "Inactive" },
-    new Course { Name = "Commercial License Training", Price = 899.99, Category = "Commercial", Status = "Active" },
-    new Course { Name = "Winter Driving Skills", Price = 279.99, Category = "Seasonal", Status = "Active" },
-    new Course { Name = "Highway Driving Mastery", Price = 459.99, Category = "Advanced", Status = "Active" },
-    new Course { Name = "Parallel Parking Pro", Price = 199.99, Category = "Skills", Status = "Active" },
-    new Course { Name = "Eco Driving Course", Price = 329.99, Category = "Eco-Friendly", Status = "Inactive" },
-    new Course { Name = "Racing Fundamentals", Price = 1299.99, Category = "Performance", Status = "Active" },
-    new Course { Name = "Off-Road Adventure Driving", Price = 599.99, Category = "Adventure", Status = "Active" }
-};
+        new CourseViewModel { Name = "Basic Driving Course", Price = 299, Category = CarCategory.Sedan, Status = Status.Active, Image="basic.png", Schedule=DateTime.Today },
+        new CourseViewModel { Name = "Advanced Driving Techniques", Price = 499, Category = CarCategory.SUV, Status = Status.Active, Image="advanced.png" },
+        new CourseViewModel { Name = "Defensive Driving", Price = 399, Category = CarCategory.Sedan, Status = Status.Active, Image="defensive.png" },
+        new CourseViewModel { Name = "Motorcycle Safety Course", Price = 349, Category = CarCategory.SUV, Status = Status.Inactive, Image="motorcycle.png" },
+        new CourseViewModel { Name = "Commercial License Training", Price = 899, Category = CarCategory.Truck, Status = Status.Active, Image="commercial.png" },
+        new CourseViewModel { Name = "Eco Driving Course", Price = 329, Category = CarCategory.Hatchback, Status = Status.Inactive, Image="eco.png" },
+        new CourseViewModel { Name = "Off-Road Adventure Driving", Price = 599, Category = CarCategory.SUV, Status = Status.Active, Image="offroad.png" }
+    };
 
-    List<ColumnDefinition<Course>> courseColumns = new()
+    List<ColumnDefinition<CourseViewModel>> courseColumns = new()
 {
-    new ColumnDefinition<Course>
+    new ColumnDefinition<CourseViewModel>
     {
         Header = "Course Name",
         CellTemplate = course => @course.Name,
         IsSearchable = true,
     },
-    new ColumnDefinition<Course>
+    new ColumnDefinition<CourseViewModel>
     {
         Header = "Price",
         CellTemplate = course => @course.Price.ToString("C2"),
         IsSearchable = false,
     },
-    new ColumnDefinition<Course>
+    new ColumnDefinition<CourseViewModel>
     {
         Header = "Category",
         CellTemplate = course => @course.Category,
         IsSearchable = true,
     },
-    new ColumnDefinition<Course>
+    new ColumnDefinition<CourseViewModel>
     {
         Header = "Status",
         CellTemplate = course => @course.Status,
         IsSearchable = true,
         IsStatusColumn = true,
     },
-    new ColumnDefinition<Course>
+    new ColumnDefinition<CourseViewModel>
     {
         Header = "Action",
         CellTemplate = course => "Edit",
@@ -73,9 +62,25 @@
     }
 };
 
-    private void OnCourseEdit(Course course)
+    private async Task ShowAddCourseDialog()
     {
-        // TODO: Handle edit logic
-        Console.WriteLine($"Editing course: {course.Name}");
+        var dialog = await DialogService.ShowAsync<AddCourseDialog>("Add Course");
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CourseViewModel newCourse)
+        {
+            courses.Add(newCourse);
+            StateHasChanged();
+        }
+    }
+
+    private void OnCourseEdit(CourseViewModel course)
+    {
+        var index = courses.FindIndex(c => c.Name == course.Name);
+        if (index >= 0)
+        {
+            courses[index] = course;
+            StateHasChanged();
+        }
     }
 }

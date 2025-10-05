@@ -9,16 +9,16 @@
 <PageTitle>Course Detail</PageTitle>
 
 <MudGrid Class="px-0 pt-0 mt-4 mb-2 mx-0 px-lg-5 pt-lg-4 justify-content-center justify-content-lg-start" Spacing="0">
-    <MudItem xs="10" sm="10" md="5" lg="6"
-        Class="m-0 pb-sm-0 pb-md-0 ps-lg-5 d-flex justify-content-center justify-content-lg-start"
+    <MudItem xs="10" sm="10" md="5" lg="5"
+        Class="m-0  ms-lg-5 d-flex justify-content-center justify-content-lg-start"
         Style="align-self:center;">
         <!-- Mobile (xs, sm) -->
         <MudImage Src="@chosenCar.Image" Class="d-block d-md-none"
             Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
 
-        @* <!-- Tablet (md only) -->
-        <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-none"
-            Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" /> *@
+        <!-- Tablet (md only) -->
+        <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-none mt-3"
+            Style="width:95%; object-fit:cover; border:1px solid #BDBDBD;" />
 
         <!-- Desktop (lg and up) -->
         <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-block"
@@ -26,8 +26,8 @@
     </MudItem>
 
     @* have to apply flex on both to work*@
-    <MudItem xs="10" md="5" Class="pt-4 pt-md-0 d-flex justify-content-center justify-content-md-start"
-        Style=" display:flex; flex-direction:column;">
+    <MudItem xs="10" md="5" Class="pt-4 p-md-3 p-lg-0 pt-lg-0 d-flex justify-content-center justify-content-md-start"
+        Style="flex-grow:1; display:flex; flex-direction:column;">
         <div class="px-0 mx-0" style="flex:1; display:flex; flex-direction:column;">
             <MudText Typo="Typo.h6" Class="p-0" Style="font-weight: 400; color: #828282; font-size: 20px">
                 @CategoryTitle.ToString()</MudText>

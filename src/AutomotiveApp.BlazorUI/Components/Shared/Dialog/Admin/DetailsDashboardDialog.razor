@@ -1,0 +1,50 @@
+﻿@typeparam TItem
+
+<MudDialog title="Details">
+    <DialogContent >
+        <MudTable Items="Fields" Elevation="0" title="">
+            <HeaderContent>
+                <MudTh>Property</MudTh>
+                <MudTh>Value</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Property">@context.Name</MudTd>
+                <MudTd DataLabel="Value">@context.Value</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Secondary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public TItem Item { get; set; } = default!;
+
+    private List<FieldModel> Fields = new();
+
+    // input masih generic karena belum tau details
+    // di dashboard perlu munculin apa
+    protected override void OnParametersSet()
+    {
+        Fields = typeof(TItem)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+            .Select(p => new FieldModel
+            {
+                Name = p.Name,
+                Value = p.GetValue(Item)?.ToString() ?? ""
+            })
+            .ToList();
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+
+    private class FieldModel
+    {
+        public string Name { get; set; } = "";
+        public string Value { get; set; } = "";
+    }
+}

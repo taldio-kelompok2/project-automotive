@@ -1,4 +1,5 @@
 ﻿@typeparam TItem
+@inject IDialogService DialogService
 
 <MudPaper Class="w-100 p-2 mb-3">
 <MudTextField @bind-Value="SearchText" 
@@ -25,7 +26,7 @@
             <MudTd Class="text-center" DataLabel="@column.Header" s>
                 @if (column.IsStatusColumn)
                 {
-                    <MudChip T="string" Color="@(GetStatusColor(context, column))" 
+                    <MudChip T="string" Color="@(GetStatusColor(context))" 
                              Variant="Variant.Filled" 
                              Size="Size.Small">
                         @column.CellTemplate(context)
@@ -112,30 +113,52 @@
         ).ToList();
     }
 
-    private Color GetStatusColor(TItem item, ColumnDefinition<TItem> column)
+    private Color GetStatusColor(TItem item)
     {
-        var status = column.CellTemplate(item)?.ToString()?.ToLower();
+        var status = item switch
+        {
+            UserViewModel u => u.Status,
+            CourseViewModel c => c.Status,
+            CategoryViewModel ca => ca.Status,
+            _ => default
+        };
+
         return status switch
         {
-            "active" => Color.Success,
-            "inactive" => Color.Error,
+            Status.Active => Color.Success,
+            Status.Inactive => Color.Error,
             _ => Color.Default
         };
     }
 
     private async Task OnEditClick(TItem item)
     {
-        if (OnEdit.HasDelegate)
+        DialogParameters parameters = new() { ["Item"] = item };
+        
+        IDialogReference? dialog = item switch
         {
-            await OnEdit.InvokeAsync(item);
+            UserViewModel u => await DialogService.ShowAsync<EditUserDialog>("Edit User", parameters),
+            CategoryViewModel ca => await DialogService.ShowAsync<EditCategoryDialog>("Edit Category", parameters),
+            CourseViewModel co => await DialogService.ShowAsync<EditCourseDialog>("Edit Course", parameters),
+            PaymentMethodViewModel p => await DialogService.ShowAsync<EditPaymentDialog>("Edit Payment Method", parameters),
+            _ => null
+        };
+
+        if (dialog is null)
+            return;
+
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            var castedResult = (TItem)result.Data!;
+            await OnEdit.InvokeAsync(castedResult);
         }
     }
 
     private async Task OnDetailsClick(TItem item)
     {
-        if (OnDetails.HasDelegate)
-        {
-            await OnDetails.InvokeAsync(item);
-        }
+        var parameters = new DialogParameters { ["Item"] = item };
+        var dialog = await DialogService.ShowAsync<DetailsDashboardDialog<TItem>>("Item Details", parameters);
+        await dialog.Result; // just wait for close
     }
 }
