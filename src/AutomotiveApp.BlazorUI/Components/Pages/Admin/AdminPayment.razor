@@ -1,7 +1,6 @@
 ﻿@page "/admin/payment-method"
 @rendermode InteractiveServer
 @inject IDialogService DialogService
-@using Enums
 
 @layout AdminLayout
 
@@ -66,7 +65,7 @@
     };
     private async Task ShowAddPaymentMethodDialog()
     {
-        var dialog = DialogService.Show<AddPaymentDialog>("Add Payment Method");
+        var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment Method");
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is PaymentMethodViewModel newPaymentMethod)

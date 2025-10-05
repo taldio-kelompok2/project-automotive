@@ -1,6 +1,5 @@
 ﻿@page "/admin/course"
 @rendermode InteractiveServer
-@using Enums
 @inject IDialogService DialogService
 
 @layout AdminLayout
@@ -65,7 +64,7 @@
 
     private async Task ShowAddCourseDialog()
     {
-        var dialog = DialogService.Show<AddCourseDialog>("Add Course");
+        var dialog = await DialogService.ShowAsync<AddCourseDialog>("Add Course");
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is CourseViewModel newCourse)
@@ -75,7 +74,7 @@
         }
     }
 
-    private async Task OnCourseEdit(CourseViewModel course)
+    private void OnCourseEdit(CourseViewModel course)
     {
         var index = courses.FindIndex(c => c.Name == course.Name);
         if (index >= 0)

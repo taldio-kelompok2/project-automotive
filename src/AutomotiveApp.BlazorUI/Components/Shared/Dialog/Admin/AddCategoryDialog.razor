@@ -1,13 +1,12 @@
-﻿@using Enums
-
-<MudDialog>
+﻿<MudDialog>
     <DialogContent>
-
-        <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="my-3" />
-        <MudSelect @bind-Value="_category.Status" Label="Status" Required="true">
-            <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
-            <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
-        </MudSelect>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="mb-2" />
+            <MudSelect @bind-Value="_category.Status" Label="Status" Required="true">
+                <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
+                <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
+            </MudSelect>
+        </MudForm>
     </DialogContent>
 
     <DialogActions>
@@ -19,8 +18,18 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private CategoryViewModel _category = new() { Name = string.Empty, Status = Status.Active };
+    private CategoryViewModel _category = new();
+    private MudForm _form = default!;
 
-    private void Save() => MudDialog.Close(DialogResult.Ok(_category));
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // return to caller
+            MudDialog.Close(DialogResult.Ok(_category));
+        }
+    }
+
     private void Cancel() => MudDialog.Cancel();
 }

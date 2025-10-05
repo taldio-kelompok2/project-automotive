@@ -1,10 +1,7 @@
 ﻿@typeparam TItem
-@using System.Reflection
-@using MudBlazor
 
 <MudDialog title="Details">
     <DialogContent >
-
         <MudTable Items="Fields" Elevation="0" title="">
             <HeaderContent>
                 <MudTh>Property</MudTh>
@@ -28,6 +25,8 @@
 
     private List<FieldModel> Fields = new();
 
+    // input masih generic karena belum tau details
+    // di dashboard perlu munculin apa
     protected override void OnParametersSet()
     {
         Fields = typeof(TItem)

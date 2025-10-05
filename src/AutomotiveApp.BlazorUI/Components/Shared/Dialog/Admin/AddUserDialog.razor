@@ -1,23 +1,24 @@
-﻿@using AutomotiveApp.BlazorUI.Enums
-
-<MudDialog>
+﻿<MudDialog>
   <DialogContent>
     <MudForm @ref="_form">
       <MudTextField T="string"
                     Label="Email"
-                    @bind-Value="NewUser.Email"
+                          @bind-Value="_user.Email"
                     Required="true"
-                    For="@(() => NewUser.Email)" />
+                    Class="mb-2"
+                          For="@(() => _user.Email)" />
 
       <MudTextField T="string"
                     Label="Name"
-                    @bind-Value="NewUser.Name"
+                          @bind-Value="_user.Name"
                     Required="true"
-                    For="@(() => NewUser.Name)" />
+                    Class="mb-2"
+                          For="@(() => _user.Name)" />
 
       <MudSelect T="UserRole"
                  Label="Role"
-                 @bind-Value="NewUser.Role"
+                       @bind-Value="_user.Role"
+                       Class="mb-2"
                  Required="true">
                 <MudSelectItem Value="UserRole.User">User</MudSelectItem>
                 <MudSelectItem Value="UserRole.Admin">Admin</MudSelectItem>
@@ -25,7 +26,7 @@
 
       <MudSelect T="Status"
                  Label="Status"
-                 @bind-Value="NewUser.Status"
+                       @bind-Value="_user.Status"
                  Required="true">
                 <MudSelectItem Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
@@ -43,26 +44,15 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     private MudForm _form = default!;
-    private UserViewModel NewUser = default!;
-
-    protected override void OnInitialized()
-    {
-        NewUser = new UserViewModel
-        {
-            Email = string.Empty,
-            Name  = string.Empty,
-            Role  = UserRole.User, 
-            Status = Status.Active 
-        };
-    }
+    private UserViewModel _user = new();
 
     private async Task Save()
     {
         await _form.Validate();
         if (_form.IsValid)
         {
-            // return the created user to caller
-            MudDialog.Close(DialogResult.Ok(NewUser));
+            // return to caller
+            MudDialog.Close(DialogResult.Ok(_user));
         }
     }
 

@@ -7,7 +7,7 @@
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-3">Invoice Management</MudText>
-    <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" OnDetails="OnInvoiceDetails" />
+    <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" />
 </MudPaper>
 
 @code {
@@ -64,10 +64,4 @@
             ShowDetails = true
         }
     };
-
-    private void OnInvoiceDetails(Invoice invoice)
-    {
-        // TODO: Handle details logic, show courses
-        Console.WriteLine($"Details invoice: {invoice.InvoiceNumber}");
-    }
 }

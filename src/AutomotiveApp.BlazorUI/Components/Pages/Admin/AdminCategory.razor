@@ -1,6 +1,5 @@
 ﻿@page "/admin/category"
 @rendermode InteractiveServer
-@using Enums
 @inject IDialogService DialogService
 
 @layout AdminLayout
@@ -58,7 +57,7 @@
 
     private async Task ShowAddCategoryDialog()
     {
-        var dialog = DialogService.Show<AddCategoryDialog>("Add Category");
+        var dialog = await DialogService.ShowAsync<AddCategoryDialog>("Add Category");
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is CategoryViewModel newCategory)
@@ -68,7 +67,7 @@
         }
     }
 
-    private async Task OnCategoryEdit(CategoryViewModel category)
+    private void OnCategoryEdit(CategoryViewModel category)
     {
         var idx = categories.FindIndex(c => c.Name == category.Name);
         if (idx >= 0)

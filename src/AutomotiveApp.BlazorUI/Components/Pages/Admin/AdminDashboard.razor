@@ -40,7 +40,7 @@
         </MudItem>
     </MudGrid>
 
-    <AdminTable TItem="InvoiceRow" Items="Invoices" Columns="InvoiceColumns" OnDetails="OnViewDetail" />
+    <AdminTable TItem="InvoiceRow" Items="Invoices" Columns="InvoiceColumns" />
 </MudPaper>
 
 
@@ -108,12 +108,4 @@
         new ColumnDefinition<InvoiceRow> { Header = "Total Price", CellTemplate = x => FormatIdr(x.TotalPrice), IsSearchable = false },
         new ColumnDefinition<InvoiceRow> { Header = "Action", IsActionColumn = true, ShowDetails = true }
     };
-
-    // Action Detail
-    private void OnViewDetail(InvoiceRow row)
-    {
-        NavigationManager.NavigateTo($"/detail-invoice?no={row.InvoiceNo}");
-    }
-
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 }

@@ -1,5 +1,4 @@
 ﻿@page "/admin/user"
-@using AutomotiveApp.BlazorUI.Enums
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 
@@ -40,7 +39,7 @@
         new ColumnDefinition<UserViewModel> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false, IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
     };
 
-    private async Task OnUserEdit(UserViewModel user)
+    private void OnUserEdit(UserViewModel user)
     {
         var idx = users.FindIndex(c => c.Name == user.Name);
         if (idx >= 0)
@@ -52,7 +51,7 @@
 
     private async Task ShowAddUserDialog()
     {
-        var dialog = DialogService.Show<AddUserDialog>("Add User");
+        var dialog = await DialogService.ShowAsync<AddUserDialog>("Add User");
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is UserViewModel newUser)
