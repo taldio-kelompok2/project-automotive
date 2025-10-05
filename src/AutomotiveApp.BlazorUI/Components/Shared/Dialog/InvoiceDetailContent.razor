@@ -1,0 +1,92 @@
+@using MudBlazor
+@using AutomotiveApp.BlazorUI.Models
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="1" Class="mb-2">
+            <MudText Typo="Typo.h6">Invoice Details</MudText>
+            <MudSimpleTable Dense="true">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Information</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Invoice Number</td><td>@Data.InvoiceNumber</td></tr>
+                    <tr><td>Date</td><td>@Data.Date</td></tr>
+                    <tr><td>Total Price</td><td>@Data.TotalPrice</td></tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudStack>
+
+        <MudStack Spacing="1" Class="mb-2">
+            <MudText Typo="Typo.h6">Course List</MudText>
+            <MudSimpleTable Dense="true" Hover="true">
+                <thead>
+                    <tr>
+                        <th>Course Name</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in courseItems)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Type</td>
+                            <td>@item.RentalDate</td>
+                            <td>@item.Price</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Justify="Justify.FlexEnd" Class="px-3 pb-3">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="CloseDialog">
+                Close
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [Parameter] public required Invoice Data { get; set; }
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private List<CourseItem> courseItems = new()
+    {
+        new CourseItem
+        {
+            Name = "Hyundai Palisade 2021",
+            Type = "SUV",
+            RentalDate = "Wednesday, 27 July 2022",
+            Price = "IDR 850.000"
+        },
+        new CourseItem
+        {
+            Name = "Mitsubishi Fuso Canter",
+            Type = "TRUCK",
+            RentalDate = "Wednesday, 27 July 2022",
+            Price = "IDR 900.000"
+        }
+    };
+
+    private void CloseDialog() => MudDialog.Cancel();
+
+    private class CourseItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string RentalDate { get; set; } = string.Empty;
+        public string Price { get; set; } = string.Empty;
+    }
+}
+

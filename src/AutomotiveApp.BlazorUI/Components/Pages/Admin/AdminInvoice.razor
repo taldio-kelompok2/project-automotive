@@ -1,23 +1,26 @@
 ﻿@page "/admin/invoice"
 @rendermode InteractiveServer
-
 @layout AdminLayout
+
+@using MudBlazor
+@inject IDialogService DialogService
 
 <PageTitle>Invoice Management</PageTitle>
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-3">Invoice Management</MudText>
+    
     <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" OnDetails="OnInvoiceDetails" />
 </MudPaper>
 
 @code {
     // TODO: add list of courses
-    public class Invoice
+    @* public class Invoice
     {
         public required string InvoiceNumber { get; set; }
         public required string Date { get; set; }
         public required string TotalPrice { get; set; }
-    }
+    } *@
 
     private List<Invoice> invoices = new()
     {
@@ -65,9 +68,22 @@
         }
     };
 
-    private void OnInvoiceDetails(Invoice invoice)
+    private async Task OnInvoiceDetails(Invoice invoice)
     {
-        // TODO: Handle details logic, show courses
-        Console.WriteLine($"Details invoice: {invoice.InvoiceNumber}");
+        var parameters = new DialogParameters { ["Data"] = invoice };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        await DialogService.ShowAsync<InvoiceDetailContent>(
+            string.Empty,
+            parameters,
+            options
+        );
     }
 }
