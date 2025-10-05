@@ -369,7 +369,7 @@ namespace AutomotiveApp.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AutomotiveApp.Domain.Entities.Payment.PaymentMethod", b =>
+            modelBuilder.Entity("AutomotiveApp.Domain.Entities.Payments.PaymentMethod", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -608,7 +608,7 @@ namespace AutomotiveApp.Infrastructure.Migrations
 
             modelBuilder.Entity("AutomotiveApp.Domain.Entities.Orders.Order", b =>
                 {
-                    b.HasOne("AutomotiveApp.Domain.Entities.Payment.PaymentMethod", "PaymentMethod")
+                    b.HasOne("AutomotiveApp.Domain.Entities.Payments.PaymentMethod", "PaymentMethod")
                         .WithMany("Orders")
                         .HasForeignKey("PaymentMethodId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -735,7 +735,7 @@ namespace AutomotiveApp.Infrastructure.Migrations
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("AutomotiveApp.Domain.Entities.Payment.PaymentMethod", b =>
+            modelBuilder.Entity("AutomotiveApp.Domain.Entities.Payments.PaymentMethod", b =>
                 {
                     b.Navigation("Orders");
                 });

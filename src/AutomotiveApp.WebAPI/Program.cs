@@ -3,8 +3,17 @@ using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Data.Seeder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using AutomotiveApp.Infrastructure.Repositories;
+using AutomotiveApp.Domain.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services JSON Converter (enum to string)
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 /// Add services to the container.
 builder.Services.AddControllers();
@@ -17,6 +26,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+// Add generic repository untuk semua entity
+builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
