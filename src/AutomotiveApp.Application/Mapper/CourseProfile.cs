@@ -1,7 +1,6 @@
 using AutoMapper;
 using AutomotiveApp.Domain.Entities.Courses;
-using AutomotiveApp.Shared.Dtos.Course;
-using AutomotiveApp.Shared.Enums;
+using AutomotiveApp.Shared.Dtos.Courses;
 
 namespace AutomotiveApp.Application.Mapper
 {
@@ -11,6 +10,11 @@ namespace AutomotiveApp.Application.Mapper
         {
             CreateMap<Course, CourseQueryDto>()
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name.ToString()));
+
+            CreateMap<CourseCommandDto, Course>()
+            .ForMember(dest => dest.Category, opt => opt.Ignore());
+
         }
+
     }
 }

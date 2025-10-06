@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
     <ProjectReference Include="..\AutomotiveApp.Domain\AutomotiveApp.Domain.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Application\AutomotiveApp.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

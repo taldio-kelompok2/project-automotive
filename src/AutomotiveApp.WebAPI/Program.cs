@@ -1,21 +1,38 @@
 using AutomotiveApp.Application.Features.Courses.Queries;
+using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Application.Mapper;
 using AutomotiveApp.Domain.Entities.Auth;
-using AutomotiveApp.Domain.Entities.Courses;
-using AutomotiveApp.Domain.Interface;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Data.Seeder;
-using AutomotiveApp.Infrastructure.Repositories;
+using AutomotiveApp.Infrastructure.Implementation.Repositories;
+using AutomotiveApp.Infrastructure.Implementation.Utils;
+using AutomotiveApp.WebAPI.Mapper;
+using AutomotiveApp.WebAPI.Validators.Course;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
-builder.Services.AddControllers();
+// Add Controllers
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+
+//Fluent Validation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<GetCourseByIdValidator>();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.EnableAnnotations();
+});
 
 // DB Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,10 +40,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // MediatR + AutoMapper
 builder.Services.AddMediatR(typeof(GetCoursesPagedHandler).Assembly);
-builder.Services.AddAutoMapper(typeof(CourseProfile).Assembly);
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// Repository
-builder.Services.AddScoped<IRepository<Course>, BaseRepository<Course>>();
+// Repository & UnitOfWork
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+//Utils (Storage)
+builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>

@@ -1,5 +1,5 @@
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Base.Entities;
-using AutomotiveApp.Domain.Interface;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Shared.Models;
 using Microsoft.EntityFrameworkCore;
@@ -32,9 +32,14 @@ namespace AutomotiveApp.Infrastructure.Repositories
             return query;
         }
 
-        public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        public async Task<T?> GetByIdAsync(
+            Guid id,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default)
         {
-            return await _context.Set<T>().FindAsync([id], ct);
+
+            var query = BuildQuery(modifier);
+            return await query.FirstOrDefaultAsync(e => e.Id == id, ct);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(
@@ -92,7 +97,7 @@ namespace AutomotiveApp.Infrastructure.Repositories
 
         public async Task<bool> DataExistAsync(Guid id, CancellationToken ct = default)
         {
-            var entity = await GetByIdAsync(id, ct);
+            var entity = await GetByIdAsync(id, ct: ct);
             return entity is not null;
         }
 
