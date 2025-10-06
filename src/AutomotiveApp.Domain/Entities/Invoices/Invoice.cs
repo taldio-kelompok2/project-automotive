@@ -7,7 +7,10 @@ namespace AutomotiveApp.Domain.Entities.Invoices
     {
         private static readonly string INVOICE_CODE_HEADER = "OTO";
         public int InvoiceNumber { get; set; }
-        public required uint TotalPrice { get; set; }
+
+        // public required uint TotalPrice { get; set; }
+        
+        public required long TotalPrice { get; set; }
 
         //Foreign Key
         public Guid OrderId { get; set; }
