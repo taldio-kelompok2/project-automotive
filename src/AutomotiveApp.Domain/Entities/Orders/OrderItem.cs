@@ -27,7 +27,7 @@ namespace AutomotiveApp.Domain.Entities.Orders
     public class OrderItem : BaseEntity
     {
         // public required uint Price { get; set; }
-        public required long Price { get; set; }  // bigint -> long
+        public required long Price { get; set; }  
 
         // Foreign Keys
         public Guid OrderId { get; set; }
