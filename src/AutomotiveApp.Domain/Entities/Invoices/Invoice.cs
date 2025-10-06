@@ -9,7 +9,7 @@ namespace AutomotiveApp.Domain.Entities.Invoices
         public int InvoiceNumber { get; set; }
 
         // public required uint TotalPrice { get; set; }
-        
+
         public required long TotalPrice { get; set; }
 
         //Foreign Key
@@ -22,6 +22,5 @@ namespace AutomotiveApp.Domain.Entities.Invoices
         {
             return $"{INVOICE_CODE_HEADER}-{InvoiceNumber}";
         }
-
     }
 }
