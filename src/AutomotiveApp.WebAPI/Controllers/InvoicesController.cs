@@ -1,8 +1,8 @@
 using AutomotiveApp.Application.Invoices;
 using AutomotiveApp.Domain.Entities.Invoices;
 using AutomotiveApp.Domain.Entities.Orders;
-using AutomotiveApp.Domain.Interface;          
-using AutomotiveApp.Infrastructure.Data;     
+using AutomotiveApp.Domain.Interface;
+using AutomotiveApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         public InvoicesController(IRepository<Invoice> repo, AppDbContext db)
         {
             _repo = repo;
-            _db   = db;
+            _db = db;
         }
 
         // GET: /api/invoices
@@ -28,12 +28,13 @@ namespace AutomotiveApp.WebAPI.Controllers
             var items = await _repo.GetAllAsync();
             var dto = items.Select(x => new InvoiceReadDto
             {
-                Id            = x.Id,
-                TotalPrice    = x.TotalPrice,
+                Id = x.Id,
+                TotalPrice = x.TotalPrice,
                 InvoiceNumber = x.InvoiceNumber,
-                OrderId       = x.OrderId,
-                CreatedAt     = x.CreatedAt,
-                UpdatedAt     = x.UpdatedAt
+                InvoiceCode = x.InvoiceCode,
+                OrderId = x.OrderId,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             });
             return Ok(dto);
         }
@@ -47,12 +48,13 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             return Ok(new InvoiceReadDto
             {
-                Id            = x.Id,
-                TotalPrice    = x.TotalPrice,
+                Id = x.Id,
+                TotalPrice = x.TotalPrice,
                 InvoiceNumber = x.InvoiceNumber,
-                OrderId       = x.OrderId,
-                CreatedAt     = x.CreatedAt,
-                UpdatedAt     = x.UpdatedAt
+                InvoiceCode = x.InvoiceCode,
+                OrderId = x.OrderId,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             });
         }
 
@@ -65,39 +67,34 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             return Ok(new InvoiceReadDto
             {
-                Id            = x.Id,
-                TotalPrice    = x.TotalPrice,
+                Id = x.Id,
+                TotalPrice = x.TotalPrice,
                 InvoiceNumber = x.InvoiceNumber,
-                OrderId       = x.OrderId,
-                CreatedAt     = x.CreatedAt,
-                UpdatedAt     = x.UpdatedAt
+                InvoiceCode = x.InvoiceCode,
+                OrderId = x.OrderId,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             });
         }
 
-        // POST: /api/invoices/generate/{orderId}
-        [HttpPost]
-        public async Task<ActionResult<InvoiceReadDto>> Create([FromBody] InvoiceCreateDto input)
+        // POST: /api/invoices/generate
+        [HttpPost("create-form")]
+        [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<InvoiceReadDto>> CreateForm([FromForm] InvoiceCreateFormDto form)
         {
-            // Data Order
-            var order = await _db.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == input.OrderId);
+            var order = await _db.Orders.Include(o => o.OrderItems)
+                                        .FirstOrDefaultAsync(o => o.Id == form.OrderId);
+            if (order == null) return BadRequest("Order Id Not Found");
 
-            if (order == null)
-                return NotFound($"Order Dengan ID {input.OrderId} Tidak Ada");
+            var totalPrice = order.OrderItems.Sum(oi => (long)oi.Price);
+            var lastNumber = await _db.Invoices.MaxAsync(i => (int?)i.InvoiceNumber) ?? 0;
 
-            // Hitung Total Harga Dari OrderItem
-            var totalPrice = order.OrderItems.Sum(oi => (decimal)oi.Price);
-
-            // Nomor Invoice Terakhir
-            var lastInvoiceNumber = await _db.Invoices.MaxAsync(i => (int?)i.InvoiceNumber) ?? 0;
-
-            // Create Invoice Baru
             var invoice = new Invoice
             {
                 OrderId = order.Id,
-                TotalPrice = (uint)totalPrice, 
-                InvoiceNumber = lastInvoiceNumber + 1
+                TotalPrice = totalPrice,
+                InvoiceNumber = lastNumber + 1
             };
 
             _db.Invoices.Add(invoice);
@@ -106,14 +103,34 @@ namespace AutomotiveApp.WebAPI.Controllers
             var dto = new InvoiceReadDto
             {
                 Id = invoice.Id,
-                OrderId = invoice.OrderId,
                 TotalPrice = invoice.TotalPrice,
                 InvoiceNumber = invoice.InvoiceNumber,
+                InvoiceCode = invoice.InvoiceCode,
+                OrderId = invoice.OrderId,
                 CreatedAt = invoice.CreatedAt,
                 UpdatedAt = invoice.UpdatedAt
             };
 
             return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, dto);
+        }
+
+        // PUT: /api/invoices/{id}/update-form
+        [HttpPut("{id:guid}/update-form")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateForm(Guid id, [FromForm] InvoiceUpdateFormDto form)
+        {
+            var inv = await _repo.GetByIdAsync(id);
+            if (inv == null) return NotFound();
+
+            // contoh: izinkan update nomor & total (kalau kebijakan kamu mengizinkan)
+            inv.InvoiceNumber = form.InvoiceNumber;
+            inv.TotalPrice = form.TotalPrice;
+
+            _repo.Update(inv);
+            await _db.SaveChangesAsync();
+            return NoContent();
         }
 
         // DELETE: /api/invoices/{id}
@@ -126,6 +143,57 @@ namespace AutomotiveApp.WebAPI.Controllers
             _repo.Delete(inv);
             await _db.SaveChangesAsync(ct);
             return NoContent();
+        }
+
+        // GET: /api/invoices/search
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<InvoiceReadDto>>> Search(
+            [FromQuery] int? invoiceNumber,
+            [FromQuery] Guid? orderId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var query = _db.Invoices.AsQueryable();
+
+            if (invoiceNumber.HasValue)
+                query = query.Where(i => i.InvoiceNumber == invoiceNumber.Value);
+
+            if (orderId.HasValue)
+                query = query.Where(i => i.OrderId == orderId.Value);
+
+            if (from.HasValue)
+                query = query.Where(i => i.CreatedAt >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(i => i.CreatedAt <= to.Value);
+
+            var totalItems = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(i => i.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(i => new InvoiceReadDto
+                {
+                    Id = i.Id,
+                    InvoiceNumber = i.InvoiceNumber,
+                    TotalPrice = i.TotalPrice,
+                    OrderId = i.OrderId,
+                    CreatedAt = i.CreatedAt,
+                    UpdatedAt = i.UpdatedAt,
+                    InvoiceCode = i.InvoiceCode
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                totalItems,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                items
+            });
         }
     }
 }
