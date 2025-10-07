@@ -9,4 +9,5 @@ namespace AutomotiveApp.Shared.Response
         public T? Data { get; set; }
         public IEnumerable<string>? Errors { get; set; }
     }
+
 }

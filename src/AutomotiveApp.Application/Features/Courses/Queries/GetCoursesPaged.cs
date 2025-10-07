@@ -1,4 +1,4 @@
-using AutomotiveApp.Shared.Dtos.Course;
+using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using MediatR;
 

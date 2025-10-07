@@ -1,13 +1,15 @@
 using System.Linq.Expressions;
 using AutomotiveApp.Base.Entities;
 using AutomotiveApp.Shared.Models;
-using Microsoft.AspNetCore.Identity;
 
-namespace AutomotiveApp.Domain.Interface
+namespace AutomotiveApp.Application.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class, IBaseEntity
     {
-        Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<T?> GetByIdAsync(
+            Guid id,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default);
         Task<IEnumerable<T>> GetAllAsync(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
             CancellationToken ct = default);
