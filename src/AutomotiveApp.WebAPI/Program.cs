@@ -48,17 +48,9 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddAutoMapper(typeof(CourseProfile).Assembly);
-builder.Services.AddMediatR(typeof(GetUserByIdHandler).Assembly);
-builder.Services.AddMediatR(typeof(GetCoursesPagedHandler).Assembly);
-builder.Services.AddMediatR(typeof(CreateUserHandler).Assembly);
-builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 
 //Utils (Storage)
 builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
-// Repository
-builder.Services.AddScoped<IRepository<Course>, BaseRepository<Course>>();
-builder.Services.AddScoped<IRepository<User>, BaseRepository<User>>();
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
