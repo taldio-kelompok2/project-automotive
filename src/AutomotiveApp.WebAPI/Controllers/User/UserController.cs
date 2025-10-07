@@ -161,47 +161,5 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 return StatusCode(500, response);
             }
         }
-
-        [HttpPut("{userId:guid}/password")]
-        public async Task<ActionResult<ApiResponse<bool>>> UpdatePassword(
-            Guid userId,
-            [FromBody] UpdatePasswordDto updatePasswordDto)
-        {
-            var response = new ApiResponse<bool>();
-
-
-            try
-            {
-                var command = new UpdatePassword(userId, updatePasswordDto);
-                var result = await _mediator.Send(command);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (InvalidOperationException ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.InternalServerError;
-                response.Errors = [ex.Message];
-                return StatusCode(500, response);
-            }
-        }
     }
 }
