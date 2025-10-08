@@ -9,6 +9,7 @@ namespace AutomotiveApp.Domain.Entities.Payments
         public TransactionCategory Name { get; set; }
 
         public bool Status { get; set; } = true;
+        public string? ImageFileName { get; set; }
 
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; } = [];

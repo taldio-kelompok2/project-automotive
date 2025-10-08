@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="MediatR" Version="11.1.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -19,6 +25,7 @@
     <ProjectReference Include="..\AutomotiveApp.Infrastructure\AutomotiveApp.Infrastructure.csproj" />
     <ProjectReference Include="..\AutomotiveApp.Shared\AutomotiveApp.Shared.csproj" />
     <ProjectReference Include="..\AutomotiveApp.Base\AutomotiveApp.Base.csproj" />
+    <ProjectReference Include="..\AutomotiveApp.Application\AutomotiveApp.Application.csproj" />
   </ItemGroup>
 
 </Project>

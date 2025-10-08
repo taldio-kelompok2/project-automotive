@@ -1,5 +1,4 @@
 using AutomotiveApp.Base.Entities;
-using AutomotiveApp.Domain.Entities.Orders;
 
 namespace AutomotiveApp.Domain.Entities.Courses
 {
@@ -7,6 +6,7 @@ namespace AutomotiveApp.Domain.Entities.Courses
     {
         public required string Name { get; set; }
         public required uint Price { get; set; }
+        public string? ImageFileName { get; set; }
 
         // Foreign Key
         public Guid CategoryId { get; set; }

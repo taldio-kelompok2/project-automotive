@@ -1,58 +1,124 @@
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Base.Entities;
-using AutomotiveApp.Domain.Interface;
+using AutomotiveApp.Infrastructure.Data;
+using AutomotiveApp.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace AutomotiveApp.Infrastructure.Base
+namespace AutomotiveApp.Infrastructure.Repositories
 {
-    public abstract class BaseRepository<T> : IRepository<T> where T : class, IBaseEntity
+    public class BaseRepository<T> : IRepository<T>
+        where T : class, IBaseEntity
     {
-        protected readonly DbContext _context;
-        protected BaseRepository(DbContext context)
+        private readonly AppDbContext _context;
+
+        public BaseRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        private IQueryable<T> BuildQuery(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null)
         {
-            return await _context.Set<T>().FindAsync(id);
+            var query = _context.Set<T>().AsQueryable();
+
+            if (modifier is not null)
+                query = modifier(query);
+
+            if (predicate is not null)
+                query = query.Where(predicate);
+
+            return query;
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<T?> GetByIdAsync(
+            Guid id,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default)
         {
-            return await _context.Set<T>().ToListAsync();
+
+            var query = BuildQuery(modifier);
+            return await query.FirstOrDefaultAsync(e => e.Id == id, ct);
         }
 
-        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default)
         {
-            return await _context.Set<T>().FirstOrDefaultAsync(predicate);
+            var query = BuildQuery(modifier);
+            return await query.ToListAsync(ct);
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        public async Task<PaginatedResult<T>> GetAllPagedAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            int page = 1,
+            int itemTaken = 6,
+            CancellationToken ct = default)
         {
-            return await _context.Set<T>().Where(predicate).ToListAsync();
+            var query = BuildQuery(modifier);
+            int total = await query.CountAsync(ct);
+
+            var items = await query
+                .Skip((page - 1) * itemTaken)
+                .Take(itemTaken)
+                .ToListAsync(ct);
+
+            return new PaginatedResult<T>(items, total);
+        }
+        public async Task<T?> FirstOrDefaultAsync(
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
+            CancellationToken ct = default)
+        {
+            var query = BuildQuery(modifier, predicate);
+            return await query.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<bool> DataExistAsync(Guid id)
+        public async Task<IEnumerable<T>> FindAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            CancellationToken ct = default)
         {
-            var entity = await GetByIdAsync(id);
-            return entity != null;
+            var query = BuildQuery(modifier, predicate);
+            return await query.ToListAsync(ct);
         }
 
-        public async Task<int> CountAsync()
+        public async Task<int> CountAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            CancellationToken ct = default)
         {
-            return await _context.Set<T>().CountAsync();
+            var query = _context.Set<T>().AsQueryable();
+            if (predicate is not null)
+                query = query.Where(predicate);
+
+            return await query.CountAsync(ct);
+        }
+
+        public async Task<bool> DataExistAsync(Guid id, CancellationToken ct = default)
+        {
+            var entity = await GetByIdAsync(id, ct: ct);
+            return entity is not null;
         }
 
         public async Task AddAsync(T entity)
         {
             await _context.Set<T>().AddAsync(entity);
         }
+
+        public async Task<Guid> AddReturnIdAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
         public void Update(T entity)
         {
             _context.Set<T>().Update(entity);
             entity.MarkUpdated();
         }
+
         public void Delete(T entity)
         {
             _context.Set<T>().Remove(entity);
