@@ -20,7 +20,10 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
 
             try
             {
-                var (items, total) = await _uow.CourseRepo.GetAllPagedAsync(page: request.Page, itemTaken: request.ItemTaken, ct: ct, modifier: modifier);
+                var (items, total) = await _uow.CourseRepo.GetAllPagedAsync(
+                        page: request.Page,
+                        itemTaken: request.ItemTaken,
+                        ct: ct, modifier: modifier);
 
                 var mappedItems = _mapper.Map<IEnumerable<CourseQueryDto>>(items);
                 return new PaginatedResult<CourseQueryDto>(mappedItems, total);

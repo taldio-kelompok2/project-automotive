@@ -1,4 +1,4 @@
-namespace AutomotiveApp.Shared.Dtos.Course
+namespace AutomotiveApp.Shared.Dtos.Courses
 {
     public class CourseCategoryCommandDto : BaseCommandDto, IDto
     {
@@ -6,6 +6,5 @@ namespace AutomotiveApp.Shared.Dtos.Course
         public required string Description { get; set; }
         public string? ImageFileName { get; set; }
     }
-
 
 }

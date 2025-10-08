@@ -1,4 +1,4 @@
-using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Repositories;

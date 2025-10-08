@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
 using MediatR;

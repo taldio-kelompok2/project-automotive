@@ -6,7 +6,6 @@ namespace AutomotiveApp.WebAPI.Validators.Course
 {
     public class GetCourseByIdValidator : AbstractValidator<GetCourseById>
     {
-
         private readonly IUnitOfWork _uow;
         private readonly ILogger<GetCourseByIdValidator> _logger;
         public GetCourseByIdValidator(IUnitOfWork uow, ILogger<GetCourseByIdValidator> logger)
@@ -25,7 +24,7 @@ namespace AutomotiveApp.WebAPI.Validators.Course
 
         private async Task<bool> IdExists(Guid id)
         {
-            return await _uow.CourseRepo.DataExistAsync(id);
+            return await _uow.CourseRepo.DataExistAsync(c => c.Id == id);
         }
 
     }

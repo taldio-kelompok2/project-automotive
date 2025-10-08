@@ -52,7 +52,8 @@ namespace AutomotiveApp.Infrastructure.Data
             modelBuilder.Entity<Course>()
                 .HasOne(co => co.Category)
                 .WithMany(ca => ca.Courses)
-                .HasForeignKey(co => co.CategoryId);
+                .HasForeignKey(co => co.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Course - CourseSession
             modelBuilder.Entity<Course>()
@@ -103,9 +104,6 @@ namespace AutomotiveApp.Infrastructure.Data
                 .HasForeignKey(ci => ci.CartId);
 
             // setup property
-            modelBuilder.Entity<CourseCategory>()
-                .Property(cc => cc.Name)
-                .HasConversion<string>();
 
             modelBuilder.Entity<PaymentMethod>()
                 .Property(cc => cc.Name)

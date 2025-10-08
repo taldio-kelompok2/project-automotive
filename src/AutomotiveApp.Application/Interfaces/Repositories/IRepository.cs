@@ -29,7 +29,7 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
-        Task<bool> DataExistAsync(Guid id, CancellationToken ct = default);
+        Task<bool> DataExistAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default);
     }
