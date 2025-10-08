@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace AutomotiveApp.Shared.Dtos
@@ -29,8 +27,7 @@ namespace AutomotiveApp.Shared.Dtos
 
     public abstract class BaseCommandDto : ICommandDto
     {
-        [JsonIgnore]
         [SwaggerSchema(ReadOnly = true)]
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; set; }
     }
 }

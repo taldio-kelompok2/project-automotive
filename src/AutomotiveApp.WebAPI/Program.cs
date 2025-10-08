@@ -1,5 +1,7 @@
 using AutomotiveApp.Application.Features.Courses.Queries;
+using AutomotiveApp.Application.Helpers;
 using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Application.Features.Users.Commands;
 using AutomotiveApp.Application.Features.Users.Queries;
@@ -9,13 +11,13 @@ using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Data.Seeder;
 using AutomotiveApp.Infrastructure.Implementation.Repositories;
 using AutomotiveApp.Infrastructure.Implementation.Utils;
-using AutomotiveApp.WebAPI.Mapper;
 using AutomotiveApp.WebAPI.Validators.Course;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using AutomotiveApp.Infrastructure.Repositories;
 using AutomotiveApp.Domain.Interface;
 
@@ -30,13 +32,12 @@ builder.Services.AddControllers()
     });
 
 //Fluent Validation
-builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<GetCourseByIdValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(o =>
 {
-    c.EnableAnnotations();
+    o.EnableAnnotations();
 });
 
 // DB Connection
@@ -50,6 +51,8 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // Repository & UnitOfWork
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
+builder.Services.AddScoped<ICourseSessionRepository, CourseSessionRepository>();
+builder.Services.AddScoped<ICourseBookingRepository, CoursebookingRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
@@ -59,6 +62,8 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 //Utils (Storage)
 builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
 
+//Helpers 
+builder.Services.AddScoped<UrlGeneratorHelper>();
 // Add generic repository untuk semua entity
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
@@ -98,6 +103,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Storage", "Images")),
+    RequestPath = "/images"
+});
 
 // app.UseHttpsRedirection();
 app.UseAuthorization();
@@ -110,7 +121,7 @@ using (var scope = app.Services.CreateScope())
     var db = services.GetRequiredService<AppDbContext>();
     var userManager = services.GetRequiredService<UserManager<User>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    await MasterSeeder.SeedAsync(db, userManager, roleManager);
+    await MasterSeeder.SeedAsync(db, userManager, roleManager, true);
 }
 
 app.Run();

@@ -9,10 +9,10 @@ namespace AutomotiveApp.Domain.Entities.Courses
         public string? ImageFileName { get; set; }
 
         // Foreign Key
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
 
         // Navigation properties
-        public virtual CourseCategory Category { get; set; } = null!;
+        public virtual CourseCategory? Category { get; set; } = null!;
         public virtual ICollection<CourseSession> Sessions { get; set; } = [];
 
     }

@@ -1,21 +1,17 @@
 using AutomotiveApp.Base.Entities;
 using AutomotiveApp.Application.Interfaces.Utils;
 using Microsoft.Extensions.Logging;
-
 namespace AutomotiveApp.Infrastructure.Implementation.Utils
 {
     public class LocalImageStorage : IFileStorage
     {
-        private readonly string STORAGE_DIR;
+        private readonly string STORAGE_DIR = Path.Combine(Directory.GetCurrentDirectory(), "Storage", "Images");
         private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png", ".svg"];
         private readonly ILogger<LocalImageStorage> _logger;
 
         public LocalImageStorage(ILogger<LocalImageStorage> logger)
         {
             _logger = logger;
-
-            // Set STORAGE_DIR to WebAPI project root + Storage folder
-            STORAGE_DIR = Path.Combine(Directory.GetCurrentDirectory(), "Storage");
 
             if (!Directory.Exists(STORAGE_DIR))
             {
@@ -26,7 +22,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
 
         private string GetSubDirPath<T>() where T : BaseEntity
         {
-            string path = Path.Combine(STORAGE_DIR, typeof(T).Name.ToLower());
+            string path = Path.Combine(STORAGE_DIR, typeof(T).Name);
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -119,25 +115,31 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
                 throw new InvalidOperationException("Invalid file extension.");
             }
 
-            string path = GetFilePath<T>(filename);
+            var dir = Path.GetDirectoryName(GetFilePath<T>(filename));
+            if (string.IsNullOrEmpty(dir))
+                throw new InvalidOperationException($"Directory {dir} dosent exist");
+
+            var fileBaseName = Path.GetFileNameWithoutExtension(filename);
+            var oldFilePath = Directory.GetFiles(dir, fileBaseName + ".*").FirstOrDefault();
 
             try
             {
-                if (File.Exists(path))
+                if (File.Exists(oldFilePath))
                 {
-                    File.Delete(path);
-                    _logger.LogInformation("Deleted existing file: {Path}", path);
+                    File.Delete(oldFilePath);
+                    _logger.LogInformation("Deleted existing file: {Path}", oldFilePath);
                 }
 
-                using FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write);
+                var newFilePath = Path.Combine(dir, filename);
+                using FileStream fs = new FileStream(newFilePath, FileMode.Create, FileAccess.Write);
                 await data.CopyToAsync(fs);
 
-                _logger.LogInformation("Replaced file successfully: {Path}", path);
+                _logger.LogInformation("Replaced file successfully: {NewFilePath}", newFilePath);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error replacing file {Path}", path);
+                _logger.LogError(ex, "Error replacing file {File}", filename);
                 return false;
             }
         }
