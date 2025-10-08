@@ -8,7 +8,7 @@ namespace AutomotiveApp.Domain.Entities.Auth
 {
     public class User : IdentityUser<Guid>, IBaseEntity
     {
-        public bool Status { get; private set; } = true;
+        public bool Status { get; set; } = true;
         public void MarkUpdated() => UpdatedAt = DateTime.UtcNow;
         public void UpdateStatus(bool status) => Status = status;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;

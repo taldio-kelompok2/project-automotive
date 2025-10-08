@@ -13,7 +13,7 @@ namespace AutomotiveApp.Application.Features.Users.Queries
     {
         public async Task<PaginatedResult<UserQueryDto>> Handle(GetUsersPaged req, CancellationToken ct)
         {
-            var query = userManager.Users;
+            var query = userManager.Users.Where(u => u.Status);
             var total = await query.CountAsync();
             if (total < 0)
                 throw new KeyNotFoundException($"No users found");
