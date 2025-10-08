@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using AutomotiveApp.Domain.Entities.Payments;          // PaymentMethod (Entity)
-using AutomotiveApp.Domain.Interface;                  // IRepository<T>
 using AutomotiveApp.Infrastructure.Data;               // AppDbContext
 using AutomotiveApp.Application.PaymentMethods;        // DTOs
-using AutomotiveApp.Shared.Enums;                      // TransactionCategory
+using AutomotiveApp.Shared.Enums;                       // TransactionCategory
+using AutomotiveApp.Application.Interfaces.Repositories; // IRepository<T>
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -23,7 +23,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         public PaymentMethodsController(IRepository<PaymentMethod> repo, AppDbContext db)
         {
             _repo = repo;
-            _db   = db;
+            _db = db;
         }
 
         /// <summary>Ambil semua payment method (data seeding harus tampil).</summary>
@@ -33,9 +33,9 @@ namespace AutomotiveApp.WebAPI.Controllers
             var items = await _repo.GetAllAsync();
             var dto = items.Select(x => new PaymentMethodReadDto
             {
-                Id         = x.Id,
-                Name       = x.Name,       // enum TransactionCategory
-                Status     = x.Status,
+                Id = x.Id,
+                Name = x.Name,       // enum TransactionCategory
+                Status = x.Status,
                 CreatedAt = x.CreatedAt, // <-- sesuaikan dg BaseEntity kamu
                 UpdatedAt = x.UpdatedAt
             });
@@ -51,11 +51,11 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             return Ok(new PaymentMethodReadDto
             {
-                Id         = x.Id,
-                Name       = x.Name,
-                Status     = x.Status,
-                CreatedAt  = x.CreatedAt, 
-                UpdatedAt  = x.UpdatedAt
+                Id = x.Id,
+                Name = x.Name,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             });
         }
 
@@ -65,7 +65,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         {
             var entity = new PaymentMethod
             {
-                Name   = input.Name,   // enum
+                Name = input.Name,   // enum
                 Status = input.Status
             };
 
@@ -74,11 +74,11 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             var dto = new PaymentMethodReadDto
             {
-                Id         = entity.Id,
-                Name       = entity.Name,
-                Status     = entity.Status,
-                CreatedAt  = entity.CreatedAt, 
-                UpdatedAt  = entity.UpdatedAt
+                Id = entity.Id,
+                Name = entity.Name,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
             };
 
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, dto);
