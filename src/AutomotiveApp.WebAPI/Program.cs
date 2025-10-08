@@ -16,11 +16,14 @@ using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using AutomotiveApp.Infrastructure.Repositories;
+using AutomotiveApp.Domain.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Controllers
-builder.Services.AddControllers().AddJsonOptions(options =>
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
         options.JsonSerializerOptions.WriteIndented = true;
@@ -55,6 +58,9 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 
 //Utils (Storage)
 builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
+
+// Add generic repository untuk semua entity
+builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
 // Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
