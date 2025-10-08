@@ -11,12 +11,31 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public class UserController(IMediator _mediator) : BaseApiController(_mediator)
     {
-        private readonly IMediator _mediator;
-        public UserController(IMediator mediator)
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateDto userCreateDto)
         {
-            _mediator = mediator;
+            var response = new ApiResponse<Guid>();
+
+            try
+            {
+                var command = new CreateUser(userCreateDto);
+                var result = await _mediator.Send(command);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.Created;
+                response.Data = result;
+
+                return StatusCode(201, response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = [ex.Message];
+                return BadRequest(response);
+            }
         }
 
         [HttpGet("paged")]
@@ -75,31 +94,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 response.StatusCode = HttpCode.InternalServerError;
                 response.Errors = [ex.Message];
                 return StatusCode(500, response);
-            }
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateDto userCreateDto)
-        {
-            var response = new ApiResponse<Guid>();
-
-            try
-            {
-                var command = new CreateUser(userCreateDto);
-                var result = await _mediator.Send(command);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.Created;
-                response.Data = result;
-
-                return StatusCode(201, response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
             }
         }
 
