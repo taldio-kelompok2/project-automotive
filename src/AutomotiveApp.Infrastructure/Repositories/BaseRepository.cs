@@ -109,6 +109,13 @@ namespace AutomotiveApp.Infrastructure.Repositories
             await _context.Set<T>().AddAsync(entity);
         }
 
+        public async Task<Guid> AddReturnIdAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
         public void Update(T entity)
         {
             _context.Set<T>().Update(entity);

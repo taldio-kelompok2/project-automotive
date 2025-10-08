@@ -1,0 +1,49 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_paymentMethod.Name" Label="Name" Required="true" Class="mb-2" />
+            <MudItem Class="my-3">
+                <MudText Typo="Typo.body2" Class="mb-1">Logo:</MudText>
+                <InputFile OnChange="OnFileSelected" />
+            </MudItem>
+            <MudSelect T="Status" @bind-Value="_paymentMethod.Status" Label="Status" Required="true">
+                <MudSelectItem Value="Status.Active">Active</MudSelectItem>
+                <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+    
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private PaymentMethodViewModel _paymentMethod = new();
+    private MudForm _form = default!;
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // return to caller
+            MudDialog.Close(DialogResult.Ok(_paymentMethod));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            _paymentMethod.Logo = file.Name; // for now just the filename
+        }
+    }
+}

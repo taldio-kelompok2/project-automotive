@@ -1,0 +1,35 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="mb-2" />
+            <MudSelect @bind-Value="_category.Status" Label="Status" Required="true">
+                <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
+                <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private CategoryViewModel _category = new();
+    private MudForm _form = default!;
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // return to caller
+            MudDialog.Close(DialogResult.Ok(_category));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

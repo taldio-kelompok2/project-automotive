@@ -1,0 +1,52 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField T="string" Label="Email" @bind-Value="_user.Email" Class="mb-2" Required="true" />
+            <MudTextField T="string" Label="Name" @bind-Value="_user.Name" Class="mb-2" Required="true" />
+
+            <MudSelect T="AdminUserRole" Label="Role" @bind-Value="_user.Role" Class="mb-2" Required="true">
+                <MudSelectItem Value="AdminUserRole.User">User</MudSelectItem>
+                <MudSelectItem Value="AdminUserRole.Admin">Admin</MudSelectItem>
+            </MudSelect>
+
+            <MudSelect T="Status" Label="Status" @bind-Value="_user.Status" Required="true">
+                <MudSelectItem Value="Status.Active">Active</MudSelectItem>
+                <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public UserViewModel Item { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private UserViewModel _user = new();
+
+    protected override void OnInitialized()
+    {
+        // clone so we don’t mutate the parent until Save
+        _user = new UserViewModel
+        {
+            Email = Item.Email,
+            Name  = Item.Name,
+            Role  = Item.Role,
+            Status = Item.Status
+        };
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+            MudDialog.Close(DialogResult.Ok(_user));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
