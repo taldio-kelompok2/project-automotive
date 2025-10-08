@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using AutomotiveApp.Domain.Entities.Orders;
-using AutomotiveApp.Domain.Interface;           // IRepository<>
+// IRepository<>
 using AutomotiveApp.Infrastructure.Data;        // AppDbContext
-using AutomotiveApp.Application.Orders;         // DTOs
+using AutomotiveApp.Application.Orders;
+using AutomotiveApp.Application.Interfaces.Repositories;         // DTOs
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -22,7 +23,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         public OrdersController(IRepository<Order> repo, AppDbContext db)
         {
             _repo = repo;
-            _db   = db;
+            _db = db;
         }
 
         // GET /api/orders
@@ -78,7 +79,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 UserId = input.UserId,
                 PaymentMethodId = input.PaymentMethodId,
                 Status = input.Status,
-                TotalPrice = 0,  
+                TotalPrice = 0,
             };
 
             await _repo.AddAsync(entity);

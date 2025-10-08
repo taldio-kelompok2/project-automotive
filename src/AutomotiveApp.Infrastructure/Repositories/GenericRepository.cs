@@ -1,6 +1,5 @@
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Base.Entities;
-using AutomotiveApp.Domain.Interface;
-using AutomotiveApp.Infrastructure.Base;
 using AutomotiveApp.Infrastructure.Data;
 
 namespace AutomotiveApp.Infrastructure.Repositories

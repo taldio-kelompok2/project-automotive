@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using AutomotiveApp.Infrastructure.Repositories;
-using AutomotiveApp.Domain.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
