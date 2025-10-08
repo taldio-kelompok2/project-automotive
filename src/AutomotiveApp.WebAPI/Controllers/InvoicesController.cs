@@ -1,7 +1,6 @@
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Application.Invoices;
 using AutomotiveApp.Domain.Entities.Invoices;
-using AutomotiveApp.Domain.Entities.Orders;
-using AutomotiveApp.Domain.Interface;
 using AutomotiveApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
