@@ -15,7 +15,7 @@ namespace AutomotiveApp.WebAPI.Validators.Course
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
-                .MustAsync(async (name, ct) => { return !await _uow.CourseRepo.DataExistAsync(c => c.Name == name, ct); })
+                .MustAsync(async (name, ct) => { return !await _uow.CourseRepo.DataExistAsync(c => c.Name == name, ct: ct); })
                 .WithMessage("Name must be unique.");
 
             RuleFor(x => (int)x.Price)
@@ -24,7 +24,7 @@ namespace AutomotiveApp.WebAPI.Validators.Course
 
             RuleFor(x => x.CategoryId)
                 .NotEmpty().WithMessage("Category is required.")
-                .MustAsync(async (id, ct) => { return await _uow.CourseCategoryRepo.DataExistAsync(cc => cc.Id == id, ct); })
+                .MustAsync(async (id, ct) => { return await _uow.CourseCategoryRepo.DataExistAsync(cc => cc.Id == id, ct: ct); })
                 .WithMessage(x => $"Category Id {x.CategoryId} dosent exist");
 
             RuleFor(x => x.Image)

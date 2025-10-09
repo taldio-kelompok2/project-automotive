@@ -27,3 +27,6 @@ appsettings.Development.json
 # macOS system files
 .DS_Store
 src/.DS_Store
+
+#Local Storage 
+/src/AutomotiveApp.WebAPI/Storage/Images/*

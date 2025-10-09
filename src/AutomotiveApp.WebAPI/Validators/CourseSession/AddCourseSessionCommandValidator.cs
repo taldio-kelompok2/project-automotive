@@ -18,7 +18,7 @@ namespace AutomotiveApp.WebAPI.Validators.CourseSession
                     .WithMessage("Course Session Date must be today or a future date.")
                 .MustAsync(async (dto, date, ct) =>
                     !await _uow.CourseSessionRepo.DataExistAsync(
-                        c => c.CourseId == dto.Data.CourseId && c.Date.Date == date.Date, ct))
+                        c => c.CourseId == dto.Data.CourseId && c.Date.Date == date.Date, ct: ct))
                     .WithMessage(dto => $"A session for Course Id {dto.Data.CourseId} already exists on {dto.Data.Date:yyyy-MM-dd}.");
 
             RuleFor(x => (int)x.Data.Capacity)

@@ -15,7 +15,10 @@ namespace AutomotiveApp.WebAPI.Validators.CourseCategory
             _uow = uow;
 
             RuleFor(x => x.Name)
-                .MustAsync(async (cce, name, ct) => { return !await _uow.CourseCategoryRepo.DataExistAsync(c => c.Name == name && c.Id != cce.Id, ct); })
+                .MustAsync(async (cce, name, ct) =>
+                {
+                    return !await _uow.CourseCategoryRepo.DataExistAsync(c => c.Name == name && c.Id != cce.Id, ct: ct);
+                })
                 .WithMessage("Name must be unique.");
 
             RuleFor(x => x.Image)

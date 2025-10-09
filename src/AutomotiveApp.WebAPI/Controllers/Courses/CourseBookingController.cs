@@ -20,13 +20,23 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
     {
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCourseBooking()
+        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCourseBookings(
+            [FromQuery] Guid? sessionId,
+            [FromServices] IValidator<GetCourseBookings> validator)
         {
             var response = new ApiResponse<IEnumerable<CourseBookingQueryDto>>();
+            var query = new GetCourseBookings(sessionId);
+            var validation = await validator.ValidateAsync(query);
+
+            if (!validation.IsValid) return BadRequest(new ApiResponse<IEnumerable<CourseBookingQueryDto>>
+            {
+                Success = false,
+                StatusCode = HttpCode.BadRequest,
+                Errors = validation.Errors.Select(e => e.ErrorMessage).ToList()
+            });
 
             try
             {
-                var query = new GetCourseBookings();
                 var result = await _mediator.Send(query);
 
                 response.Success = true;

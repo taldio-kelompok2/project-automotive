@@ -9,13 +9,15 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     ICourseRepository courseRepo,
     ICourseCategoryRepository courseCategoryRepo,
     ICourseSessionRepository courseSessionRepo,
-    ICourseBookingRepository courseBookingRepo
+    ICourseBookingRepository courseBookingRepo,
+    IUserRepository userRepo
     ) : IUnitOfWork
     {
         ICourseRepository IUnitOfWork.CourseRepo => courseRepo;
         ICourseCategoryRepository IUnitOfWork.CourseCategoryRepo => courseCategoryRepo;
         ICourseSessionRepository IUnitOfWork.CourseSessionRepo => courseSessionRepo;
         ICourseBookingRepository IUnitOfWork.CourseBookingRepo => courseBookingRepo;
+        IUserRepository IUnitOfWork.UserRepo => userRepo;
         private AppDbContext Context => context;
 
         public void Dispose()

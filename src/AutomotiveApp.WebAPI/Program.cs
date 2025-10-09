@@ -52,7 +52,11 @@ builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
 builder.Services.AddScoped<ICourseSessionRepository, CourseSessionRepository>();
 builder.Services.AddScoped<ICourseBookingRepository, CoursebookingRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+//Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configuration (appsettings.json)

@@ -17,7 +17,11 @@ namespace AutomotiveApp.WebAPI.Validators.CourseCategory
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
-                .MustAsync(async (name, ct) => { return !await _uow.CourseCategoryRepo.DataExistAsync(c => c.Name == name, ct); })
+                .MustAsync(async (name, ct) =>
+                {
+                    return !await _uow.CourseCategoryRepo.DataExistAsync(
+                    c => c.Name == name, ct: ct);
+                })
                 .WithMessage("Name must be unique.");
 
             RuleFor(x => x.Description)

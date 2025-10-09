@@ -31,13 +31,13 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 new Course { Id = Guid.NewGuid(), Name = "Toyota Agya 2022", Price = 500_000, Category = categoryLookup["LCGC"], ImageFileName = "Toyota-Agya-2022.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Honda Brio Satya", Price = 520_000, Category = categoryLookup["LCGC"], ImageFileName = "Honda-Brio-Satya.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Daihatsu Ayla", Price = 480_000, Category = categoryLookup["LCGC"], ImageFileName = "Daihatsu-Ayla.svg" },
-                new Course { Id = Guid.NewGuid(), Name = "Suzuki Karimun Wagon R", Price = 470_000, Category = categoryLookup["LCGC"], ImageFileName = "Suzuki-Karimun-Wagon-R.svg" },
-                new Course { Id = Guid.NewGuid(), Name = "Datsun GO+", Price = 460_000, Category = categoryLookup["LCGC"], ImageFileName = "Datsun-GO.svg" },
-                new Course { Id = Guid.NewGuid(), Name = "Wuling Confero S", Price = 490_000, Category = categoryLookup["LCGC"], ImageFileName = "Wuling-Confero-S.svg" },
+                new Course { Id = Guid.NewGuid(), Name = "Suzuki Karimun Wagon R", Price = 470_000, Category = categoryLookup["LCGC"], ImageFileName = "Suzuki-Karimun-WagonR.svg" },
+                new Course { Id = Guid.NewGuid(), Name = "Datsun GO+", Price = 460_000, Category = categoryLookup["LCGC"], ImageFileName = "Datsun-GO-plus.svg" },
+                new Course { Id = Guid.NewGuid(), Name = "Wuling Confero S", Price = 490_000, Category = categoryLookup["LCGC"], ImageFileName = "Wuling-ConferoS.svg" },
 
                 // Truck
                 new Course { Id = Guid.NewGuid(), Name = "Mitsubishi Fuso Canter", Price = 1_000_000, Category = categoryLookup["Truck"], ImageFileName = "Mitsubishi-Fuso-Canter.svg" },
-                new Course { Id = Guid.NewGuid(), Name = "Hino Dutro 130 HD", Price = 1_100_000, Category = categoryLookup["Truck"], ImageFileName = "Hino-Dutro-130-HD.svg" },
+                new Course { Id = Guid.NewGuid(), Name = "Hino Dutro 130 HD", Price = 1_100_000, Category = categoryLookup["Truck"], ImageFileName = "Hino-Dutro-130HD.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Isuzu Giga FVM", Price = 1_200_000, Category = categoryLookup["Truck"], ImageFileName = "Isuzu-Giga-FVM.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Mercedes Benz Actros", Price = 2_000_000, Category = categoryLookup["Truck"], ImageFileName = "Mercedes-Benz-Actros.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Scania P Series", Price = 2_200_000, Category = categoryLookup["Truck"], ImageFileName = "Scania-P-Series.svg" },
@@ -72,7 +72,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 new Course { Id = Guid.NewGuid(), Name = "Toyota Land Cruiser", Price = 1_700_000, Category = categoryLookup["Offroad"], ImageFileName = "Toyota-Land-Cruiser.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Suzuki Jimny 4x4", Price = 1_500_000, Category = categoryLookup["Offroad"], ImageFileName = "Suzuki-Jimny-4x4.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Ford Bronco", Price = 1_550_000, Category = categoryLookup["Offroad"], ImageFileName = "Ford-Bronco.svg" },
-                new Course { Id = Guid.NewGuid(), Name = "Land Rover Defender", Price = 1_800_000, Category = categoryLookup["Offroad"], ImageFileName = "Land-Rover-Defender.svg" },
+                new Course { Id = Guid.NewGuid(), Name = "Land Rover Defender", Price = 1_800_000, Category = categoryLookup["Offroad"], ImageFileName = "LandRover-Defender.svg" },
                 new Course { Id = Guid.NewGuid(), Name = "Mitsubishi Pajero Sport Dakar", Price = 1_650_000, Category = categoryLookup["Offroad"], ImageFileName = "Mitsubishi-Pajero-Sport-Dakar.svg" },
 
                 // Hatchback

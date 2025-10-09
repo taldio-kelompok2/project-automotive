@@ -13,15 +13,14 @@ namespace AutomotiveApp.WebAPI.Validators.CourseSession
             _uow = uow;
 
             RuleFor(x => x.CourseId)
-                .MustAsync(CourseExists)
-                .WithMessage(x => $"CourseId {x.CourseId} does not exist")
-                .When(x => x.CourseId.HasValue);
+            .MustAsync(async (courseId, ct) =>
+            {
+                if (courseId == null) return true;
+                return await _uow.CourseRepo.DataExistAsync(c => c.Id == courseId, ct: ct);
+            })
+            .WithMessage("Course does not exist.");
+
         }
 
-        private async Task<bool> CourseExists(Guid? courseId, CancellationToken ct)
-        {
-            if (!courseId.HasValue) return true;
-            return await _uow.CourseRepo.DataExistAsync(c => c.Id == courseId.Value, ct);
-        }
     }
 }
