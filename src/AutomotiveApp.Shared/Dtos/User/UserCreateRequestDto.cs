@@ -2,14 +2,14 @@
 
 namespace AutomotiveApp.Shared.Dtos.User
 {
-    public class UserCreateDto
+    public class UserCreateRequestDto
     {
         [Required(ErrorMessage = "Name is required")]
         [StringLength(50, MinimumLength = 4, ErrorMessage = "Username must be between 4-50 characters")]
         public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Must be an Email")]
+        [EmailAddress(ErrorMessage = "Invalid email")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]

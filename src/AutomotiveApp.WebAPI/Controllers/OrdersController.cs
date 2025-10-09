@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using AutomotiveApp.Domain.Entities.Orders;
-using AutomotiveApp.Domain.Interface;           // IRepository<>
+// using AutomotiveApp.Domain.Interface;           // IRepository<>
 using AutomotiveApp.Infrastructure.Data;        // AppDbContext
-using AutomotiveApp.Application.Orders;         // DTOs
+using AutomotiveApp.Application.Orders;
+using AutomotiveApp.Application.Interfaces.Repositories;         // DTOs
 
 namespace AutomotiveApp.WebAPI.Controllers
 {

@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using AutomotiveApp.Domain.Entities.Payments;          // PaymentMethod (Entity)
-using AutomotiveApp.Domain.Interface;                  // IRepository<T>
+// using AutomotiveApp.Domain.Interface;                  // IRepository<T>
 using AutomotiveApp.Infrastructure.Data;               // AppDbContext
 using AutomotiveApp.Application.PaymentMethods;        // DTOs
-using AutomotiveApp.Shared.Enums;                      // TransactionCategory
+using AutomotiveApp.Shared.Enums;
+using AutomotiveApp.Application.Interfaces.Repositories;                      // TransactionCategory
 
 namespace AutomotiveApp.WebAPI.Controllers
 {

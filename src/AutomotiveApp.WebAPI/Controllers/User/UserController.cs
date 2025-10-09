@@ -1,10 +1,12 @@
 ﻿using AutomotiveApp.Application.Features.Users.Commands;
 using AutomotiveApp.Application.Features.Users.Queries;
+using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
@@ -14,7 +16,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
     public class UserController(IMediator _mediator) : BaseApiController(_mediator)
     {
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateDto userCreateDto)
+        public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
         {
             var response = new ApiResponse<Guid>();
 
@@ -100,7 +102,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpPut("{userId:guid}")]
         public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(
             Guid userId,
-            [FromBody] UserUpdateDto userUpdateDto)
+            [FromBody] UserUpdateRequestDto userUpdateDto)
         {
             var response = new ApiResponse<bool>();
 

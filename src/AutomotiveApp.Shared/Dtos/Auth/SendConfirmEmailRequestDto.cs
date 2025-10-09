@@ -2,10 +2,10 @@
 
 namespace AutomotiveApp.Shared.Dtos.Auth
 {
-    public class SendConfirmEmailDto
+    public class SendConfirmEmailRequestDto
     {
-        [Required]//err
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email")]
         public string Email { get; set; } = string.Empty;
     }
 }
