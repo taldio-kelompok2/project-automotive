@@ -1,5 +1,5 @@
-using System.Runtime.CompilerServices;
 using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Infrastructure.Data;
 
 namespace AutomotiveApp.Infrastructure.Implementation.Repositories
@@ -7,11 +7,17 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     public class UnitOfWork(
     AppDbContext context,
     ICourseRepository courseRepo,
-    ICourseCategoryRepository courseCategoryRepo
+    ICourseCategoryRepository courseCategoryRepo,
+    ICourseSessionRepository courseSessionRepo,
+    ICourseBookingRepository courseBookingRepo,
+    IUserRepository userRepo
     ) : IUnitOfWork
     {
         ICourseRepository IUnitOfWork.CourseRepo => courseRepo;
         ICourseCategoryRepository IUnitOfWork.CourseCategoryRepo => courseCategoryRepo;
+        ICourseSessionRepository IUnitOfWork.CourseSessionRepo => courseSessionRepo;
+        ICourseBookingRepository IUnitOfWork.CourseBookingRepo => courseBookingRepo;
+        IUserRepository IUnitOfWork.UserRepo => userRepo;
         private AppDbContext Context => context;
 
         public void Dispose()

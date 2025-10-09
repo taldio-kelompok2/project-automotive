@@ -6,8 +6,12 @@ namespace AutomotiveApp.Domain.Entities.Invoices
     public class Invoice : BaseEntity
     {
         private static readonly string INVOICE_CODE_HEADER = "OTO";
+
         public int InvoiceNumber { get; set; }
-        public required uint TotalPrice { get; set; }
+
+        // public required uint TotalPrice { get; set; }
+
+        public required long TotalPrice { get; set; }
 
         //Foreign Key
         public Guid OrderId { get; set; }
@@ -15,10 +19,6 @@ namespace AutomotiveApp.Domain.Entities.Invoices
         //Navigation Properties
         public virtual Order Order { get; set; } = null!;
 
-        public string? GetinvoiceCode()
-        {
-            return $"{INVOICE_CODE_HEADER}-{InvoiceNumber}";
-        }
-
+        public string InvoiceCode => $"{INVOICE_CODE_HEADER}{InvoiceNumber:D5}";
     }
 }

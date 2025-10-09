@@ -5,7 +5,7 @@ namespace AutomotiveApp.Domain.Entities.Courses.Cart
 {
     public class Cart : BaseEntity
     {
-        public required uint TotalPrice { get; set; } = 0;
+        public required long TotalPrice { get; set; } = 0;
 
         // Foreign Keys
         public Guid UserId { get; set; }

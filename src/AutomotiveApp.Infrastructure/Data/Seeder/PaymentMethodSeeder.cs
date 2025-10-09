@@ -6,9 +6,9 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
 {
     public static class PaymentMethodSeeder
     {
-        public static async Task SeedAsync(AppDbContext db)
+        public static async Task SeedAsync(AppDbContext db, bool reapply = false)
         {
-            if (await db.PaymentMethods.AnyAsync())
+            if (!reapply && await db.CourseCategories.AnyAsync())
             {
                 return;
             }

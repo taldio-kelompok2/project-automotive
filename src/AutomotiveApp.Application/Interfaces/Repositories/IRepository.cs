@@ -31,7 +31,9 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
         Task<Guid> AddReturnIdAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
-        Task<bool> DataExistAsync(Guid id, CancellationToken ct = default);
+        Task<bool> DataExistAsync(Expression<Func<T, bool>> predicate,
+        Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+        CancellationToken ct = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default);
     }
