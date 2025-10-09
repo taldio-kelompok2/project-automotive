@@ -15,6 +15,16 @@ namespace AutomotiveApp.Application.Mapper
             .ForMember(dest => dest.Category,
             opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
 
+            CreateMap<Course, CourseQueryDetailDto>()
+            .ForMember(dest => dest.Sessions,
+            opt => opt.MapFrom(src => src.Sessions
+            .OrderBy(s => s.Date)
+            .Select(s => s.Date)))
+            .ForMember(dest => dest.ImageUrl, opt =>
+            opt.MapFrom<ImageUrlResolver<Course, CourseQueryDto>>())
+            .ForMember(dest => dest.Category,
+            opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
+
             CreateMap<CourseCommandDto, Course>()
             .ForMember(dest => dest.Category, opt => opt.Ignore());
 

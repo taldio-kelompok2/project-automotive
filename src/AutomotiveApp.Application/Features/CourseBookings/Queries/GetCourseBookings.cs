@@ -3,6 +3,6 @@ using MediatR;
 
 namespace AutomotiveApp.Application.Features.CourseBookings.Queries
 {
-    public record GetCourseBookings() : IRequest<IEnumerable<CourseBookingQueryDto>>;
+    public record GetCourseBookings(Guid? SessionId) : IRequest<IEnumerable<CourseBookingQueryDto>>;
 
 }

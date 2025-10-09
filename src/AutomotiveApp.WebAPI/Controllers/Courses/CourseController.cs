@@ -47,14 +47,14 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CourseQueryDto>> GetCourseById([FromRoute] Guid id,
+        public async Task<ActionResult<CourseQueryDetailDto>> GetCourseById([FromRoute] Guid id,
         [FromServices] IValidator<GetCourseById> validator)
         {
             var query = new GetCourseById(id);
             var validation = await validator.ValidateAsync(query);
-            var response = new ApiResponse<CourseQueryDto>();
+            var response = new ApiResponse<CourseQueryDetailDto>();
 
-            if (!validation.IsValid) return HandleValidationFailure<CourseQueryDto>(validation);
+            if (!validation.IsValid) return HandleValidationFailure<CourseQueryDetailDto>(validation);
 
             try
             {

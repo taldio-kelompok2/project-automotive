@@ -10,6 +10,7 @@ namespace AutomotiveApp.Application.Interfaces
         ICourseCategoryRepository CourseCategoryRepo { get; }
         ICourseSessionRepository CourseSessionRepo { get; }
         ICourseBookingRepository CourseBookingRepo { get; }
+        IUserRepository UserRepo { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     }

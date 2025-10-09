@@ -97,9 +97,10 @@ namespace AutomotiveApp.Infrastructure.Repositories
 
         public async Task<bool> DataExistAsync(
         Expression<Func<T, bool>>? predicate = null,
+        Func<IQueryable<T>, IQueryable<T>>? modifier = null,
         CancellationToken ct = default)
         {
-            var query = BuildQuery(predicate: predicate);
+            var query = BuildQuery(predicate: predicate, modifier: modifier);
             var entity = await query.FirstOrDefaultAsync(ct);
             return entity is not null;
         }

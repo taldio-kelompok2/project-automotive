@@ -9,5 +9,4 @@ namespace AutomotiveApp.Shared.Dtos.Courses
         public Guid CategoryId { get; set; }
     }
 
-
 }

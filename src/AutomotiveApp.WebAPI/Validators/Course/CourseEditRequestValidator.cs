@@ -17,7 +17,9 @@ namespace AutomotiveApp.WebAPI.Validators.Course
                 .MustAsync(async (ecc, name, ct) =>
                 {
                     if (ecc.Name.IsNullOrEmpty()) return true;
-                    return !await _uow.CourseRepo.DataExistAsync(c => c.Name == name && c.Id != ecc.Id, ct);
+                    return !await _uow.CourseRepo.DataExistAsync(
+                        c => c.Name == name && c.Id != ecc.Id, ct: ct
+                    );
                 })
                 .WithMessage("Name must be unique.");
 
@@ -28,7 +30,7 @@ namespace AutomotiveApp.WebAPI.Validators.Course
                 .MustAsync(async (id, ct) =>
                 {
                     if (!id.HasValue) return true;
-                    return await _uow.CourseCategoryRepo.DataExistAsync(cc => cc.Id == id, ct);
+                    return await _uow.CourseCategoryRepo.DataExistAsync(cc => cc.Id == id, ct: ct);
                 })
                 .WithMessage(x => $"Category Id {x.CategoryId} dosent exist");
 

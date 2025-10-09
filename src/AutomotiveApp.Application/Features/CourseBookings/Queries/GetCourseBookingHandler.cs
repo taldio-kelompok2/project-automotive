@@ -13,10 +13,11 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
     {
         public async Task<IEnumerable<CourseBookingQueryDto>> Handle(GetCourseBookings request, CancellationToken ct)
         {
-            static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
+            IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
                 .Include(cb => cb.Session)
-                    .ThenInclude(s => s.Course);
+                    .ThenInclude(s => s.Course)
+                .Where(cb => cb.SessionId == request.SessionId || request.SessionId == null);
 
             var items = await Uow.CourseBookingRepo.GetAllAsync(modifier: modifier, ct: ct);
             var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items).ToList();
