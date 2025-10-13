@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace AutomotiveApp.Shared.Dtos.CartItems
 {
-    public class CartItemUpdateDto
+    public class CartItemUpdateDto : BaseCommandDto, IDto
     {
-        [Required(ErrorMessage = "Session Id Required")]
         public Guid SessionId { get; set; }
     }
 }

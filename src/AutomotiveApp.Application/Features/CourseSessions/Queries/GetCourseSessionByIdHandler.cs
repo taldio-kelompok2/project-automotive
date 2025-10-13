@@ -16,7 +16,7 @@ namespace AutomotiveApp.Application.Features.CourseSessions.Queries
 
             try
             {
-                var item = await uow.CourseSessionRepo.GetByIdAsync(request.Id, modifier, ct);
+                var item = await uow.CourseSessionRepo.GetByIdAsync(request.Id, modifier, ct: ct);
                 return mapper.Map<CourseSessionQueryDto>(item);
             }
             catch { throw; }

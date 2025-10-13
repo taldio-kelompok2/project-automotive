@@ -110,12 +110,18 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
             return new PaginatedResult<User>(items, totalItems);
         }
 
-        public async Task<User?> GetByIdAsync(Guid id, Func<IQueryable<User>, IQueryable<User>>? modifier = null, CancellationToken ct = default)
+        public async Task<User?> GetByIdAsync(Guid id, Func<IQueryable<User>,
+        IQueryable<User>>? modifier = null,
+        Expression<Func<User, bool>>? predicate = null,
+        CancellationToken ct = default)
         {
             IQueryable<User> query = userManager.Users;
 
             if (modifier != null)
                 query = modifier(query);
+
+            if (predicate != null)
+                query = query.Where(predicate);
 
             return await query.FirstOrDefaultAsync(u => u.Id == id, ct);
         }

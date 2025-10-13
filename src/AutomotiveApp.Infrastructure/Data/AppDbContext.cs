@@ -14,15 +14,15 @@ namespace AutomotiveApp.Infrastructure.Data
 
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-        public required DbSet<Course> Courses { get; set; }
-        public required DbSet<CourseCategory> CourseCategories { get; set; }
-        public required DbSet<CourseSession> CourseSessions { get; set; }
-        public required DbSet<Invoice> Invoices { get; set; }
-        public required DbSet<Order> Orders { get; set; }
-        public required DbSet<OrderItem> OrderItems { get; set; }
-        public required DbSet<PaymentMethod> PaymentMethods { get; set; }
-        public required DbSet<Cart> Carts { get; set; }
-        public required DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<CourseCategory> CourseCategories { get; set; }
+        public DbSet<CourseSession> CourseSessions { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 
         //DB Configuration
         protected override void OnModelCreating(ModelBuilder modelBuilder)

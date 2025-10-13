@@ -3,6 +3,6 @@ using MediatR;
 
 namespace AutomotiveApp.Application.Features.Courses.Queries
 {
-    public record GetCourseById(Guid Id) : IRequest<CourseQueryDetailDto>;
+    public record GetCourseById(Guid Id, Guid? UserId = null) : IRequest<CourseQueryDetailDto>;
 
 }

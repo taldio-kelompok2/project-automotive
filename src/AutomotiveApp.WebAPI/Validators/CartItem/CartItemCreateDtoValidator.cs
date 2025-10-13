@@ -2,7 +2,7 @@ using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Shared.Dtos.CartItems;
 using FluentValidation;
 
-namespace AutomotiveApp.WebAPI.Validators.Cart
+namespace AutomotiveApp.WebAPI.Validators.CartItem
 {
     public class CartItemCreateDtoValidator : AbstractValidator<CartItemCreateDto>
     {

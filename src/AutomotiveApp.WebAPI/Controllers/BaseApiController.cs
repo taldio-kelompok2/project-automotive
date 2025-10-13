@@ -4,6 +4,7 @@ using FluentValidation.Results;
 using AutomotiveApp.Shared.Response;
 using AutomotiveApp.Shared.Dtos;
 using MediatR;
+using System.Net;
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -24,7 +25,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             var errorResponse = new ApiResponse<T>
             {
                 Success = false,
-                StatusCode = HttpCode.BadRequest,
+                StatusCode = HttpStatusCode.BadRequest,
                 Errors = validation.Errors.Select(e => e.ErrorMessage).ToList()
             };
 

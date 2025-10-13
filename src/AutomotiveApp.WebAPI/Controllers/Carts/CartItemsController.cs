@@ -1,4 +1,3 @@
-using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Shared.Dtos.CartItems;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,18 +5,17 @@ using AutomotiveApp.Domain.Entities.Courses.Cart;
 using AutomotiveApp.Application.Interfaces;
 using AutoMapper;
 using AutomotiveApp.Shared.Response;
-using AutomotiveApp.Shared.Enums;
-using System.Linq.Expressions;
 using FluentValidation;
-using AutomotiveApp.Domain.Entities.Courses;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore.Storage;
 using AutomotiveApp.Shared.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using AutomotiveApp.WebAPI.Helper;
 
-namespace AutomotiveApp.WebAPI.Controllers
+namespace AutomotiveApp.WebAPI.Controllers.Carts
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CartItemsController : BaseApiController
     {
         private readonly IUnitOfWork _uow;
@@ -33,56 +31,33 @@ namespace AutomotiveApp.WebAPI.Controllers
         public async Task<ActionResult<IEnumerable<CartItemReadDto>>> GetAll()
         {
             var response = new ApiResponse<IEnumerable<CartItemReadDto>>();
-            try
-            {
-                var items = await _uow.CartItemRepo.GetAllAsync(modifier:
-                    q => q.Include(ci => ci.Session)
-                        .ThenInclude(s => s.Course)
-                        .ThenInclude(c => c.Category)
-                );
+            var items = await _uow.CartItemRepo.GetAllAsync(modifier:
+                q => q.Include(ci => ci.Session)
+                    .ThenInclude(s => s.Course)
+                    .ThenInclude(c => c.Category)
+            );
 
-                var dto = _mapper.Map<IEnumerable<CartItemReadDto>>(items);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = dto;
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            var dto = _mapper.Map<IEnumerable<CartItemReadDto>>(items);
+            response.Success = true;
+            response.Data = dto;
+            return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CartItemReadDto>> GetById([FromRoute] Guid id)
         {
             var response = new ApiResponse<CartItemReadDto>();
-            try
-            {
-                var item = await _uow.CartItemRepo.GetByIdAsync(id,
-                modifier:
-                    q => q.Include(ci => ci.Session)
-                        .ThenInclude(s => s.Course)
-                        .ThenInclude(c => c.Category));
+            var item = await _uow.CartItemRepo.GetByIdAsync(id,
+            modifier:
+                q => q.Include(ci => ci.Session)
+                    .ThenInclude(s => s.Course)
+                    .ThenInclude(c => c.Category));
 
-                var dto = _mapper.Map<CartItemReadDto>(item);
+            var dto = _mapper.Map<CartItemReadDto>(item);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = dto;
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            response.Success = true;
+            response.Data = dto;
+            return Ok(response);
         }
 
         [HttpPost]
@@ -91,8 +66,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         )
         {
             var response = new ApiResponse<CartItemReadDto>();
-            var validation = await validator.ValidateAsync(request);
-            if (!validation.IsValid) return HandleValidationFailure<CartItemReadDto>(validation);
+            await validator.ValidateAndThrowAsync(request);
             var cartItem = _mapper.Map<CartItem>(request);
 
             using (var transaction = await _uow.BeginTransactionAsync())
@@ -119,7 +93,6 @@ namespace AutomotiveApp.WebAPI.Controllers
                     await transaction.CommitAsync();
 
                     response.Success = true;
-                    response.StatusCode = HttpCode.OK;
                     response.Data = dto;
                     return Ok(response);
                 }
@@ -130,67 +103,51 @@ namespace AutomotiveApp.WebAPI.Controllers
                         await transaction.RollbackAsync();
                     }
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
                     response.Errors = [ex.Message];
                     return BadRequest(response);
                 }
             }
         }
 
-        // [HttpPatch("{id:guid}")]
-        // public async Task<ActionResult<CartItemReadDto>> Update(Guid id, [FromForm] CartItemUpdateDto input)
-        // {
-        //     if (!ModelState.IsValid) return BadRequest(ModelState);
+        [HttpPatch("{id:guid}")]
+        public async Task<ActionResult<CartItemReadDto>> Update([FromRoute] Guid id,
+        [FromBody] CartItemUpdateDto request, [FromServices] IValidator<CartItemUpdateDto> validator)
+        {
+            request.Id = id;
+            await validator.ValidateAndThrowAsync(request);
 
-        //     var entity = await _db.CartItems.FindAsync(id);
-        //     if (entity == null) return NotFound("Cart Item Not Found");
+            var response = new ApiResponse<CartItemReadDto>();
+            var data = await _uow.CartItemRepo.GetByIdAsync(id)
+            ?? throw new NotFoundException<CartItem>(id);
 
-        //     entity.SessionId = input.SessionId;
-        //     entity.MarkUpdated();
+            var newData = _mapper.Map(request, data);
+            _uow.CartItemRepo.Update(newData);
+            await _uow.SaveChangesAsync();
 
-        //     await _db.SaveChangesAsync();
+            var result = await _uow.CartItemRepo.GetByIdAsync(id, modifier: q => q
+                        .Include(ci => ci.Session)
+                            .ThenInclude(s => s.Course)
+                                .ThenInclude(c => c.Category));
 
-        //     var dto = new CartItemReadDto
-        //     {
-        //         Id = entity.Id,
-        //         CartId = entity.CartId,
-        //         SessionId = entity.SessionId,
-        //         CreatedAt = entity.CreatedAt,
-        //         UpdatedAt = entity.UpdatedAt
-        //     };
+            var dto = _mapper.Map<CartItemReadDto>(result);
 
-        //     return Ok(dto);
-        // }
+            response.Success = true;
+            response.Data = dto;
+            return Ok(response);
+        }
 
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
         {
             var response = new ApiResponse<string>();
-            try
-            {
-                var data = await _uow.CartItemRepo.GetByIdAsync(id, ct: ct)
-                ?? throw new NotFoundException<CartItem>(id);
+            var data = await _uow.CartItemRepo.GetByIdAsync(id, ct: ct)
+            ?? throw new NotFoundException<CartItem>(id);
 
-                _uow.CartItemRepo.Delete(data);
-                response.Data = $"Cart item {id} is successfully deleted.";
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                return Ok(response);
-            }
-            catch (NotFoundException<CartItem> ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            _uow.CartItemRepo.Delete(data);
+            await _uow.SaveChangesAsync();
+            response.Data = $"Cart item {id} is successfully deleted.";
+            response.Success = true;
+            return Ok(response);
         }
     }
 }

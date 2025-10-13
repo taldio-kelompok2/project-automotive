@@ -5,6 +5,7 @@ using AutomotiveApp.Shared.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Security.Claims;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
@@ -19,49 +20,26 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
-            try
-            {
-                var command = new RegisterCommand(registerRequestDto);
-                var result = await _mediator.Send(command);
+            var command = new RegisterCommand(registerRequestDto);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var response = new ApiResponse<AuthResponseDto>();
+            var command = new LoginCommand(loginRequestDto);
+            var result = await Mediator!.Send(command);
 
-            try
-            {
-                var command = new LoginCommand(loginRequestDto);
-                var result = await _mediator.Send(command);
+            response.Success = true;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost("refresh-token")]
@@ -69,43 +47,32 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
-            try
-            {
-                var accessToken = ExtractAccessTokenFromHeader();
+            var accessToken = ExtractAccessTokenFromHeader();
 
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
-                    response.Errors = ["Access token is required"];
-                    return BadRequest(response);
-                }
-
-                if (string.IsNullOrEmpty(refreshTokenRequestDto.RefreshToken))
-                {
-                    response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
-                    response.Errors = ["Refresh token is required"];
-                    return BadRequest(response);
-                }
-
-
-                var command = new RefreshTokenCommand(refreshTokenRequestDto.RefreshToken, accessToken);
-                var result = await _mediator.Send(command);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            if (string.IsNullOrEmpty(accessToken))
             {
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = ["Access token is required"];
                 return BadRequest(response);
             }
+
+            if (string.IsNullOrEmpty(refreshTokenRequestDto.RefreshToken))
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = ["Refresh token is required"];
+                return BadRequest(response);
+            }
+
+
+            var command = new RefreshTokenCommand(refreshTokenRequestDto.RefreshToken, accessToken);
+            var result = await Mediator.Send(command);
+
+            response.Success = true;
+            response.Data = result;
+
+            return Ok(response);
         }
 
         [HttpPost("logout")]
@@ -114,57 +81,33 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<string>();
 
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    response.Success = true;
-                    response.StatusCode = HttpCode.OK;
-                    return Ok(response);
-                }
-
-                var command = new LogoutCommand(userId);
-                var result = await _mediator.Send(command);
-
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = "Logout successful";
-
                 return Ok(response);
             }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+
+            var command = new LogoutCommand(userId);
+            var result = await Mediator.Send(command);
+
+            response.Success = true;
+            response.Data = "Logout successful";
+
+            return Ok(response);
         }
 
         [HttpPost("send-confirm-email")]
         public async Task<ActionResult<ApiResponse<bool>>> SendConfirmEmail([FromBody] SendConfirmEmailRequestDto request)
         {
             var response = new ApiResponse<bool>();
+            var command = new SendConfirmEmailCommand(request.Email);
+            var result = await Mediator.Send(command);
 
-            try
-            {
-                var command = new SendConfirmEmailCommand(request.Email);
-                var result = await Mediator.Send(command);
+            response.Success = true;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost("confirm-email")]
@@ -173,25 +116,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromQuery] string token)
         {
             var response = new ApiResponse<bool>();
+            var command = new ConfirmEmailCommand(userId, token);
+            var result = await Mediator.Send(command);
 
-            try
-            {
-                var command = new ConfirmEmailCommand(userId, token);
-                var result = await Mediator.Send(command);
+            response.Success = true;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost("forgot-password")]
@@ -199,24 +130,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<bool>();
 
-            try
-            {
-                var command = new ForgotPasswordCommand(request.Email);
-                var result = await Mediator.Send(command);
+            var command = new ForgotPasswordCommand(request.Email);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost("reset-password")]
@@ -224,24 +144,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<bool>();
 
-            try
-            {
-                var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword);
-                var result = await Mediator.Send(command);
+            var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         private string? ExtractAccessTokenFromHeader()

@@ -11,6 +11,7 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
         Task<T?> GetByIdAsync(
             Guid id,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default);
         Task<IEnumerable<T>> GetAllAsync(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,

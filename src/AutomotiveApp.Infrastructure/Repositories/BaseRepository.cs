@@ -10,7 +10,7 @@ namespace AutomotiveApp.Infrastructure.Repositories
     public class BaseRepository<T> : IRepository<T>
         where T : class, IBaseEntity
     {
-        private readonly AppDbContext _context;
+        protected readonly AppDbContext _context;
 
         public BaseRepository(AppDbContext context)
         {
@@ -41,10 +41,11 @@ namespace AutomotiveApp.Infrastructure.Repositories
         public async Task<T?> GetByIdAsync(
             Guid id,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default)
         {
 
-            var query = BuildQuery(modifier);
+            var query = BuildQuery(modifier, predicate);
             return await query.FirstOrDefaultAsync(e => e.Id == id, ct);
         }
 
