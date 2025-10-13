@@ -3,20 +3,22 @@ using AutomotiveApp.Application.Helpers;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Application.Interfaces.Utils;
-using AutomotiveApp.Application.Features.Users.Commands;
-using AutomotiveApp.Application.Features.Users.Queries;
-using AutomotiveApp.Application.Mapper;
 using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Data.Seeder;
 using AutomotiveApp.Infrastructure.Implementation.Repositories;
 using AutomotiveApp.Infrastructure.Implementation.Utils;
+using AutomotiveApp.WebAPI.Mapper;
 using AutomotiveApp.WebAPI.Validators.Course;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using Microsoft.Extensions.FileProviders;
 using AutomotiveApp.Infrastructure.Repositories;
 
@@ -58,12 +60,17 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IJwtSettings, JwtSettings>();
 
 // Configuration (appsettings.json)
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 //Utils (Storage)
 builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
+builder.Services.AddSingleton(resolver =>
+    resolver.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSettings>>().Value);
 
 //Helpers 
 builder.Services.AddScoped<UrlGeneratorHelper>();
@@ -84,13 +91,97 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.Lockout.AllowedForNewUsers = true;
 
     options.User.RequireUniqueEmail = true;
-    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedEmail = false; // TODO: ganti jadi true nanti
 
     options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
     options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
 })
 .AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddSignInManager<SignInManager<User>>();
+
+// Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = jwtSettings.ValidateIssuer,
+            ValidateAudience = jwtSettings.ValidateAudience,
+            ValidateLifetime = jwtSettings.ValidateLifetime,
+            ValidateIssuerSigningKey = jwtSettings.ValidateIssuerSigningKey,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkew)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"JWT failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                Console.WriteLine($"JWT validated for user {userId}");
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+// Authorization
+builder.Services.AddAuthorization(AuthorizationPolicies.ConfigurePolicies);
+
+// Add JWT Authentication to Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Transaction Error Handling API with Authentication",
+        Version = "v1",
+        Description = "API for demonstrating transaction management, error handling, and JWT authentication in ASP.NET Core"
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = @"JWT Authorization header using the Bearer scheme. 
+                          Enter 'Bearer' [space] and then your token in the text input below.
+                          Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    },
+                    Scheme = "oauth2",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header,
+                },
+                new List<string>()
+            }
+        });
+});
 
 var app = builder.Build();
 
@@ -114,6 +205,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 // app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

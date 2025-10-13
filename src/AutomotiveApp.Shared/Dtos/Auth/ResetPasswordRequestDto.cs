@@ -2,13 +2,13 @@
 
 namespace AutomotiveApp.Shared.Dtos.Auth
 {
-    public class ResetPasswordDto
+    public class ResetPasswordRequestDto
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Token is required")]
         public string Token { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "New password is required")]

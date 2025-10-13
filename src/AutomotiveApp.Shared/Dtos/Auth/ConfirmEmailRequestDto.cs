@@ -2,12 +2,12 @@
 
 namespace AutomotiveApp.Shared.Dtos.Auth
 {
-    public class ConfirmEmailDto
+    public class ConfirmEmailRequestDto
     {
-        [Required]//err
+        [Required(ErrorMessage = "User Id is required")]
         public string UserId { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Email Token is required")]
         public string Token { get; set; } = string.Empty;
     }
 }

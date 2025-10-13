@@ -3,7 +3,9 @@ using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
 {
@@ -12,8 +14,136 @@ namespace AutomotiveApp.WebAPI.Controllers.User
     public class AuthController(IMediator _mediator) : BaseApiController(_mediator)
     {
 
+        [HttpPost("register")]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterRequestDto registerRequestDto)
+        {
+            var response = new ApiResponse<AuthResponseDto>();
+
+            try
+            {
+                var command = new RegisterCommand(registerRequestDto);
+                var result = await _mediator.Send(command);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                response.Data = result;
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = [ex.Message];
+                return BadRequest(response);
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto loginRequestDto)
+        {
+            var response = new ApiResponse<AuthResponseDto>();
+
+            try
+            {
+                var command = new LoginCommand(loginRequestDto);
+                var result = await _mediator.Send(command);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                response.Data = result;
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = [ex.Message];
+                return BadRequest(response);
+            }
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> RefreshToken([FromBody] RefreshTokenRequestDto refreshTokenRequestDto)
+        {
+            var response = new ApiResponse<AuthResponseDto>();
+
+            try
+            {
+                var accessToken = ExtractAccessTokenFromHeader();
+
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = ["Access token is required"];
+                    return BadRequest(response);
+                }
+
+                if (string.IsNullOrEmpty(refreshTokenRequestDto.RefreshToken))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = ["Refresh token is required"];
+                    return BadRequest(response);
+                }
+
+
+                var command = new RefreshTokenCommand(refreshTokenRequestDto.RefreshToken, accessToken);
+                var result = await _mediator.Send(command);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                response.Data = result;
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = [ex.Message];
+                return BadRequest(response);
+            }
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Logout()
+        {
+            var response = new ApiResponse<string>();
+
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    response.Success = true;
+                    response.StatusCode = HttpCode.OK;
+                    return Ok(response);
+                }
+
+                var command = new LogoutCommand(userId);
+                var result = await _mediator.Send(command);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                response.Data = "Logout successful";
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = [ex.Message];
+                return BadRequest(response);
+            }
+        }
+
         [HttpPost("send-confirm-email")]
-        public async Task<ActionResult<ApiResponse<bool>>> SendConfirmEmail([FromBody] SendConfirmEmailDto request)
+        public async Task<ActionResult<ApiResponse<bool>>> SendConfirmEmail([FromBody] SendConfirmEmailRequestDto request)
         {
             var response = new ApiResponse<bool>();
 
@@ -37,8 +167,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
         }
 
-        // TODO: change to POST & use DTO when frontend is implemented
-        [HttpGet("confirm-email")]
+        [HttpPost("confirm-email")]
         public async Task<ActionResult<ApiResponse<bool>>> ConfirmEmail(
             [FromQuery] string userId,
             [FromQuery] string token)
@@ -66,7 +195,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpPost("forgot-password")]
-        public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordDto request)
+        public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
 
@@ -90,10 +219,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
         }
 
-        // TODO: test when frontend is implemented
-        // currently the link is only a GET request
         [HttpPost("reset-password")]
-        public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordDto request)
+        public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
 
@@ -114,6 +241,28 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 response.StatusCode = HttpCode.BadRequest;
                 response.Errors = [ex.Message];
                 return BadRequest(response);
+            }
+        }
+
+        private string? ExtractAccessTokenFromHeader()
+        {
+            try
+            {
+                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrEmpty(authorizationHeader))
+                    return null;
+
+                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    return authorizationHeader.Substring("Bearer ".Length).Trim();
+                }
+
+                return authorizationHeader;
+            }
+            catch
+            {
+                return null;
             }
         }
     }

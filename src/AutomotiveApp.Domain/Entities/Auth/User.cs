@@ -14,6 +14,10 @@ namespace AutomotiveApp.Domain.Entities.Auth
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
 
+        // Refresh token untuk JWT authentication
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
+
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; } = [];
         public virtual ICollection<CourseBooking> Bookings { get; set; } = [];
