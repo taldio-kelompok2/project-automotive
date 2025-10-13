@@ -13,6 +13,7 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
             try
             {
                 var item = await uow.CourseRepo.GetCourseDetailById(request.Id, ct);
+
                 return mapper.Map<CourseQueryDetailDto>(item);
             }
             catch

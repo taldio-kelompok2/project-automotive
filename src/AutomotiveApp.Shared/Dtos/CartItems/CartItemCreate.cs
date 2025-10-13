@@ -2,13 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AutomotiveApp.Shared.Dtos.CartItems
 {
-    public class CartItemCreateDto
+    public class CartItemCreateDto : BaseCommandDto, IDto
     {
-        [Required(ErrorMessage = "Cart Id Required")]
-        public Guid CartId { get; set; }
-
-        [Required(ErrorMessage = "Session Id Required")]
-        public Guid SessionId { get; set; }
+        public required Guid CartId { get; set; }
+        public required Guid SessionId { get; set; }
     }
 
 }

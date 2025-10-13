@@ -1,6 +1,7 @@
 using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Domain.Entities.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AutomotiveApp.Application.Interfaces
 {
@@ -10,8 +11,12 @@ namespace AutomotiveApp.Application.Interfaces
         ICourseCategoryRepository CourseCategoryRepo { get; }
         ICourseSessionRepository CourseSessionRepo { get; }
         ICourseBookingRepository CourseBookingRepo { get; }
+        ICartRepository CartRepo { get; }
+        ICartItemRepository CartItemRepo { get; }
         IUserRepository UserRepo { get; }
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+        Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
 
     }
 }

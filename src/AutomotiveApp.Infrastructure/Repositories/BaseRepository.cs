@@ -17,11 +17,17 @@ namespace AutomotiveApp.Infrastructure.Repositories
             _context = context;
         }
 
+        public IQueryable<T> Query()
+        {
+            return _context.Set<T>().AsQueryable();
+        }
+
         private IQueryable<T> BuildQuery(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
             Expression<Func<T, bool>>? predicate = null)
         {
-            var query = _context.Set<T>().AsQueryable();
+            var query = _context.Set<T>()
+            .AsQueryable();
 
             if (modifier is not null)
                 query = modifier(query);
@@ -58,6 +64,11 @@ namespace AutomotiveApp.Infrastructure.Repositories
         {
             var query = BuildQuery(modifier);
             int total = await query.CountAsync(ct);
+
+            if (!query.Expression.ToString().Contains("OrderBy"))
+            {
+                query = query.OrderBy(e => true);
+            }
 
             var items = await query
                 .Skip((page - 1) * itemTaken)

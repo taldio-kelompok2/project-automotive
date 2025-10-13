@@ -18,7 +18,6 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
     public class CourseBookingController(IMediator mediator) : BaseApiController(mediator)
     {
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCourseBookings(
             [FromQuery] Guid? sessionId,
@@ -37,7 +36,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -66,7 +65,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -96,7 +95,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -129,7 +128,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -154,7 +153,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             try
             {
                 var command = new DeleteCourseBookingCommand(id);
-                await _mediator.Send(command);
+                await Mediator.Send(command);
                 response.Data = $"Course {id} is successfully deleted.";
 
                 response.Success = true;

@@ -6,6 +6,8 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class, IBaseEntity
     {
+
+        public IQueryable<T> Query();
         Task<T?> GetByIdAsync(
             Guid id,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,

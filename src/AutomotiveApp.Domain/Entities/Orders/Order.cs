@@ -2,14 +2,13 @@ using AutomotiveApp.Base.Entities;
 using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Domain.Entities.Invoices;
 using AutomotiveApp.Domain.Entities.Payments;
-using AutomotiveApp.Shared.Enums;
+using AutomotiveApp.Domain.Enums;
 
 namespace AutomotiveApp.Domain.Entities.Orders
 {
     public class Order : BaseEntity
     {
-        // public required uint TotalPrice { get; set; } = 0;
-        public required long TotalPrice { get; set; } = 0;  
+        public required long TotalPrice { get; set; } = 0;
         public required OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         // Foreign Keys

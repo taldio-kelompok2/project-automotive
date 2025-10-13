@@ -9,7 +9,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(IMediator _mediator) : BaseApiController(_mediator)
+    public class AuthController(IMediator mediator) : BaseApiController(mediator)
     {
 
         [HttpPost("send-confirm-email")]
@@ -20,7 +20,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new SendConfirmEmailCommand(request.Email);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -48,7 +48,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new ConfirmEmailCommand(userId, token);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -73,7 +73,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new ForgotPasswordCommand(request.Email);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -100,7 +100,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;

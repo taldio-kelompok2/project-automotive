@@ -9,6 +9,12 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
 {
     public class UserRepository(UserManager<User> userManager) : IUserRepository
     {
+
+        public IQueryable<User> Query()
+        {
+            return userManager.Users;
+        }
+
         public async Task AddAsync(User entity)
         {
             var result = await userManager.CreateAsync(entity);

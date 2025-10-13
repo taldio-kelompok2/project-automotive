@@ -3,9 +3,6 @@ using AutomotiveApp.Application.Helpers;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Application.Interfaces.Utils;
-using AutomotiveApp.Application.Features.Users.Commands;
-using AutomotiveApp.Application.Features.Users.Queries;
-using AutomotiveApp.Application.Mapper;
 using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Data.Seeder;
@@ -13,7 +10,6 @@ using AutomotiveApp.Infrastructure.Implementation.Repositories;
 using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.WebAPI.Validators.Course;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +37,9 @@ builder.Services.AddSwaggerGen(o =>
 
 // DB Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    sql => sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+));
 
 // MediatR + AutoMapper
 builder.Services.AddMediatR(typeof(GetCoursesPagedHandler).Assembly);
@@ -52,8 +50,9 @@ builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
 builder.Services.AddScoped<ICourseSessionRepository, CourseSessionRepository>();
 builder.Services.AddScoped<ICourseBookingRepository, CoursebookingRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //Email Service

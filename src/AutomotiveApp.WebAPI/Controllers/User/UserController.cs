@@ -21,7 +21,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new CreateUser(userCreateDto);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.Created;
@@ -48,7 +48,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var query = new GetUsersPaged(page, itemTaken);
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -73,7 +73,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var query = new GetUserById(userId);
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -107,7 +107,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new UpdateUser(userId, userUpdateDto);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -132,7 +132,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var command = new DeleteUser(userId);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;

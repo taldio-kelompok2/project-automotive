@@ -39,7 +39,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -69,7 +69,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -99,7 +99,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -130,7 +130,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
                 response.Data = result;
@@ -154,7 +154,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             try
             {
                 var command = new DeleteCourseSessionCommand(id);
-                await _mediator.Send(command);
+                await Mediator.Send(command);
                 response.Data = $"Course {id} is successfully deleted.";
 
                 response.Success = true;

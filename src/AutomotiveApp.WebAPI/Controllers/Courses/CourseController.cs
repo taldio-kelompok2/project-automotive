@@ -28,7 +28,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             try
             {
                 var query = new GetCourses();
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -58,7 +58,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -87,7 +87,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             try
             {
                 var query = new GetCoursesPaged(page, itemTaken);
-                var result = await _mediator.Send(query);
+                var result = await Mediator.Send(query);
 
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
@@ -124,7 +124,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
                 dto.ImageFilename = imageFileName;
                 var command = new AddCourseCommand(dto);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
                 response.Data = result;
@@ -165,7 +165,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.ReplaceFileAsync<Course>(imageFileName, request.Image.OpenReadStream());
                 }
                 dto.ImageFilename = imageFileName;
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
                 response.StatusCode = HttpCode.OK;
                 response.Data = result;
@@ -193,7 +193,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             try
             {
                 var command = new DeleteCourseCommand(id);
-                await _mediator.Send(command);
+                await Mediator.Send(command);
                 response.Data = $"Course {id} is successfully deleted.";
 
                 response.Success = true;
