@@ -3,6 +3,6 @@ using MediatR;
 
 namespace AutomotiveApp.Application.Features.Users.Commands
 {
-    public record CreateUser(UserCreateDto UserCreateDto) 
+    public record CreateUser(UserCreateRequestDto UserCreateDto) 
         : IRequest<Guid>;
 }
