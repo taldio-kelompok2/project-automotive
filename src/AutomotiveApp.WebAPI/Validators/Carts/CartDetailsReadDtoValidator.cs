@@ -2,7 +2,7 @@ using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Shared.Dtos.Carts;
 using FluentValidation;
 
-namespace AutomotiveApp.WebAPI.Validators.Cart
+namespace AutomotiveApp.WebAPI.Validators.Carts
 {
     public class CartDetailsReadDtoValidator : AbstractValidator<CartReadDetailsDto>
     {

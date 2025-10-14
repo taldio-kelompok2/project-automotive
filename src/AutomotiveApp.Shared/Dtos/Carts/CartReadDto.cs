@@ -1,5 +1,4 @@
-using AutomotiveApp.Shared.Dtos.CartItems;
-using AutomotiveApp.Shared.Dtos.Courses;
+
 
 namespace AutomotiveApp.Shared.Dtos.Carts
 {

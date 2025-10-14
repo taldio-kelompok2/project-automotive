@@ -156,72 +156,28 @@ namespace AutomotiveApp.WebAPI.Controllers
 
         [HttpPost]
         public async Task<ActionResult<OrderReadDto>> Create(
-        [FromBody] OrderCreateDto request,
-        CancellationToken ct)
+        [FromBody] OrderCreateDto request, IValidator<OrderCreateDto> validator, CancellationToken ct)
         {
             var response = new ApiResponse<string>();
             var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
             request.UserId = userId;
 
+            await validator.ValidateAndThrowAsync(request, ct);
             await using var transaction = await _uow.BeginTransactionAsync(ct);
 
             try
             {
-                // 1️⃣ Validate payment method
-                var paymentExist = await _uow.PaymentRepo.DataExistAsync(p => p.Id == request.PaymentMethodId, ct: ct);
-                if (!paymentExist)
-                    throw new NotFoundException<PaymentMethod>(request.PaymentMethodId);
-
-                // 2️⃣ Validate user existence
-                var userExist = await _uow.UserRepo.DataExistAsync(u => u.Id == userId, ct: ct);
-                if (!userExist)
-                    throw new NotFoundException<Course>("User Id not found");
-
-                // 3️⃣ Validate user cart exists and not empty
+                // Get user cart 
                 var cart = await _uow.CartRepo.FirstOrDefaultAsync(
                     modifier: q => q
                         .Include(c => c.Items)
-                            .ThenInclude(i => i.Session)
-                                .ThenInclude(s => s.Course),
+                        .ThenInclude(i => i.Session)
+                        .ThenInclude(s => s.Course)
+                        ,
                     predicate: c => c.UserId == userId,
                     ct: ct
                 ) ?? throw new NotFoundException<Cart>("User cart not found.");
 
-                if (cart.Items == null || !cart.Items.Any())
-                    throw new InvalidOperationException("Cart is empty.");
-
-                // 4️⃣ Validate all sessions exist and are in the future
-                var invalidSessions = cart.Items
-                    .Where(i => i.Session == null || i.Session.Date <= DateTime.UtcNow)
-                    .ToList();
-
-                if (invalidSessions.Any())
-                    throw new InvalidOperationException("One or more sessions are invalid or have already occurred.");
-
-                // 5️⃣ Validate duplicate sessions (no previous orders for same session)
-                var hasDuplicate = await _uow.OrderItemRepo.Query()
-                    .Include(oi => oi.Order)
-                    .AnyAsync(oi =>
-                        oi.Order.UserId == userId &&
-                        cart.Items.Select(i => i.SessionId).Contains(oi.SessionId),
-                        ct);
-
-                if (hasDuplicate)
-                    throw new InvalidOperationException("You already have an order for one or more of these sessions.");
-
-                // 6️⃣ Validate booking conflicts (same date)
-                var cartDates = cart.Items.Select(i => i.Session.Date.Date).Distinct().ToList();
-                var conflictingBooking = await _uow.CourseBookingRepo.Query()
-                    .Include(b => b.Session)
-                    .AnyAsync(b =>
-                        b.UserId == userId &&
-                        cartDates.Contains(b.Session.Date.Date),
-                        ct);
-
-                if (conflictingBooking)
-                    throw new InvalidOperationException("You already have a booking on one of these dates.");
-
-                // ✅ Passed all validations — proceed with order creation
                 var order = new Order
                 {
                     UserId = userId,
@@ -232,9 +188,11 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.OrderRepo.AddAsync(order);
                 await _uow.SaveChangesAsync(ct);
 
+                //Get the ordered items
+                var orderedItems = cart.Items.Where(i => request.CartItemIds.Contains(i.Id));
                 long totalPrice = 0;
 
-                foreach (var item in cart.Items)
+                foreach (var item in orderedItems)
                 {
                     var orderItem = new OrderItem
                     {
@@ -246,7 +204,6 @@ namespace AutomotiveApp.WebAPI.Controllers
                     totalPrice += orderItem.Price;
                     await _uow.OrderItemRepo.AddAsync(orderItem);
                 }
-
                 await _uow.SaveChangesAsync(ct);
 
                 // Complete order
@@ -266,8 +223,8 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.InvoiceRepo.AddAsync(invoice);
                 await _uow.SaveChangesAsync(ct);
 
-                // Create bookings
-                foreach (var item in cart.Items)
+                // Create bookings && remove the cart
+                foreach (var item in orderedItems)
                 {
                     var booking = new CourseBooking
                     {
@@ -277,9 +234,12 @@ namespace AutomotiveApp.WebAPI.Controllers
                     await _uow.CourseBookingRepo.AddAsync(booking);
                 }
                 await _uow.SaveChangesAsync(ct);
-
                 // Clear cart
-                await _uow.CartRepo.BatchDelete(cart.Items);
+                await _uow.CartRepo.BatchDelete(orderedItems, ct);
+                await _uow.SaveChangesAsync(ct);
+
+                cart.TotalPrice = await _uow.CartItemRepo.RecalculateCartTotalAsync(request.CartId);
+                _uow.CartRepo.Update(cart);
                 await _uow.SaveChangesAsync(ct);
 
                 // Commit transaction

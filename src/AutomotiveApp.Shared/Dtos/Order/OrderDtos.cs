@@ -6,14 +6,11 @@ namespace AutomotiveApp.Shared.Dtos.Order
 {
     public class OrderCreateDto : BaseCommandDto, IDto
     {
-
         [JsonIgnore]
         public Guid UserId { get; set; }
+        public Guid CartId { get; set; }
         public Guid PaymentMethodId { get; set; }
-        public OrderCreateDto()
-        {
-            Id = Guid.NewGuid();
-        }
+        public List<Guid> CartItemIds { get; set; } = [];
     }
 
     public class OrderUpdateDto : BaseCommandDto, IDto
