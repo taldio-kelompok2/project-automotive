@@ -4,6 +4,7 @@ using AutomotiveApp.BlazorUI.Services.Interface;
 using MudBlazor;
 using MudBlazor.Services;
 using System.Globalization;
+using AutomotiveApp.BlazorUI.Services.Invoices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,17 @@ builder.Services.AddMudServices(config =>
 });
 
 builder.Services.AddLocalization();
+
+
+// HttpClient → WebAPI
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
+if (string.IsNullOrWhiteSpace(apiBaseUrl))
+    throw new InvalidOperationException("ApiBaseUrl belum di-set di BlazorUI/appsettings.json");
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+
+// Service FE yang memanggil API
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+
 
 var app = builder.Build();
 
