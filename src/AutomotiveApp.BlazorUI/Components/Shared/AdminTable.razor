@@ -23,7 +23,7 @@
     <RowTemplate>
         @foreach (var column in Columns)
         {
-            <MudTd Class="text-center" DataLabel="@column.Header" s>
+            <MudTd Class="text-center" DataLabel="@column.Header">
                 @if (column.IsStatusColumn)
                 {
                     <MudChip T="string" Color="@(GetStatusColor(context))" 
@@ -120,6 +120,7 @@
             UserViewModel u => u.Status,
             CourseViewModel c => c.Status,
             CategoryViewModel ca => ca.Status,
+            PaymentMethodViewModel p=> p.Status,
             _ => default
         };
 

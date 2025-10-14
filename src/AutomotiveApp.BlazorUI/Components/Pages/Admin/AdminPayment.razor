@@ -1,6 +1,11 @@
 ﻿@page "/admin/payment-method"
 @rendermode InteractiveServer
 @inject IDialogService DialogService
+@inject HttpClient Http
+@inject IPaymentMethodService PaymentSvc
+@using System.Net.Http.Json
+@using AutomotiveApp.Shared.Enums
+@using AutomotiveApp.Application.PaymentMethods  
 
 @layout AdminLayout
 
@@ -8,24 +13,32 @@
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Payment Method</MudText>
+    
     <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddPaymentMethodDialog" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Payment Method</AppBaseButton>
+    
     <AdminTable TItem="PaymentMethodViewModel" Items="paymentMethods" Columns="paymentMethodColumns" OnEdit="OnPaymentMethodEdit" />
 </MudPaper>
 
 @code {
+    // === State ===
+    private List<PaymentMethodViewModel> paymentMethods = new();
 
-    private List<PaymentMethodViewModel> paymentMethods = new()
-    {
-        new PaymentMethodViewModel { ID = 1, Name = "DANA", Logo = "/images/payment/dana.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 2, Name = "GoPay", Logo = "/images/payment/gopay.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 3, Name = "BCA", Logo = "/images/payment/bca.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 4, Name = "BRI", Logo = "/images/payment/bri.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 5, Name = "Mandiri", Logo = "/images/payment/mandiri.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 6, Name = "OVO", Logo = "/images/payment/ovo.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 7, Name = "BNI", Logo = "/images/payment/bni.svg", Status = Status.Active },
-        new PaymentMethodViewModel { ID = 8, Name = "PayPal", Logo = "/images/payment/paypal.svg", Status = Status.Active }
-    };
+    // === Map Internal ===
+    private readonly Dictionary<string, Guid> _nameToId = new(StringComparer.OrdinalIgnoreCase);
 
+    // private List<PaymentMethodViewModel> paymentMethods = new()
+    // {
+    //    new PaymentMethodViewModel { ID = 1, Name = "DANA", Logo = "/images/payment/dana.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 2, Name = "GoPay", Logo = "/images/payment/gopay.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 3, Name = "BCA", Logo = "/images/payment/bca.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 4, Name = "BRI", Logo = "/images/payment/bri.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 5, Name = "Mandiri", Logo = "/images/payment/mandiri.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 6, Name = "OVO", Logo = "/images/payment/ovo.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 7, Name = "BNI", Logo = "/images/payment/bni.svg", Status = Status.Active },
+    //    new PaymentMethodViewModel { ID = 8, Name = "PayPal", Logo = "/images/payment/paypal.svg", Status = Status.Active }
+    // }; 
+
+    // === Table ===
     List<ColumnDefinition<PaymentMethodViewModel>> paymentMethodColumns = new()
     {
         new ColumnDefinition<PaymentMethodViewModel>
@@ -63,25 +76,125 @@
             ShowEdit = true
         }
     };
-    private async Task ShowAddPaymentMethodDialog()
-    {
-        var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment Method");
-        var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is PaymentMethodViewModel newPaymentMethod)
-        {
-            paymentMethods.Add(newPaymentMethod);
-            StateHasChanged();
-        }
+    private string ResolveLogoUrl(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+        return "/images/payment/placeholder.svg"; 
+
+    var v = value.Trim();
+
+    if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        return v;
+    if (v.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+        return v;
+
+    var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
+    return $"{api}/images/PaymentMethod/{v}";
+}
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rows = await PaymentSvc.GetAllAsync();
+        paymentMethods = rows
+            .OrderByDescending(x => x.CreatedAt)
+            .Select((x, idx) => new PaymentMethodViewModel
+            {
+                ID     = idx + 1,
+                PaymentMethodId = x.Id,
+                Name   = x.Name,
+                Logo            = ResolveLogoUrl(x.ImageUrl),
+                Status = x.Status ? Status.Active : Status.Inactive
+            })
+            .ToList();
     }
 
-    private void OnPaymentMethodEdit(PaymentMethodViewModel paymentMethod)
+    private static string? ExtractFileNameOrNull(string? urlOrPath) 
     {
-        var index = paymentMethods.FindIndex(c => c.Name == paymentMethod.Name);
-        if (index >= 0)
+        if (string.IsNullOrWhiteSpace(urlOrPath)) return null;
+        try
         {
-            paymentMethods[index] = paymentMethod;
-            StateHasChanged();
+            var lastSlash = urlOrPath.LastIndexOfAny(new[] { '/', '\\' });
+            return lastSlash >= 0 ? urlOrPath[(lastSlash + 1)..] : urlOrPath;
         }
+        catch { return null; }
+    }
+
+private async Task ShowAddPaymentMethodDialog()
+{
+    var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment Method");
+    var result = await dialog.Result;
+    if (result.Canceled || result.Data is not PaymentMethodViewModel vm) return;
+
+    if (vm.File is not null)
+    {
+        // multipart: simpan file ke server
+        var newId = await PaymentSvc.CreateMultipartAsync(
+            vm.Name,
+            vm.Status == Status.Active,
+            vm.File
+        );
+        if (newId is null) return;
+    }
+    else
+    {
+        // fallback JSON (tanpa upload)
+        var create = new AutomotiveApp.Application.PaymentMethods.PaymentMethodCreateDto
+        {
+            Name = vm.Name,
+            Status = vm.Status == Status.Active,
+            ImageFilename = null
+        };
+        var id = await PaymentSvc.CreateAsync(create);
+        if (id is null) return;
+    }
+
+    await ReloadList();
+}
+
+private async Task OnPaymentMethodEdit(PaymentMethodViewModel vm)
+{
+    // file baru => multipart
+    if (vm.File is not null)
+    {
+        var ok = await PaymentSvc.UpdateMultipartAsync(
+            vm.PaymentMethodId,
+            vm.Name,
+            vm.Status == Status.Active,
+            vm.File
+        );
+        if (!ok) return;
+    }
+    else
+    {
+        // tanpa file => JSON
+        var update = new AutomotiveApp.Application.PaymentMethods.PaymentMethodUpdateDto
+        {
+            Name = vm.Name,
+            Status = vm.Status == Status.Active,
+            ImageFilename = null 
+        };
+        var ok = await PaymentSvc.UpdateAsync(vm.PaymentMethodId, update);
+        if (!ok) return;
+    }
+
+    await ReloadList();
+}
+
+    private async Task ReloadList()
+    {
+        var rows = await PaymentSvc.GetAllAsync();
+        paymentMethods = rows
+            .OrderByDescending(x => x.CreatedAt)
+            .Select((x, idx) => new PaymentMethodViewModel
+            {
+                ID     = idx + 1,
+                PaymentMethodId = x.Id,
+                Name   = x.Name,
+                Logo            = ResolveLogoUrl(x.ImageUrl),
+                Status = x.Status ? Status.Active : Status.Inactive
+            })
+            .ToList();
+        StateHasChanged();
     }
 }

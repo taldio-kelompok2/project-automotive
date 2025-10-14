@@ -1,4 +1,9 @@
-﻿<MudDialog>
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components.Forms
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using AutomotiveApp.BlazorUI.Enums
+
+<MudDialog>
     <DialogContent>
         <MudForm @ref="_form">
             <MudTextField @bind-Value="_paymentMethod.Name" Label="Name" Required="true" Class="mb-2" />
@@ -20,7 +25,7 @@
     
 </MudDialog>
 
-@code {
+@* @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     private PaymentMethodViewModel _paymentMethod = new();
@@ -46,4 +51,62 @@
             _paymentMethod.Logo = file.Name; // for now just the filename
         }
     }
+} *@
+
+@* @code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+  private PaymentMethodViewModel _paymentMethod = new();
+  private MudForm _form = default!;
+  private IBrowserFile? _selectedFile; // <-- file asli
+
+  private async Task Save()
+  {
+    await _form.Validate();
+    if (_form.IsValid)
+    {
+      MudDialog.Close(DialogResult.Ok(new PaymentMethodDialogResult
+      {
+        Vm = _paymentMethod,
+        File = _selectedFile
+      }));
+    }
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+
+  private void OnFileSelected(InputFileChangeEventArgs e)
+  {
+    _selectedFile = e.File;
+    _paymentMethod.Logo = _selectedFile?.Name ?? "";
+  }
+
+  public class PaymentMethodDialogResult
+  {
+    public PaymentMethodViewModel Vm { get; set; } = default!;
+    public IBrowserFile? File { get; set; }
+  }
+} *@
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+  private PaymentMethodViewModel _paymentMethod = new();
+  private MudForm _form = default!;
+
+  private async Task Save()
+  {
+    await _form.Validate();
+    if (_form.IsValid)
+      MudDialog.Close(DialogResult.Ok(_paymentMethod)); 
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+
+  private void OnFileSelected(InputFileChangeEventArgs e)
+  {
+    if (e.File is null) return;
+    _paymentMethod.File = e.File;           
+    _paymentMethod.Logo = e.File.Name;       
+  }
 }
