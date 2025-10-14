@@ -1,182 +1,121 @@
+using System.Net;
+using System.Security.Claims;
 using AutomotiveApp.Application.Features.CourseBookings.Commands;
 using AutomotiveApp.Application.Features.CourseBookings.Queries;
-using AutomotiveApp.Domain.Entities.Auth;
-using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
-using AutomotiveApp.Shared.Enums;
-using AutomotiveApp.Shared.Exceptions;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.WebAPI.Helper;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveApp.WebAPI.Controllers.Courses
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
 
     public class CourseBookingController(IMediator mediator) : BaseApiController(mediator)
     {
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCourseBookings(
+        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetAll(
             [FromQuery] Guid? sessionId,
             [FromServices] IValidator<GetCourseBookings> validator)
         {
             var response = new ApiResponse<IEnumerable<CourseBookingQueryDto>>();
             var query = new GetCourseBookings(sessionId);
-            var validation = await validator.ValidateAsync(query);
+            await validator.ValidateAndThrowAsync(query);
 
-            if (!validation.IsValid) return BadRequest(new ApiResponse<IEnumerable<CourseBookingQueryDto>>
-            {
-                Success = false,
-                StatusCode = HttpCode.BadRequest,
-                Errors = validation.Errors.Select(e => e.ErrorMessage).ToList()
-            });
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CourseBookingQueryDto>> GetCourseBookingById([FromRoute] Guid id, [FromServices] IValidator<GetCourseBookingById> validator)
+        public async Task<ActionResult<CourseBookingQueryDto>> GetById([FromRoute] Guid id,
+        [FromServices] IValidator<GetCourseBookingById> validator)
         {
             var query = new GetCourseBookingById(id);
-            var validation = await validator.ValidateAsync(query);
             var response = new ApiResponse<CourseBookingQueryDto>();
+            await validator.ValidateAndThrowAsync(query);
 
-            if (!validation.IsValid) return HandleValidationFailure<CourseBookingQueryDto>(validation);
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            return Ok(response);
+        }
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
+        [HttpGet("me")]
+        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCurrentUser()
+        {
+            var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
+            var query = new GetCourseBookingByUser(userId);
+            var response = new ApiResponse<IEnumerable<CourseBookingQueryDto>>();
 
-                return BadRequest(response);
-            }
+            var result = await Mediator.Send(query);
+
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
+
+            return Ok(response);
         }
 
         [HttpPost]
-        public async Task<ActionResult<CourseBookingQueryDto>> CreateCourseBooking([FromBody] CourseBookingCommandDto request,
+        public async Task<ActionResult<CourseBookingQueryDto>> Create([FromBody] CourseBookingCommandDto request,
             [FromServices] IValidator<AddCourseBookingCommand> validator)
         {
             var query = new AddCourseBookingCommand(request);
-            var validation = await validator.ValidateAsync(query);
             var response = new ApiResponse<CourseBookingQueryDto>();
+            await validator.ValidateAndThrowAsync(query);
 
-            if (!validation.IsValid) return HandleValidationFailure<CourseBookingQueryDto>(validation);
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<ActionResult<CourseBookingQueryDto>> UpdateCourseBookingSession(
+        public async Task<ActionResult<CourseBookingQueryDto>> Update(
         [FromRoute] Guid id,
         [FromBody] Guid newCourseId,
         [FromServices] IValidator<EditCourseBookingCourseCommand> validator)
         {
             var command = new EditCourseBookingCourseCommand(id, newCourseId);
             var response = new ApiResponse<CourseBookingQueryDto>();
+            await validator.ValidateAndThrowAsync(command);
+            var result = await Mediator.Send(command);
 
-            var validation = await validator.ValidateAsync(command);
-            if (!validation.IsValid)
-                return HandleValidationFailure<CourseBookingQueryDto>(validation);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-            try
-            {
-                var result = await _mediator.Send(command);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = new[] { ex.Message };
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<ActionResult> DeleteCourseBooking([FromRoute] Guid id)
+        public async Task<ActionResult> Delete([FromRoute] Guid id)
         {
             var response = new ApiResponse<string>();
-            try
-            {
-                var command = new DeleteCourseBookingCommand(id);
-                await _mediator.Send(command);
-                response.Data = $"Course {id} is successfully deleted.";
+            var command = new DeleteCourseBookingCommand(id);
+            await Mediator.Send(command);
+            response.Data = $"Course {id} is successfully deleted.";
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
 
-                return Ok(response);
-            }
-            catch (NotFoundException<CourseBooking> ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
-
+            return Ok(response);
         }
     }
 }

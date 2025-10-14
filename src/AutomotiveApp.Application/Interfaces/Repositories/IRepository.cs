@@ -6,9 +6,12 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class, IBaseEntity
     {
+
+        public IQueryable<T> Query();
         Task<T?> GetByIdAsync(
             Guid id,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default);
         Task<IEnumerable<T>> GetAllAsync(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,

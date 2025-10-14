@@ -16,7 +16,7 @@ namespace AutomotiveApp.WebAPI.Validators.Course
             RuleFor(x => x.Name)
                 .MustAsync(async (ecc, name, ct) =>
                 {
-                    if (ecc.Name.IsNullOrEmpty()) return true;
+                    if (string.IsNullOrEmpty(ecc.Name)) return true;
                     return !await _uow.CourseRepo.DataExistAsync(
                         c => c.Name == name && c.Id != ecc.Id, ct: ct
                     );

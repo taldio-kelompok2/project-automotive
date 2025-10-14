@@ -11,7 +11,6 @@ using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.WebAPI.Mapper;
 using AutomotiveApp.WebAPI.Validators.Course;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +20,11 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using AutomotiveApp.Infrastructure.Repositories;
+using AutomotiveApp.WebAPI.Middleware;
+using System.Net;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using AutomotiveApp.Shared.Response;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +47,9 @@ builder.Services.AddSwaggerGen(o =>
 
 // DB Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    sql => sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+));
 
 // MediatR + AutoMapper
 builder.Services.AddMediatR(typeof(GetCoursesPagedHandler).Assembly);
@@ -54,8 +60,9 @@ builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
 builder.Services.AddScoped<ICourseSessionRepository, CourseSessionRepository>();
 builder.Services.AddScoped<ICourseBookingRepository, CoursebookingRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //Email Service
@@ -113,12 +120,12 @@ builder.Services.AddAuthentication(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = jwtSettings.ValidateIssuer,
-            ValidateAudience = jwtSettings.ValidateAudience,
-            ValidateLifetime = jwtSettings.ValidateLifetime,
-            ValidateIssuerSigningKey = jwtSettings.ValidateIssuerSigningKey,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience,
+            ValidateIssuer = jwtSettings!.ValidateIssuer,
+            ValidateAudience = jwtSettings!.ValidateAudience,
+            ValidateLifetime = jwtSettings!.ValidateLifetime,
+            ValidateIssuerSigningKey = jwtSettings!.ValidateIssuerSigningKey,
+            ValidIssuer = jwtSettings!.Issuer,
+            ValidAudience = jwtSettings!.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkew)
         };
@@ -127,8 +134,50 @@ builder.Services.AddAuthentication(options =>
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine($"JWT failed: {context.Exception.Message}");
-                return Task.CompletedTask;
+                context.NoResult();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+
+                var response = new ApiResponse<string>
+                {
+                    Success = false,
+                    StatusCode = HttpStatusCode.Unauthorized,
+                    Errors = [$"Authentication failed: {context.Exception.Message}"]
+                };
+
+                var json = JsonSerializer.Serialize(response);
+                return context.Response.WriteAsync(json);
+            },
+            OnChallenge = context =>
+                {
+                    context.HandleResponse();
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+
+                    var response = new ApiResponse<string>
+                    {
+                        Success = false,
+                        StatusCode = HttpStatusCode.Unauthorized,
+                        Errors = ["Authentication required or invalid token."]
+                    };
+
+                    var json = JsonSerializer.Serialize(response);
+                    return context.Response.WriteAsync(json);
+                },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+
+                var response = new ApiResponse<string>
+                {
+                    Success = false,
+                    StatusCode = HttpStatusCode.Forbidden,
+                    Errors = ["You are not authorized to access this resource."]
+                };
+
+                var json = JsonSerializer.Serialize(response);
+                return context.Response.WriteAsync(json);
             },
             OnTokenValidated = context =>
             {
@@ -148,16 +197,16 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new()
     {
-        Title = "Transaction Error Handling API with Authentication",
+        Title = "Automotive App API",
         Version = "v1",
-        Description = "API for demonstrating transaction management, error handling, and JWT authentication in ASP.NET Core"
+        Description = "An API for managing automotive services, including vehicle data, users, and transactions with secure JWT authentication."
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme. 
-                          Enter 'Bearer' [space] and then your token in the text input below.
-                          Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+                        Enter 'Bearer' [space] and then your token in the text input below.
+                        Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -196,6 +245,9 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty; // serve Swagger UI at root "/"
     });
 }
+
+//global error handling 
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseStaticFiles(new StaticFileOptions
 {

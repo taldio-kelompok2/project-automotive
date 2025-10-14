@@ -1,5 +1,4 @@
 using AutomotiveApp.Base.Entities;
-using AutomotiveApp.Shared.Enums;
 
 namespace AutomotiveApp.Domain.Entities.Courses
 {

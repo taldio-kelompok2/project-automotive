@@ -22,12 +22,13 @@ namespace AutomotiveApp.Application.Features.Users.Queries
                 .Include(u => u.Orders)
                 .Include(u => u.Bookings)
                 .Include(u => u.Cart)
+                .OrderBy(u => true)
                 .Skip((req.page - 1) * req.pageSize)
                 .Take(req.pageSize)
                 .ToListAsync();
 
             var userDtos = mapper.Map<IEnumerable<UserQueryDto>>(users);
-            
+
             return new PaginatedResult<UserQueryDto>(userDtos, total);
         }
     }

@@ -18,7 +18,13 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             // Buat user Admin
             if (await userManager.FindByEmailAsync("admin@example.com") == null)
             {
-                var admin = new User { UserName = "admin@example.com", Email = "admin@example.com", EmailConfirmed = true };
+                var admin = new User
+                {
+                    Id = Guid.Parse("be765a5a-4be8-4704-9514-fb74ebce7a0b"),
+                    UserName = "admin@example.com",
+                    Email = "admin@example.com",
+                    EmailConfirmed = true
+                };
                 await userManager.CreateAsync(admin, "password");
                 await userManager.AddToRoleAsync(admin, UserRole.Admin.ToString());
             }
@@ -27,6 +33,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             {
                 var buyer = new User
                 {
+                    Id = Guid.Parse("aeafb671-9423-4613-8910-abedcfb48485"),
                     UserName = "buyer@example.com",
                     Email = "buyer@example.com",
                     EmailConfirmed = true
