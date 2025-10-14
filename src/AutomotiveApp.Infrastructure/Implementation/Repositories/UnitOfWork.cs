@@ -13,7 +13,11 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     ICourseBookingRepository courseBookingRepo,
     ICartRepository cartRepo,
     ICartItemRepository cartItemRepo,
-    IUserRepository userRepo
+    IUserRepository userRepo,
+    IOrderRepository orderRepo,
+    IOrderItemRepository orderItemRepo,
+    IInvoiceRepository InvoiceRepo,
+    IPaymentRepository PaymentRepo
     ) : IUnitOfWork
     {
         ICourseRepository IUnitOfWork.CourseRepo => courseRepo;
@@ -23,6 +27,11 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
         IUserRepository IUnitOfWork.UserRepo => userRepo;
         ICartRepository IUnitOfWork.CartRepo => cartRepo;
         ICartItemRepository IUnitOfWork.CartItemRepo => cartItemRepo;
+        IOrderRepository IUnitOfWork.OrderRepo => orderRepo;
+        IOrderItemRepository IUnitOfWork.OrderItemRepo => orderItemRepo;
+        IInvoiceRepository IUnitOfWork.InvoiceRepo => InvoiceRepo;
+        IPaymentRepository IUnitOfWork.PaymentRepo => PaymentRepo;
+
         private AppDbContext Context => context;
 
         public void Dispose()

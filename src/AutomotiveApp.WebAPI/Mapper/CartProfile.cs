@@ -9,7 +9,7 @@ namespace AutomotiveApp.WebAPI.Mapper
         public CartProfile()
         {
             CreateMap<Cart, CartReadDto>();
-            CreateMap<Cart, CartDetailsReadDto>();
+            CreateMap<Cart, CartReadDetailsDto>();
             CreateMap<CartCreateDto, Cart>()
             .ForMember(c => c.User, opt => opt.Ignore())
             .ForMember(c => c.Items, opt => opt.Ignore())

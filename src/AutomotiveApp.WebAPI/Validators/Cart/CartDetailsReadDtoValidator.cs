@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace AutomotiveApp.WebAPI.Validators.Cart
 {
-    public class CartDetailsReadDtoValidator : AbstractValidator<CartDetailsReadDto>
+    public class CartDetailsReadDtoValidator : AbstractValidator<CartReadDetailsDto>
     {
         private readonly IUnitOfWork _uow;
         public CartDetailsReadDtoValidator(IUnitOfWork uow)

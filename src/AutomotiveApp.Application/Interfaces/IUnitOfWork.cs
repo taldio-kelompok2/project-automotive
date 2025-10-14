@@ -14,6 +14,10 @@ namespace AutomotiveApp.Application.Interfaces
         ICartRepository CartRepo { get; }
         ICartItemRepository CartItemRepo { get; }
         IUserRepository UserRepo { get; }
+        IOrderRepository OrderRepo { get; }
+        IOrderItemRepository OrderItemRepo { get; }
+        IInvoiceRepository InvoiceRepo { get; }
+        IPaymentRepository PaymentRepo { get; }
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 
         Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
