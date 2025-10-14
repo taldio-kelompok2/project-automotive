@@ -6,8 +6,8 @@ namespace AutomotiveApp.Domain.Entities.Payments
 {
     public class PaymentMethod : BaseEntity
     {
-        public TransactionCategory Name { get; set; }
-
+        // public TransactionCategory Name { get; set; }
+        public required string Name { get; set; } = string.Empty;
         public bool Status { get; set; } = true;
         public string? ImageFileName { get; set; }
 

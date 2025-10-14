@@ -8,7 +8,6 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
         public int ID { get; set; }
         public string Name { get; set; }
         public  string Logo { get; set; }
-
         public Status Status { get; set; }
     }
 }

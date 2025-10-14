@@ -20,7 +20,9 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 categories.Add(new PaymentMethod
                 {
                     Id = Guid.NewGuid(),
-                    Name = c
+                    // Name = c
+                    Name = c.ToString(),
+                    Status = true
                 });
             }
 

@@ -1,15 +1,19 @@
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using AutomotiveApp.Domain.Entities.Payments;          // PaymentMethod (Entity)
-using AutomotiveApp.Infrastructure.Data;               // AppDbContext
-using AutomotiveApp.Application.PaymentMethods;        // DTOs
-using AutomotiveApp.Shared.Enums;                       // TransactionCategory
-using AutomotiveApp.Application.Interfaces.Repositories; // IRepository<T>
+using AutomotiveApp.Domain.Entities.Payments;          
+using AutomotiveApp.Infrastructure.Data;             
+using AutomotiveApp.Application.PaymentMethods;      
+using AutomotiveApp.Shared.Enums;
+using AutomotiveApp.Application.Interfaces.Repositories;
+using AutomotiveApp.Application.Interfaces.Utils;
+using AutomotiveApp.WebAPI.Dto.PaymentMethods;
+using Microsoft.AspNetCore.Http;
+using AutomotiveApp.Shared.Response;
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -17,16 +21,28 @@ namespace AutomotiveApp.WebAPI.Controllers
     [Route("api/[controller]")]
     public class PaymentMethodsController : ControllerBase
     {
-        private readonly IRepository<PaymentMethod> _repo;
-        private readonly AppDbContext _db; // diperlukan untuk SaveChangesAsync
+        private static readonly HashSet<string> AllowedExt =
+            new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".svg" };
+        
+        private string? BuildImageUrl(string? fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return null;
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            return $"{baseUrl}/images/PaymentMethod/{fileName}";
+        }
 
-        public PaymentMethodsController(IRepository<PaymentMethod> repo, AppDbContext db)
+        private readonly IRepository<PaymentMethod> _repo;
+        private readonly AppDbContext _db;
+
+        public PaymentMethodsController(IRepository<PaymentMethod> repo, AppDbContext db, IFileStorage imageStorage)
         {
             _repo = repo;
             _db = db;
+            _imageStorage = imageStorage;
         }
+        private readonly IFileStorage _imageStorage;
 
-        /// <summary>Ambil semua payment method (data seeding harus tampil).</summary>
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentMethodReadDto>>> GetAll()
         {
@@ -34,15 +50,16 @@ namespace AutomotiveApp.WebAPI.Controllers
             var dto = items.Select(x => new PaymentMethodReadDto
             {
                 Id = x.Id,
-                Name = x.Name,       // enum TransactionCategory
+                Name = x.Name,      
                 Status = x.Status,
-                CreatedAt = x.CreatedAt, // <-- sesuaikan dg BaseEntity kamu
-                UpdatedAt = x.UpdatedAt
+                CreatedAt = x.CreatedAt, 
+                UpdatedAt = x.UpdatedAt,
+                ImageUrl = BuildImageUrl(x.ImageFileName)
             });
             return Ok(dto);
         }
 
-        /// <summary>Ambil payment method by Id.</summary>
+
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<PaymentMethodReadDto>> GetById(Guid id)
         {
@@ -55,22 +72,68 @@ namespace AutomotiveApp.WebAPI.Controllers
                 Name = x.Name,
                 Status = x.Status,
                 CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt
+                UpdatedAt = x.UpdatedAt,
+                ImageUrl = BuildImageUrl(x.ImageFileName)
             });
         }
 
-        /// <summary>Buat payment method baru.</summary>
+
         [HttpPost]
-        public async Task<ActionResult<PaymentMethodReadDto>> Create([FromBody] PaymentMethodCreateDto input)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult> Create([FromForm] PaymentMethodCreateForm form)
         {
+            var response = new ApiResponse<PaymentMethodReadDto>();
+
+            if (form is null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.BadRequest;
+                response.Errors = new[] { "Form data is required." };
+                return BadRequest(response);
+            }
+
+            var newId = Guid.NewGuid();
+            string? imageFileName = null;
+
+            if (form.FileImageName is not null && form.FileImageName.Length > 0)
+            {
+                var originalName = form.FileImageName.FileName ?? string.Empty;
+                var ext = Path.GetExtension(originalName).ToLowerInvariant();
+
+                if (!AllowedExt.Contains(ext))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = new[] { "Invalid image file type. Only JPG, JPEG, PNG, or SVG formats are supported." };
+                    return BadRequest(response);
+                }
+
+                imageFileName = $"{newId}{ext}";
+
+                try
+                {
+                    await using var stream = form.FileImageName.OpenReadStream();
+                    await _imageStorage.SaveFileAsync<PaymentMethod>(stream, imageFileName);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = new[] { $"Failed to save image: {ex.Message}" };
+                    return BadRequest(response);
+                }
+            }
+
             var entity = new PaymentMethod
             {
-                Name = input.Name,   // enum
-                Status = input.Status
+                Id = newId,
+                Name = form.Name ?? string.Empty,   
+                Status = form.Status,
+                ImageFileName = imageFileName
             };
 
             await _repo.AddAsync(entity);
-            await _db.SaveChangesAsync(); // penting: BaseRepository tidak auto save
+            await _db.SaveChangesAsync();
 
             var dto = new PaymentMethodReadDto
             {
@@ -78,28 +141,77 @@ namespace AutomotiveApp.WebAPI.Controllers
                 Name = entity.Name,
                 Status = entity.Status,
                 CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt
+                UpdatedAt = entity.UpdatedAt,
+                ImageUrl = BuildImageUrl(entity.ImageFileName)
             };
 
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, dto);
+            response.Success = true;
+            response.StatusCode = HttpCode.OK;
+            response.Data = dto;
+            return Ok(response);
         }
 
-        /// <summary>Update payment method.</summary>
+
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] PaymentMethodUpdateDto input)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult> Update(Guid id, [FromForm] PaymentMethodUpdateRequest request)
         {
+            var response = new ApiResponse<PaymentMethodReadDto>();
             var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return NotFound();
+            if (entity == null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.NotFound;
+                response.Errors = new[] { $"PaymentMethod {id} not found." };
+                return NotFound(response);
+            }
 
-            entity.Name = input.Name;
-            entity.Status = input.Status;
-            _repo.Update(entity);              // akan panggil MarkUpdated()
-            await _db.SaveChangesAsync();      // penting: simpan perubahan
+            entity.Name = request.Name;
+            entity.Status = request.Status;
 
-            return NoContent();
+            if (request.FileImageName is not null && request.FileImageName.Length > 0)
+            {
+                var ext = Path.GetExtension(request.FileImageName.FileName ?? string.Empty).ToLowerInvariant();
+                if (!AllowedExt.Contains(ext))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = new[] { "Invalid image file type. Only JPG, JPEG, PNG, or SVG formats are supported." };
+                    return BadRequest(response);
+                }
+
+                var newFileName = $"{id}{ext}";
+
+                // kalau sebelumnya ada file & berbeda ekstensi/filename, hapus dulu
+                if (!string.IsNullOrWhiteSpace(entity.ImageFileName) &&
+                    !string.Equals(entity.ImageFileName, newFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    await _imageStorage.DeleteFileAsync<PaymentMethod>(entity.ImageFileName);
+                }
+
+                // replace atau save yang baru 
+                await _imageStorage.ReplaceFileAsync<PaymentMethod>(newFileName, request.FileImageName.OpenReadStream());
+                entity.ImageFileName = newFileName;
+            }
+
+            _repo.Update(entity);             
+            await _db.SaveChangesAsync();      
+            var dto = new PaymentMethodReadDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+                ImageUrl = BuildImageUrl(entity.ImageFileName)
+            };
+            response.Success = true;
+            response.StatusCode = HttpCode.OK;
+            response.Data = dto;
+            return Ok(response);
         }
 
-        /// <summary>Delete payment method.</summary>
+
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -107,8 +219,9 @@ namespace AutomotiveApp.WebAPI.Controllers
             if (entity == null) return NotFound();
 
             _repo.Delete(entity);
-            await _db.SaveChangesAsync();      // simpan perubahan
+            await _db.SaveChangesAsync();     
             return NoContent();
         }
+
     }
 }
