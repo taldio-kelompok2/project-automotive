@@ -53,40 +53,6 @@
     }
 } *@
 
-@* @code {
-  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-
-  private PaymentMethodViewModel _paymentMethod = new();
-  private MudForm _form = default!;
-  private IBrowserFile? _selectedFile; // <-- file asli
-
-  private async Task Save()
-  {
-    await _form.Validate();
-    if (_form.IsValid)
-    {
-      MudDialog.Close(DialogResult.Ok(new PaymentMethodDialogResult
-      {
-        Vm = _paymentMethod,
-        File = _selectedFile
-      }));
-    }
-  }
-
-  private void Cancel() => MudDialog.Cancel();
-
-  private void OnFileSelected(InputFileChangeEventArgs e)
-  {
-    _selectedFile = e.File;
-    _paymentMethod.Logo = _selectedFile?.Name ?? "";
-  }
-
-  public class PaymentMethodDialogResult
-  {
-    public PaymentMethodViewModel Vm { get; set; } = default!;
-    public IBrowserFile? File { get; set; }
-  }
-} *@
 
 @code {
   [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
