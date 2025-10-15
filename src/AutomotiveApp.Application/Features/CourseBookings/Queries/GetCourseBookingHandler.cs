@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutomotiveApp.Application.Features.Courses.Queries;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;

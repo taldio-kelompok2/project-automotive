@@ -13,6 +13,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
     {
         public async Task<CourseBookingQueryDto> Handle(GetCourseBookingById request, CancellationToken ct)
         {
+
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
                     .Include(cb => cb.Session)

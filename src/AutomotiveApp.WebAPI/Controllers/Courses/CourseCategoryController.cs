@@ -1,3 +1,4 @@
+using System.Net;
 using AutoMapper;
 using AutomotiveApp.Application.Features.CourseCategories.Commands;
 using AutomotiveApp.Application.Features.CourseCategories.Queries;
@@ -26,54 +27,29 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         {
             var response = new ApiResponse<IEnumerable<CourseCategoryQueryDto>>();
 
-            try
-            {
-                var query = new GetCourseCategories();
-                var result = await _mediator.Send(query);
+            var query = new GetCourseCategories();
+            var result = await Mediator.Send(query);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CourseCategoryQueryDto>> GetCourseCategoryById([FromRoute] Guid id, [FromServices] IValidator<GetCourseCategoryById> validator)
         {
             var query = new GetCourseCategoryById(id);
-            var validation = await validator.ValidateAsync(query);
             var response = new ApiResponse<CourseCategoryQueryDto>();
+            await validator.ValidateAndThrowAsync(query);
 
-            if (!validation.IsValid) return HandleValidationFailure<CourseCategoryQueryDto>(validation);
+            var result = await Mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-            try
-            {
-                var result = await _mediator.Send(query);
-
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("paged")]
@@ -84,25 +60,14 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         {
             var response = new ApiResponse<PaginatedResult<CourseCategoryQueryDto>>();
 
-            try
-            {
-                var query = new GetCourseCategoriesPaged(page, itemTaken);
-                var result = await _mediator.Send(query);
+            var query = new GetCourseCategoriesPaged(page, itemTaken);
+            var result = await Mediator.Send(query);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost]
@@ -111,8 +76,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [FromServices] IValidator<CourseCategoryCreateRequest> validator)
         {
             var response = new ApiResponse<CourseCategoryQueryDto>();
-            var validation = await validator.ValidateAsync(request);
-            if (!validation.IsValid) return HandleValidationFailure<CourseCategoryQueryDto>(validation);
+            await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
             var dto = mapper.Map<CourseCategoryCommandDto>(request);
             try
@@ -125,9 +89,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
                 dto.ImageFileName = imageFileName;
                 var command = new AddCourseCategoryCommand(dto);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
+                response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
                 return Ok(response);
             }
@@ -138,7 +102,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.DeleteFileAsync<CourseCategory>(imageFileName);
                 }
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
+                response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
 
                 return BadRequest(response);
@@ -152,9 +116,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         {
             var response = new ApiResponse<CourseCategoryQueryDto>();
             request.Id = id;
-            var validation = await validator.ValidateAsync(request);
-            if (!validation.IsValid) return HandleValidationFailure<CourseCategoryQueryDto>(validation);
-
+            await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
             var dto = mapper.Map<CourseCategoryEditDto>(request);
             var command = new EditCourseCategoryCommand(dto);
@@ -167,9 +129,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.ReplaceFileAsync<CourseCategory>(imageFileName, request.Image.OpenReadStream());
                 }
                 dto.ImageFilename = imageFileName;
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
+                response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
 
                 return Ok(response);
@@ -181,7 +143,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.DeleteFileAsync<CourseCategory>(imageFileName);
                 }
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
+                response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
 
                 return BadRequest(response);
@@ -192,32 +154,14 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         public async Task<ActionResult> DeleteCourseCategory([FromRoute] Guid id)
         {
             var response = new ApiResponse<string>();
-            try
-            {
-                var command = new DeleteCourseCategoryCommand(id);
-                await _mediator.Send(command);
-                response.Data = $"Course {id} is successfully deleted.";
+            var command = new DeleteCourseCategoryCommand(id);
+            await Mediator.Send(command);
+            response.Data = $"Course {id} is successfully deleted.";
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
 
-                return Ok(response);
-            }
-            catch (NotFoundException<CourseCategory> ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
-
+            return Ok(response);
         }
 
 

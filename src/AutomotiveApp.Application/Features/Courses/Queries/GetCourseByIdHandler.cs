@@ -1,7 +1,10 @@
 using AutoMapper;
 using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
+using AutomotiveApp.Shared.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.Courses.Queries
 {
@@ -10,15 +13,29 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
     {
         public async Task<CourseQueryDetailDto> Handle(GetCourseById request, CancellationToken ct)
         {
-            try
+
+            var item = await uow.CourseRepo.GetCourseDetailById(request.Id, ct)
+            ?? throw new NotFoundException<Course>(request.Id);
+
+            if (request.UserId != null)
             {
-                var item = await uow.CourseRepo.GetCourseDetailById(request.Id, ct);
-                return mapper.Map<CourseQueryDetailDto>(item);
+                var userBookings = await uow.CourseBookingRepo.FindAsync(
+                    cb => cb.UserId == request.UserId && cb.Session.CourseId == request.Id,
+                    q => q.Include(cb => cb.Session),
+                    ct);
+
+                var bookedDates = userBookings
+                    .Select(ub => ub.Session.Date.Date)
+                    .ToHashSet();
+
+                item.Sessions = item.Sessions
+                    .Where(s => !bookedDates.Contains(s.Date.Date) && s.Date > DateTime.UtcNow)
+                    .ToList();
             }
-            catch
-            {
-                throw;
-            }
+
+            return mapper.Map<CourseQueryDetailDto>(item);
+
+
         }
     }
 }

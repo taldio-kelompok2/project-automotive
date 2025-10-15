@@ -1,6 +1,7 @@
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AutomotiveApp.Infrastructure.Implementation.Repositories
 {
@@ -10,6 +11,8 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     ICourseCategoryRepository courseCategoryRepo,
     ICourseSessionRepository courseSessionRepo,
     ICourseBookingRepository courseBookingRepo,
+    ICartRepository cartRepo,
+    ICartItemRepository cartItemRepo,
     IUserRepository userRepo
     ) : IUnitOfWork
     {
@@ -18,6 +21,8 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
         ICourseSessionRepository IUnitOfWork.CourseSessionRepo => courseSessionRepo;
         ICourseBookingRepository IUnitOfWork.CourseBookingRepo => courseBookingRepo;
         IUserRepository IUnitOfWork.UserRepo => userRepo;
+        ICartRepository IUnitOfWork.CartRepo => cartRepo;
+        ICartItemRepository IUnitOfWork.CartItemRepo => cartItemRepo;
         private AppDbContext Context => context;
 
         public void Dispose()
@@ -29,6 +34,11 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
         public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
             return await Context.SaveChangesAsync(ct);
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default)
+        {
+            return await Context.Database.BeginTransactionAsync(ct);
         }
     }
 }

@@ -1,7 +1,5 @@
 using AutomotiveApp.Base.Entities;
 using AutomotiveApp.Domain.Entities.Orders;
-using AutomotiveApp.Shared.Enums;
-
 namespace AutomotiveApp.Domain.Entities.Payments
 {
     public class PaymentMethod : BaseEntity
