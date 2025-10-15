@@ -14,6 +14,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             bool reapply = false
         )
         {
+            reapply = false;
             if (reapply) await db.Database.EnsureDeletedAsync();
             await db.Database.MigrateAsync();
 

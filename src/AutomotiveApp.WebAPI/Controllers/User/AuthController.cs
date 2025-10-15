@@ -43,7 +43,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var response = new ApiResponse<AuthResponseDto>();
-
+            Console.WriteLine($"login: {loginRequestDto}");
             try
             {
                 var command = new LoginCommand(loginRequestDto);
@@ -212,10 +212,11 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
+                Console.WriteLine($"forgot password error: {ex.Message}");
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                return Ok(response);
             }
         }
 
@@ -241,28 +242,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 response.StatusCode = HttpCode.BadRequest;
                 response.Errors = [ex.Message];
                 return BadRequest(response);
-            }
-        }
-
-        private string? ExtractAccessTokenFromHeader()
-        {
-            try
-            {
-                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrEmpty(authorizationHeader))
-                    return null;
-
-                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    return authorizationHeader.Substring("Bearer ".Length).Trim();
-                }
-
-                return authorizationHeader;
-            }
-            catch
-            {
-                return null;
             }
         }
     }

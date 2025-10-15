@@ -8,6 +8,7 @@ using AutomotiveApp.Shared.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
 {
@@ -15,6 +16,57 @@ namespace AutomotiveApp.WebAPI.Controllers.User
     [Route("api/[controller]")]
     public class UserController(IMediator _mediator) : BaseApiController(_mediator)
     {
+        [HttpGet("me")]
+        public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetCurrentUser()
+        {
+            var response = new ApiResponse<UserProfileDto>();
+
+            try
+            {
+                var accessToken = ExtractAccessTokenFromHeader();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = ["Access token is required"];
+                    return BadRequest(response);
+                }
+
+                var stringUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(stringUserId))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpCode.BadRequest;
+                    response.Errors = ["Invalid JWT"];
+                    return BadRequest(response);
+                }
+                var userId = Guid.Parse(stringUserId);
+
+                var query = new GetUserById(userId);
+                var result = await _mediator.Send(query);
+
+                response.Success = true;
+                response.StatusCode = HttpCode.OK;
+                response.Data = result;
+
+                return Ok(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.NotFound;
+                response.Errors = [ex.Message];
+                return NotFound(response);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpCode.InternalServerError;
+                response.Errors = [ex.Message];
+                return StatusCode(500, response);
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
         {
@@ -68,9 +120,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("{userId:guid}")]
-        public async Task<ActionResult<ApiResponse<UserQueryDto>>> GetUserById(Guid userId)
+        public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetUserById(Guid userId)
         {
-            var response = new ApiResponse<UserQueryDto>();
+            var response = new ApiResponse<UserProfileDto>();
 
             try
             {
