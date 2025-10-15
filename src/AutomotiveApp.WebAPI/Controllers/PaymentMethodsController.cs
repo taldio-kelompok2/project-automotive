@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,8 +88,8 @@ namespace AutomotiveApp.WebAPI.Controllers
             if (form is null)
             {
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = new[] { "Form data is required." };
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = new[] { "Form data is required" };
                 return BadRequest(response);
             }
 
@@ -103,7 +104,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 if (!AllowedExt.Contains(ext))
                 {
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = new[] { "Invalid image file type. Only JPG, JPEG, PNG, or SVG formats are supported." };
                     return BadRequest(response);
                 }
@@ -118,7 +119,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 catch (Exception ex)
                 {
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = new[] { $"Failed to save image: {ex.Message}" };
                     return BadRequest(response);
                 }
@@ -146,7 +147,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             };
 
             response.Success = true;
-            response.StatusCode = HttpCode.OK;
+            response.StatusCode = HttpStatusCode.OK;
             response.Data = dto;
             return Ok(response);
         }
@@ -161,7 +162,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             if (entity == null)
             {
                 response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
+                response.StatusCode = HttpStatusCode.NotFound;
                 response.Errors = new[] { $"PaymentMethod {id} not found." };
                 return NotFound(response);
             }
@@ -175,7 +176,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 if (!AllowedExt.Contains(ext))
                 {
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = new[] { "Invalid image file type. Only JPG, JPEG, PNG, or SVG formats are supported." };
                     return BadRequest(response);
                 }
@@ -206,7 +207,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 ImageUrl = BuildImageUrl(entity.ImageFileName)
             };
             response.Success = true;
-            response.StatusCode = HttpCode.OK;
+            response.StatusCode = HttpStatusCode.OK;
             response.Data = dto;
             return Ok(response);
         }
@@ -223,79 +224,77 @@ namespace AutomotiveApp.WebAPI.Controllers
             return NoContent();
         }
 
-        // JSON
+        [HttpPost("json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult> CreateJson([FromBody] PaymentMethodCreateDto body)
+        {
+            var response = new ApiResponse<PaymentMethodReadDto>();
+            var newId = Guid.NewGuid();
 
-[HttpPost("json")]
-[Consumes("application/json")]
-public async Task<ActionResult> CreateJson([FromBody] PaymentMethodCreateDto body)
-{
-    var response = new ApiResponse<PaymentMethodReadDto>();
-    var newId = Guid.NewGuid();
+            var entity = new PaymentMethod
+            {
+                Id = newId,
+                Name = body.Name,
+                Status = body.Status,
+                ImageFileName = body.ImageFilename 
+            };
 
-    var entity = new PaymentMethod
-    {
-        Id = newId,
-        Name = body.Name,
-        Status = body.Status,
-        ImageFileName = body.ImageFilename // boleh null
-    };
+            await _repo.AddAsync(entity);
+            await _db.SaveChangesAsync();
 
-    await _repo.AddAsync(entity);
-    await _db.SaveChangesAsync();
+            var dto = new PaymentMethodReadDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+                ImageUrl = BuildImageUrl(entity.ImageFileName)
+            };
 
-    var dto = new PaymentMethodReadDto
-    {
-        Id = entity.Id,
-        Name = entity.Name,
-        Status = entity.Status,
-        CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt,
-        ImageUrl = BuildImageUrl(entity.ImageFileName)
-    };
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = dto;
+            return Ok(response);
+        }
 
-    response.Success = true;
-    response.StatusCode = HttpCode.OK;
-    response.Data = dto;
-    return Ok(response);
-}
+        [HttpPut("{id:guid}/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult> UpdateJson(Guid id, [FromBody] PaymentMethodUpdateDto body)
+        {
+            var response = new ApiResponse<PaymentMethodReadDto>();
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity is null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.Errors = new[] { $"PaymentMethod {id} not found." };
+                return NotFound(response);
+            }
 
-[HttpPut("{id:guid}/json")]
-[Consumes("application/json")]
-public async Task<ActionResult> UpdateJson(Guid id, [FromBody] PaymentMethodUpdateDto body)
-{
-    var response = new ApiResponse<PaymentMethodReadDto>();
-    var entity = await _repo.GetByIdAsync(id);
-    if (entity is null)
-    {
-        response.Success = false;
-        response.StatusCode = HttpCode.NotFound;
-        response.Errors = new[] { $"PaymentMethod {id} not found." };
-        return NotFound(response);
-    }
+            entity.Name = body.Name;
+            entity.Status = body.Status;
+            if (!string.IsNullOrWhiteSpace(body.ImageFilename))
+                entity.ImageFileName = body.ImageFilename;
 
-    entity.Name = body.Name;
-    entity.Status = body.Status;
-    if (!string.IsNullOrWhiteSpace(body.ImageFilename))
-        entity.ImageFileName = body.ImageFilename;
+            _repo.Update(entity);
+            await _db.SaveChangesAsync();
 
-    _repo.Update(entity);
-    await _db.SaveChangesAsync();
+            var dto = new PaymentMethodReadDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Status = entity.Status,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+                ImageUrl = BuildImageUrl(entity.ImageFileName)
+            };
 
-    var dto = new PaymentMethodReadDto
-    {
-        Id = entity.Id,
-        Name = entity.Name,
-        Status = entity.Status,
-        CreatedAt = entity.CreatedAt,
-        UpdatedAt = entity.UpdatedAt,
-        ImageUrl = BuildImageUrl(entity.ImageFileName)
-    };
-
-    response.Success = true;
-    response.StatusCode = HttpCode.OK;
-    response.Data = dto;
-    return Ok(response);
-}
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = dto;
+            return Ok(response);
+        }
 
     }
 }
