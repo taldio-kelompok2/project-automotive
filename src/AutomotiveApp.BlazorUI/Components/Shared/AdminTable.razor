@@ -149,17 +149,26 @@
             return;
 
         var result = await dialog.Result;
-        if (!result.Canceled)
+        
+        @* if (!result.Canceled)
         {
             var castedResult = (TItem)result.Data!;
             await OnEdit.InvokeAsync(castedResult);
-        }
+        } *@
+
+        if (result is not { Canceled: false, Data: not null })
+            return;
+
+        if (result.Data is not TItem castedResult)
+            return;
+
+        await OnEdit.InvokeAsync(castedResult);
     }
 
     private async Task OnDetailsClick(TItem item)
     {
         var parameters = new DialogParameters { ["Item"] = item };
         var dialog = await DialogService.ShowAsync<DetailsDashboardDialog<TItem>>("Item Details", parameters);
-        await dialog.Result; // just wait for close
+        await dialog.Result; 
     }
 }

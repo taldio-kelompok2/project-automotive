@@ -106,7 +106,7 @@
   private void OnFileSelected(InputFileChangeEventArgs e)
   {
     if (e.File is null) return;
-    _paymentMethod.File = e.File;      
+    _paymentMethod.File = e.File;     
     _paymentMethod.Logo = e.File.Name; 
   }
 }

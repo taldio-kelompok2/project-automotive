@@ -78,20 +78,20 @@
     };
 
     private string ResolveLogoUrl(string? value)
-{
-    if (string.IsNullOrWhiteSpace(value))
-        return "/images/payment/placeholder.svg"; 
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "/images/payment/placeholder.svg"; 
 
-    var v = value.Trim();
+        var v = value.Trim();
 
-    if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-        return v;
-    if (v.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
-        return v;
+        if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return v;
+        if (v.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+            return v;
 
-    var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
-    return $"{api}/images/PaymentMethod/{v}";
-}
+        var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        return $"{api}/images/PaymentMethod/{v}";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,66 +120,69 @@
         catch { return null; }
     }
 
-private async Task ShowAddPaymentMethodDialog()
-{
-    var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment Method");
-    var result = await dialog.Result;
-    if (result.Canceled || result.Data is not PaymentMethodViewModel vm) return;
+    private async Task ShowAddPaymentMethodDialog()
+    {
+        var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment Method");
+        var result = await dialog.Result;
 
-    if (vm.File is not null)
-    {
-        // multipart: simpan file ke server
-        var newId = await PaymentSvc.CreateMultipartAsync(
-            vm.Name,
-            vm.Status == Status.Active,
-            vm.File
-        );
-        if (newId is null) return;
-    }
-    else
-    {
-        // fallback JSON (tanpa upload)
-        var create = new AutomotiveApp.Application.PaymentMethods.PaymentMethodCreateDto
+        @* if (result.Canceled || result.Data is not PaymentMethodViewModel vm) return; *@
+        if (result is not { Canceled: false, Data: PaymentMethodViewModel vm })
+            return;
+
+        if (vm.File is not null)
         {
-            Name = vm.Name,
-            Status = vm.Status == Status.Active,
-            ImageFilename = null
-        };
-        var id = await PaymentSvc.CreateAsync(create);
-        if (id is null) return;
-    }
-
-    await ReloadList();
-}
-
-private async Task OnPaymentMethodEdit(PaymentMethodViewModel vm)
-{
-    // file baru => multipart
-    if (vm.File is not null)
-    {
-        var ok = await PaymentSvc.UpdateMultipartAsync(
-            vm.PaymentMethodId,
-            vm.Name,
-            vm.Status == Status.Active,
-            vm.File
-        );
-        if (!ok) return;
-    }
-    else
-    {
-        // tanpa file => JSON
-        var update = new AutomotiveApp.Application.PaymentMethods.PaymentMethodUpdateDto
+            // multipart: simpan file ke server
+            var newId = await PaymentSvc.CreateMultipartAsync(
+                vm.Name,
+                vm.Status == Status.Active,
+                vm.File
+            );
+            if (newId is null) return;
+        }
+        else
         {
-            Name = vm.Name,
-            Status = vm.Status == Status.Active,
-            ImageFilename = null 
-        };
-        var ok = await PaymentSvc.UpdateAsync(vm.PaymentMethodId, update);
-        if (!ok) return;
+            // fallback JSON (tanpa upload)
+            var create = new AutomotiveApp.Application.PaymentMethods.PaymentMethodCreateDto
+            {
+                Name = vm.Name,
+                Status = vm.Status == Status.Active,
+                ImageFilename = null
+            };
+            var id = await PaymentSvc.CreateAsync(create);
+            if (id is null) return;
+        }
+
+        await ReloadList();
     }
 
-    await ReloadList();
-}
+    private async Task OnPaymentMethodEdit(PaymentMethodViewModel vm)
+    {
+        // file baru => multipart
+        if (vm.File is not null)
+        {
+            var ok = await PaymentSvc.UpdateMultipartAsync(
+                vm.PaymentMethodId,
+                vm.Name,
+                vm.Status == Status.Active,
+                vm.File
+            );
+            if (!ok) return;
+        }
+        else
+        {
+            // tanpa file => JSON
+            var update = new AutomotiveApp.Application.PaymentMethods.PaymentMethodUpdateDto
+            {
+                Name = vm.Name,
+                Status = vm.Status == Status.Active,
+                ImageFilename = null 
+            };
+            var ok = await PaymentSvc.UpdateAsync(vm.PaymentMethodId, update);
+            if (!ok) return;
+        }
+
+        await ReloadList();
+    }
 
     private async Task ReloadList()
     {
