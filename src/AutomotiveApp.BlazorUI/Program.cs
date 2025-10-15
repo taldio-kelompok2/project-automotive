@@ -38,7 +38,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 
 // Service FE yang memanggil API
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
-
+builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 
 var app = builder.Build();
 

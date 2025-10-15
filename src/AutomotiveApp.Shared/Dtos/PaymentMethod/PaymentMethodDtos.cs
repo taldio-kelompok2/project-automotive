@@ -6,22 +6,31 @@ namespace AutomotiveApp.Application.PaymentMethods
 {
     public class PaymentMethodCreateDto
     {
-        public required string Name { get; set; }
+        // [JsonConverter(typeof(JsonStringEnumConverter))]
+        // public TransactionCategory Name { get; set; }
+        public required string Name { get; set; } = string.Empty;
         public bool Status { get; set; } = true;
+        public string? ImageFilename { get; set; }
     }
 
     public class PaymentMethodUpdateDto
     {
-        public required string Name { get; set; }
+        // [JsonConverter(typeof(JsonStringEnumConverter))]
+        // public TransactionCategory Name { get; set; }
+        public required string Name { get; set; } = string.Empty;
         public bool Status { get; set; } = true;
+        public string? ImageFilename { get; set; }
     }
 
     public class PaymentMethodReadDto
     {
-        public required Guid Id { get; set; }
-        public required string Name { get; set; }
-        public required bool Status { get; set; }
+        public Guid Id { get; set; }
+        // [JsonConverter(typeof(JsonStringEnumConverter))]
+        // public TransactionCategory Name { get; set; }
+        public required string Name { get; set; }          
+        public bool Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

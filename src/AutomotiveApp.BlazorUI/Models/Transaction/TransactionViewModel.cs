@@ -4,27 +4,32 @@ namespace AutomotiveApp.BlazorUI.Models.Transaction
 {
     public class TransactionViewModel
     {
-        private readonly string ImagePath = "Icons/Transactions/";
+        // private readonly string ImagePath = "Icons/Transactions/";
         public Guid Id { get; set; } = Guid.NewGuid();
-        public TransactionCategory Category = TransactionCategory.BCA;
-        public string Image { get; set; } = null!;
+        public string? Name { get; set; } 
+        // public TransactionCategory Category = TransactionCategory.BCA;
+        // public string Image { get; set; } = null!;
+        public TransactionCategory Category { get; set; }
+        public string? Image { get; set; }
 
-        public TransactionViewModel(TransactionCategory category)
-        {
-            Category = category;
-            Image = ImagePath + category.ToString().ToLower() + ".svg";
-        }
+        public TransactionViewModel() { }
 
-        public static List<TransactionViewModel> InitDummyData()
-        {
-            var data = new List<TransactionViewModel>();
+        // public TransactionViewModel(TransactionCategory category)
+        // {
+        //     Category = category;
+        //     Image = ImagePath + category.ToString().ToLower() + ".svg";
+        // }
 
-            foreach (TransactionCategory category in Enum.GetValues<TransactionCategory>())
-            {
-                data.Add(new TransactionViewModel(category));
-            }
+        // public static List<TransactionViewModel> InitDummyData()
+        // {
+        //     var data = new List<TransactionViewModel>();
 
-            return data;
-        }
+        //     foreach (TransactionCategory category in Enum.GetValues<TransactionCategory>())
+        //     {
+        //         data.Add(new TransactionViewModel(category));
+        //     }
+
+        //     return data;
+        // }
     }
 }

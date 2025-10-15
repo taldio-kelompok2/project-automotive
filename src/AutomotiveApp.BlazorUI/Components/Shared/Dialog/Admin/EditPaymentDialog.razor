@@ -1,7 +1,13 @@
-﻿<MudDialog>
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components.Forms
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using AutomotiveApp.BlazorUI.Enums
+
+<MudDialog>
     <DialogContent>
         <MudForm @ref="_form">
             <MudTextField @bind-Value="_paymentMethod.Name" Label="Name" Required="true" Class="mb-2" />
+            
             <MudItem Class="my-3">
                 <MudText Typo="Typo.body2" Class="mb-1">Logo:</MudText>
                 <InputFile OnChange="OnFileSelected" />
@@ -10,6 +16,7 @@
                     <MudText Typo="Typo.body2" Class="mt-1">Current: @_paymentMethod.Logo</MudText>
                 }
             </MudItem>
+
             <MudSelect T="Status" @bind-Value="_paymentMethod.Status" Label="Status" Required="true">
                 <MudSelectItem Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
@@ -23,7 +30,7 @@
     </DialogActions>
 </MudDialog>
 
-@code {
+@* @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public PaymentMethodViewModel? Item { get; set; }
 
@@ -63,4 +70,43 @@
             _paymentMethod.Logo = file.Name;
         }
     }
+} *@
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public PaymentMethodViewModel? Item { get; set; }
+
+  private PaymentMethodViewModel _paymentMethod = new();
+  private MudForm _form = default!;
+
+  protected override void OnInitialized()
+  {
+    if (Item is not null)
+    {
+      _paymentMethod = new PaymentMethodViewModel
+      {
+        ID = Item.ID,
+        PaymentMethodId = Item.PaymentMethodId,
+        Name = Item.Name,
+        Logo = Item.Logo,
+        Status = Item.Status
+      };
+    }
+  }
+
+  private async Task Save()
+  {
+    await _form.Validate();
+    if (_form.IsValid)
+      MudDialog.Close(DialogResult.Ok(_paymentMethod)); 
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+
+  private void OnFileSelected(InputFileChangeEventArgs e)
+  {
+    if (e.File is null) return;
+    _paymentMethod.File = e.File;     
+    _paymentMethod.Logo = e.File.Name; 
+  }
 }

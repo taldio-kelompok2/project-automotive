@@ -134,50 +134,8 @@ builder.Services.AddAuthentication(options =>
         {
             OnAuthenticationFailed = context =>
             {
-                context.NoResult();
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-
-                var response = new ApiResponse<string>
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.Unauthorized,
-                    Errors = [$"Authentication failed: {context.Exception.Message}"]
-                };
-
-                var json = JsonSerializer.Serialize(response);
-                return context.Response.WriteAsync(json);
-            },
-            OnChallenge = context =>
-                {
-                    context.HandleResponse();
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/json";
-
-                    var response = new ApiResponse<string>
-                    {
-                        Success = false,
-                        StatusCode = HttpStatusCode.Unauthorized,
-                        Errors = ["Authentication required or invalid token."]
-                    };
-
-                    var json = JsonSerializer.Serialize(response);
-                    return context.Response.WriteAsync(json);
-                },
-            OnForbidden = context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                context.Response.ContentType = "application/json";
-
-                var response = new ApiResponse<string>
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.Forbidden,
-                    Errors = ["You are not authorized to access this resource."]
-                };
-
-                var json = JsonSerializer.Serialize(response);
-                return context.Response.WriteAsync(json);
+                Console.WriteLine($"JWT failed: {context.Exception.Message}");
+                return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
@@ -197,16 +155,16 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new()
     {
-        Title = "Automotive App API",
+        Title = "Transaction Error Handling API with Authentication",
         Version = "v1",
-        Description = "An API for managing automotive services, including vehicle data, users, and transactions with secure JWT authentication."
+        Description = "API for demonstrating transaction management, error handling, and JWT authentication in ASP.NET Core"
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme. 
-                        Enter 'Bearer' [space] and then your token in the text input below.
-                        Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+                          Enter 'Bearer' [space] and then your token in the text input below.
+                          Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
