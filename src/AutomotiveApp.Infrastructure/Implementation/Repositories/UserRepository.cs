@@ -94,6 +94,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
             Func<IQueryable<User>, IQueryable<User>>? modifier = null,
             int page = 1,
             int itemTaken = 6,
+            bool isRandom = false,
             CancellationToken ct = default)
         {
             IQueryable<User> query = userManager.Users;
@@ -102,8 +103,11 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
                 query = modifier(query);
 
             var totalItems = await query.CountAsync(ct);
+            var skipIndex = (page - 1) * itemTaken;
+            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, totalItems - itemTaken));
+
             var items = await query
-                .Skip((page - 1) * itemTaken)
+                .Skip(skipIndex)
                 .Take(itemTaken)
                 .ToListAsync(ct);
 

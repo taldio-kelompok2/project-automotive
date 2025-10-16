@@ -1,12 +1,11 @@
-using AutomotiveApp.Shared.Dtos.CartItems;
-using AutomotiveApp.Shared.Dtos.Carts;
+using AutomotiveApp.Shared.Dtos.Courses;
 
 namespace AutomotiveApp.BlazorUI.Models.Cart
 {
-    public class RentalCartItemViewModel
+    public class CartItemViewModel
     {
-        public required CartItemReadDto Item { get; set; }
-        public bool Selected { get; set; } = false;
+        public Guid CartId { get; set; }
+        public Guid SessionId { get; set; }
 
         // public static List<RentalCartViewModel> InitDummyData()
         // {

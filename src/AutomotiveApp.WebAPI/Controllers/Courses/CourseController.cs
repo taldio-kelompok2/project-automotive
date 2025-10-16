@@ -55,11 +55,12 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [HttpGet("paged")]
         public async Task<ActionResult<PaginatedResult<CourseQueryDto>>> GetPaged(
             [FromQuery] int page = 1,
-            [FromQuery] int itemTaken = 6
+            [FromQuery] int itemTaken = 6,
+            [FromQuery] bool isRandom = false
             )
         {
             var response = new ApiResponse<PaginatedResult<CourseQueryDto>>();
-            var query = new GetCoursesPaged(page, itemTaken);
+            var query = new GetCoursesPaged(page, itemTaken, isRandom);
             var result = await Mediator.Send(query);
 
             response.Success = true;

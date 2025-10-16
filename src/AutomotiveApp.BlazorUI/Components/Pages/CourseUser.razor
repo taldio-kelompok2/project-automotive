@@ -42,7 +42,7 @@
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(100);
-        cars = CarViewModel.InitDummyData();
+        @* cars = CarViewModel.InitDummyData(); *@
         pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList();
     }
 

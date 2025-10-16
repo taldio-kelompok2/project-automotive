@@ -8,7 +8,7 @@
 @layout MainLayout
 
 <section class="checkout-container">
-    @if (Cart.RentalCart != null && Cart.RentalCart.Any())
+    @if (Cart.RentalCartItems != null && Cart.RentalCartItems.Any())
     {
         <!-- large screen header -->
         <div class="checkout-header fluid d-none d-md-flex">
@@ -34,40 +34,40 @@
         </div>
         <div class="checkout-seperator" />
         <MudStack Spacing="4" Class="fluid" AlignItems="AlignItems.Baseline" Justify="Justify.FlexStart">
-            @foreach (var cart in Cart.RentalCart)
+            @foreach (var cart in Cart.RentalCartItems)
             {
-                <div class="rental-cart-group fluid " @key="cart.Id">
+                <div class="rental-cart-group fluid " @key="cart.Item.Id">
                     <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center">
                         <MudCheckBox @bind-Value="@cart.Selected" T="bool"
                             @bind-Value:after="() => OnItemSelectionChanged(cart)" />
                         <!-- large Image -->
-                        <MudImage Src="@cart.Car.Image" Class="d-none d-md-block" Width="200" Height="200"
+                        <MudImage Src="@cart.Item.Course.ImageUrl" Class="d-none d-md-block" Width="200" Height="200"
                             ObjectFit="ObjectFit.Contain" />
                         <!-- small-medium Image -->
-                        <MudImage Src="@cart.Car.Image" Class="d-block d-md-none" Width="100" Height="100"
+                        <MudImage Src="@cart.Item.Course.ImageUrl" Class="d-block d-md-none" Width="100" Height="100"
                             ObjectFit="ObjectFit.Contain" />
                         <!-- large content screen -->
                         <div class="rental-cart-content d-none d-md-block">
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Car.Category</MudText>
-                            <MudText Typo="Typo.h5">@cart.Car.Name</MudText>
-                            <MudText Typo="Typo.body2">Schedule: @cart.Car.Schedule?.ToString("dddd, dd MMMM yyyy", new
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Item.Course.Category</MudText>
+                            <MudText Typo="Typo.h5">@cart.Item.Course.Name</MudText>
+                            <MudText Typo="Typo.body2">Schedule: @cart.Item.Schedule.ToString("dddd, dd MMMM yyyy", new
                                                         System.Globalization.CultureInfo("en-US"))</MudText>
                     <MudText Typo="Typo.h6" Color="Color.Primary" style="font-weight:600">
-                        IDR @cart.Car.Price.ToString("N0")
+                        IDR @cart.Item.Course.Price.ToString("N0")
                     </MudText>
                 </div>
                 <!-- small-medium content screen -->
                 <div class="d-flex flex-column flex-grow-1 d-md-none text-truncate">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@cart.Car.Category</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@cart.Item.Course.Category</MudText>
                     <div class="row">
                         <div class="text-truncate">
-                            @cart.Car.Name
+                            @cart.Item.Course.Name
                         </div>
                     </div>
-                    <MudText Typo="Typo.caption">@cart.Car.Schedule?.ToString("ddd, dd-MM-yy", new
+                    <MudText Typo="Typo.caption">@cart.Item.Schedule.ToString("ddd, dd-MM-yy", new
                                                 System.Globalization.CultureInfo("en-US"))</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Primary" style="font-weight:600">
-                        IDR @cart.Car.Price.ToString("N0")
+                        IDR @cart.Item.Course.Price.ToString("N0")
                     </MudText>
                 </div>
                 <!-- large screen Icon -->
@@ -143,28 +143,28 @@
 @code {
 
     private const string HOME_PAGE = "/";
-    private void RemoveItem(RentalCartViewModel cartItem)
+    private async void RemoveItem(RentalCartItemViewModel item)
     {
-        if (!Cart.TryRemoveItem(cartItem))
+        if (!await Cart.RemoveItemAsync(item))
             Snackbar.Add("Failed to delete item on the cart", Severity.Error);
         else
-            Snackbar.Add($"{cartItem.Car.Name} is removed", Severity.Info);
+            Snackbar.Add($"items succesfully removed", Severity.Info);
     }
 
-    private void DeleteAll()
+    private async void DeleteAll()
     {
-        Cart.ClearAll();
+        await Cart.ClearAllAsync();
         Snackbar.Add($"Cart is Cleared", Severity.Info);
     }
 
-    private void OnItemSelectionChanged(RentalCartViewModel cart)
+    private void OnItemSelectionChanged(RentalCartItemViewModel cart)
     {
         if (cart.Selected)
-            Cart.TotalPrice += cart.Car.Price;
+            Cart.TotalPrice += cart.Item.Course.Price;
         else
-            Cart.TotalPrice -= cart.Car.Price;
+            Cart.TotalPrice -= cart.Item.Course.Price;
 
-        Cart.SelectedAll = Cart.RentalCart.All(c => c.Selected);
+        Cart.SelectedAll = Cart.RentalCartItems.All(c => c.Selected);
     }
 
     private async Task PaymentHandler()
@@ -209,9 +209,15 @@
 
     private async Task HandleDialogSubmit(TransactionViewModel transaction)
     {
-        await Cart.FinalizePaymentAsync();
+        await Cart.FinalizePaymentAsync(transaction.Id);
     }
 
+    private bool _initialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cart.GetUserCartData();
+    }
 
     protected override void OnInitialized()
     {

@@ -13,6 +13,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 //Mud blazor implementation
 builder.Services.AddMudServices(config =>

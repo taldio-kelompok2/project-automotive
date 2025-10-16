@@ -1,23 +1,26 @@
-﻿@page "/course/{category}"
+﻿@* @page "/course/{category}"
+@using AutomotiveApp.BlazorUI.Services.Implementation
+@using AutomotiveApp.Shared.Dtos.Courses
 @using MudBlazor
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject CourseService CourseService
 
 <PageTitle>Course Menu</PageTitle>
 
 <MudHidden Breakpoint="Breakpoint.SmAndDown">
     <MudImage Src="@HeroImage" Class="p-0 m-0" ObjectFit="ObjectFit.Cover" Style="display:flex;
-                         width:100%;
-                         height:300px;
-                         object-fit:cover;
-                         border-bottom: 1px solid #BDBDBD" />
+                        width:100%;
+                        height:300px;
+                        object-fit:cover;
+                        border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
 <MudHidden Breakpoint="Breakpoint.MdAndUp">
     <MudImage Src="@HeroImage" Class="p-0 m-0" ObjectFit="ObjectFit.Cover" Style="display:flex;
-                         width:100%;
-                         height:200px;
-                         object-fit:cover;
-                         border-bottom: 1px solid #BDBDBD" />
+                        width:100%;
+                        height:200px;
+                        object-fit:cover;
+                        border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
 
 <MudStack Class="p-4 p-sm-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
@@ -73,8 +76,8 @@
     [Parameter]
     public string? Category { get; set; }
 
-    private List<CarViewModel> allCars = new List<CarViewModel>();
-    private List<CarViewModel> cars = new List<CarViewModel>();
+    private List<CourseQueryDto> allCars = new List<CourseQueryDto>();
+    private List<CourseQueryDetailDto> cars = new List<CourseQueryDetailDto>();
 
     private readonly Random _random = new();
 
@@ -107,8 +110,7 @@
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(200);
-        allCars = CarViewModel.InitDummyData();
-        LoadData();
+        allCars = (await CourseService.GetAllAsync()).ToList();
     }
 
     protected override Task OnParametersSetAsync()
@@ -121,14 +123,6 @@
 
     private void LoadData()
     {
-        cars = string.IsNullOrEmpty(Category)
-        ? allCars
-        : allCars
-        .Where(c => string.IsNullOrEmpty(Category) ||
-        c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
-        .OrderBy(_ => _random.Next())
-        .Take(6)
-        .ToList();
     }
 
     private void NavigateToCourseDetail(string courseTitle)
@@ -136,4 +130,4 @@
         string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
         Navigation.NavigateTo($"course/{Category}/{normalizedTitle}");
     }
-}
+} *@

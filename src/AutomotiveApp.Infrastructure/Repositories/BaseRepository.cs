@@ -3,6 +3,7 @@ using AutomotiveApp.Base.Entities;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Linq.Expressions;
 
 namespace AutomotiveApp.Infrastructure.Repositories
@@ -61,6 +62,7 @@ namespace AutomotiveApp.Infrastructure.Repositories
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
             int page = 1,
             int itemTaken = 6,
+            bool isRandom = false,
             CancellationToken ct = default)
         {
             var query = BuildQuery(modifier);
@@ -71,8 +73,11 @@ namespace AutomotiveApp.Infrastructure.Repositories
                 query = query.OrderBy(e => true);
             }
 
+            var skipIndex = (page - 1) * itemTaken;
+            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, total - itemTaken));
+
             var items = await query
-                .Skip((page - 1) * itemTaken)
+                .Skip(skipIndex)
                 .Take(itemTaken)
                 .ToListAsync(ct);
 

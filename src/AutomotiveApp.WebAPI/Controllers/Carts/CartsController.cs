@@ -29,9 +29,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CartReadDto>>> GetAll([FromQuery] Guid? userId)
+        public async Task<ActionResult<IEnumerable<CartReadDetailsDto>>> GetAll([FromQuery] Guid? userId)
         {
-            var response = new ApiResponse<IEnumerable<CartReadDto>>();
+            var response = new ApiResponse<IEnumerable<CartReadDetailsDto>>();
             Func<IQueryable<Cart>, IQueryable<Cart>>? modifier = null;
             if (userId is Guid id)
             {
@@ -48,27 +48,6 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
             }
 
             var carts = await _uow.CartRepo.GetAllAsync(modifier: modifier);
-            var result = _mapper.Map<IEnumerable<CartReadDto>>(carts);
-
-            response.Success = true;
-            response.Data = result;
-
-            return Ok(response);
-        }
-
-        [HttpGet("me")]
-        public async Task<ActionResult<IEnumerable<CartReadDetailsDto>>> GetCurrentUser()
-        {
-            var response = new ApiResponse<IEnumerable<CartReadDetailsDto>>();
-            var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
-            Expression<Func<Cart, bool>> predicate = cb => cb.UserId == userId;
-
-            var carts = await _uow.CartRepo.FindAsync(predicate: predicate, modifier: q => q
-                .Include(c => c.Items)
-                .ThenInclude(ci => ci.Session)
-                .ThenInclude(s => s.Course)
-                .ThenInclude(s => s.Category));
-
             var result = _mapper.Map<IEnumerable<CartReadDetailsDto>>(carts);
 
             response.Success = true;
@@ -77,8 +56,38 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
             return Ok(response);
         }
 
+        [HttpGet("me")]
+        public async Task<ActionResult<CartReadDetailsDto>> GetCurrentUser()
+        {
+            var response = new ApiResponse<CartReadDetailsDto>();
+            var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
+            Expression<Func<Cart, bool>> predicate = cb => cb.UserId == userId;
+
+            var cart = await _uow.CartRepo.FirstOrDefaultAsync(predicate: predicate, modifier: q => q
+                .Include(c => c.Items)
+                .ThenInclude(ci => ci.Session)
+                .ThenInclude(s => s.Course)
+                .ThenInclude(c => c.Category)
+                );
+
+            if (cart == null)
+            {
+                cart = new Cart { UserId = userId, TotalPrice = 0 };
+                await _uow.CartRepo.AddAsync(cart);
+                await _uow.SaveChangesAsync();
+            }
+
+            var result = _mapper.Map<CartReadDetailsDto>(cart);
+
+            response.Success = true;
+            response.Data = result;
+
+            return Ok(response);
+        }
+
+        // hapus validator dan jangan pake CartReadDetails
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CartReadDto>> GetById([FromRoute] Guid id,
+        public async Task<ActionResult<CartReadDetailsDto>> GetById([FromRoute] Guid id,
         [FromServices] IValidator<CartReadDetailsDto> validator)
         {
             var response = new ApiResponse<CartReadDetailsDto>();
@@ -100,17 +109,17 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
         }
 
         [HttpPost]
-        public async Task<ActionResult<CartReadDto>> Create([FromBody] CartCreateDto request,
+        public async Task<ActionResult<CartReadDetailsDto>> Create([FromBody] CartCreateDto request,
         [FromServices] IValidator<CartCreateDto> validator)
         {
-            var response = new ApiResponse<CartReadDto>();
+            var response = new ApiResponse<CartReadDetailsDto>();
             var validation = await validator.ValidateAsync(request);
-            if (!validation.IsValid) return HandleValidationFailure<CartReadDto>(validation);
+            if (!validation.IsValid) return HandleValidationFailure<CartReadDetailsDto>(validation);
             var cart = _mapper.Map<Cart>(request);
 
             await _uow.CartRepo.AddAsync(cart);
             await _uow.SaveChangesAsync();
-            var result = _mapper.Map<CartReadDto>(cart);
+            var result = _mapper.Map<CartReadDetailsDto>(cart);
 
             response.Success = true;
             response.Data = result;
@@ -141,7 +150,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
                 .Where(ci => cartItemIds.Contains(ci.Id))
                 .ToListAsync(ct);
 
-            await _uow.CartRepo.BatchDelete(items, ct);
+            _uow.CartRepo.BatchDelete(items, ct);
             await _uow.SaveChangesAsync(ct);
 
             var cart = items.First().Cart;

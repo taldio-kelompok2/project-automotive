@@ -20,6 +20,7 @@ namespace AutomotiveApp.Application.Interfaces.Repositories
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
             int page = 1,
             int itemTaken = 6,
+            bool isRandom = false,
             CancellationToken ct = default);
         Task<T?> FirstOrDefaultAsync(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
