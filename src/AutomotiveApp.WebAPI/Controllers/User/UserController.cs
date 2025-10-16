@@ -24,6 +24,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var accessToken = ExtractAccessTokenFromHeader();
+                Console.WriteLine($"[getcurruser] token: {accessToken}");
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     response.Success = false;

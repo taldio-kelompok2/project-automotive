@@ -44,8 +44,8 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
                     if (apiResponse?.Success == true && apiResponse.Data != null)
                     {
-                        await _localStorage.SetItemAsync("authToken", apiResponse.Data.AccessToken);
-                        await _localStorage.SetItemAsync("refreshToken", apiResponse.Data.RefreshToken);
+                        await _localStorage.SetItemAsStringAsync("authToken", apiResponse.Data.AccessToken);
+                        await _localStorage.SetItemAsStringAsync("refreshToken", apiResponse.Data.RefreshToken);
 
                         _httpClient.DefaultRequestHeaders.Authorization =
                             new AuthenticationHeaderValue("Bearer", apiResponse.Data.AccessToken);
@@ -77,8 +77,8 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
                     if (apiResponse?.Success == true && apiResponse.Data != null)
                     {
-                        await _localStorage.SetItemAsync("authToken", apiResponse.Data.AccessToken);
-                        await _localStorage.SetItemAsync("refreshToken", apiResponse.Data.RefreshToken);
+                        await _localStorage.SetItemAsStringAsync("authToken", apiResponse.Data.AccessToken);
+                        await _localStorage.SetItemAsStringAsync("refreshToken", apiResponse.Data.RefreshToken);
 
                         _httpClient.DefaultRequestHeaders.Authorization =
                             new AuthenticationHeaderValue("Bearer", apiResponse.Data.AccessToken);
@@ -105,10 +105,12 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             ((CustomAuthStateProvider)_authStateProvider).NotifyUserLogout();
         }
-        public async Task<UserProfileDto?> GetCurrentUserAsync()
+        public async Task<UserProfileDto?> GetCurrentUserAsync(string token)
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                Console.WriteLine($"[authservice] auth: {_httpClient.DefaultRequestHeaders.Authorization}");
                 var response = await _httpClient.GetAsync("api/user/me");
 
                 if (response.IsSuccessStatusCode)

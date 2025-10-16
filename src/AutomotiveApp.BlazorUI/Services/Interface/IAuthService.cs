@@ -8,7 +8,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
         Task<AuthResponseDto?> LoginAsync(LoginRequestDto loginRequestDto);
         Task<AuthResponseDto?> RegisterAsync(RegisterRequestDto registerRequestDto);
         Task LogoutAsync();
-        Task<UserProfileDto?> GetCurrentUserAsync();
+        Task<UserProfileDto?> GetCurrentUserAsync(string token);
         Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto forgotPasswordRequestDto);
         Task<bool> ResetPasswordAsync(ResetPasswordRequestDto resetPasswordRequestDto);
         Task<bool> SendConfirmEmailAsync(SendConfirmEmailRequestDto sendConfirmEmailRequestDto);
