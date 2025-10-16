@@ -1,19 +1,25 @@
 ﻿@page "/"
+@using AutomotiveApp.BlazorUI.Services.Implementation
+@using AutomotiveApp.Domain.Entities.Courses
+@using AutomotiveApp.Shared.Dtos.Courses
+@using AutomotiveApp.Shared.Models
+@using AutomotiveApp.Shared.Response
 
 @rendermode InteractiveServer
 @inject NavigationManager Nav
+@inject ICourseService CourseService
 
 <section class="main-banner container-fluid">
     <div class="banner-content-top">
         <MudText Typo="Typo.h3">We provide driving lessons for various types of cars</MudText>
-        <MudText Class="fw-light" Typo="Typo.h5">Professional staff who are ready to help you to become a
-            much-needed reliable driver
+        <MudText Class="fw-light" Typo="Typo.h5">
+            Professional staff who are ready to help you to become a much-needed reliable driver
         </MudText>
     </div>
     <div class="banner-content-bottom">
         <MudStack Spacing="4">
             <MudText Typo="Typo.h1" Color="Color.Inherit">50+</MudText>
-            <span class="banner-caption"> A class ready to make you a reliable driver</span>
+            <span class="banner-caption">A class ready to make you a reliable driver</span>
         </MudStack>
         <MudStack Spacing="4">
             <MudText Typo="Typo.h1" Color="Color.Inherit">20+</MudText>
@@ -27,36 +33,55 @@
 </section>
 
 <section class="course-list">
-    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">Join us for the course </MudText>
-    <MudGrid>
-        @foreach (var car in cars.OrderBy(_ => Guid.NewGuid()).Take(6))
+    <MudText class="text-center mb-4" Typo="Typo.h3" Color="Color.Primary">Join us for the course</MudText>
+
+    @if (isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" Class="d-flex mx-auto my-8" />
+    }
+    else if (cars.Data?.Items.Any() ?? false)
+    {
+        <MudGrid>
+            @foreach (var car in cars.Data.Items)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <CarCard Car="car" />
+                </MudItem>
+            }
+        </MudGrid>
+
+        @if (cars.Data.TotalCount > PageSize)
         {
-            <MudItem xs="12" sm="6" md="4">
-                <CarCard Car="car" />
-            </MudItem>
+            <div class="d-flex justify-center mt-6">
+                <MudPagination Count="@totalPages" Selected="@coursePage" SelectedChanged="@OnPageChanged" BoundaryCount="3" />
+            </div>
         }
-    </MudGrid>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="my-8">
+            No courses found.
+        </MudText>
+    }
 </section>
 
-<section class="course-info">
+<section class="course-info mt-12">
     <div class="d-flex align-items-end gap-4 position-relative">
         <div class="course-content">
             <MudStack Spacing="3">
-                <MudText Typo=" Typo.h3" Color="Color.Primary" style="font-size: 2.5rem;">Gets your best benefit
-                </MudText>
-                <MudText Typo="Typo.body1">We provide trusted programs that are tailored to help you achieve the highest
-                    standards of driving skills. Our training modules are designed to enhance both theory and practice,
-                    ensuring you are ready to face real driving situations with confidence. From basic lessons to
-                    advanced courses,
-                    we cover every need for beginners and experienced drivers.
-                </MudText>
-
+                <MudText Typo="Typo.h3" Color="Color.Primary" Style="font-size:2.5rem;">Get your best benefit</MudText>
                 <MudText Typo="Typo.body1">
-                    Every session is focused on safety, comfort, and excellence, so you gain the confidence to drive on
-                    any road.
+                    We provide trusted programs tailored to help you achieve the highest standards of driving skills.
+                    Our training modules are designed to enhance both theory and practice, ensuring you are ready to
+                    face
+                    real driving situations with confidence. From basic lessons to advanced courses, we cover every need
+                    for beginners and experienced drivers.
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    Every session focuses on safety, comfort, and excellence, so you gain the confidence to drive on any
+                    road.
                     With supportive guidance and proven techniques, we guarantee your journey to become a skilled driver
-                    will be both
-                    enjoyable and rewarding.
+                    will be both enjoyable and rewarding.
                 </MudText>
             </MudStack>
         </div>
@@ -67,32 +92,15 @@
     </div>
 </section>
 
-@* <section class="course-category">
-    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">More car type you can choose</MudText>
+<section class="course-category mt-12">
+    <MudText class="text-center mb-6" Typo="Typo.h3" Color="Color.Primary">More car types you can choose</MudText>
     <MudGrid>
         @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
         {
             <MudItem xs="6" sm="4" md="3">
-                <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
-                    <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")" Class="rounded-lg"
-                        ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
-                    <MudText Typo="Typo.body1">@category.ToString()</MudText>
-                </MudStack>
-            </MudItem>
-        }
-    </MudGrid>
-</section> *@
-
-<section class="course-category">
-    <MudText class="text-center" Typo="Typo.h3" Color="Color.Primary">More car type you can choose</MudText>
-    <MudGrid>
-        @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
-        {
-            <MudItem xs="6" sm="4" md="3">
-                <MudLink Href="@($"/course/{category.ToString().ToLower()}")" Style="text-decoration: none; color: inherit;">
-                    <div class="category-card">
-                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1"
-                            Class="hover-pointer">
+                <MudLink Href="@($"/course/{category.ToString().ToLower()}")" Style="text-decoration:none;color:inherit;">
+                    <div class="category-card hover-pointer">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
                             <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")"
                                 Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
                             <MudText Typo="Typo.body1">@category.ToString()</MudText>
@@ -106,19 +114,44 @@
 
 <Footer />
 
-
 @code {
-    private List<CarViewModel> cars = new List<CarViewModel>();
-
-    protected override void OnInitialized()
+    private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new();
+    private bool isLoading;
+    private int coursePage;
+    private int totalPages;
+    private const int PageSize = 6;
+    protected override async Task OnInitializedAsync()
     {
-        cars = CarViewModel.InitDummyData();
+        coursePage = 1;
+        await LoadCoursesAsync(coursePage);
     }
 
-    // Navigasi Ke Halaman Kategori
-    private void GoToCategory(string category)
+    private async Task OnPageChanged(int page)
     {
-        Nav.NavigateTo($"/course/{category.ToLowerInvariant()}");
+        coursePage = page;
+        await LoadCoursesAsync(coursePage);
     }
 
+    private async Task LoadCoursesAsync(int page)
+    {
+        isLoading = true;
+
+        try
+        {
+            cars = await CourseService.GetPaged(Page: page, PageSize);
+
+            if (cars.Data != null)
+            {
+                totalPages = (int)Math.Ceiling((double)cars.Data.TotalCount / PageSize);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading courses: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 }

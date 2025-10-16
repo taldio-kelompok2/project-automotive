@@ -235,7 +235,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 }
                 await _uow.SaveChangesAsync(ct);
                 // Clear cart
-                await _uow.CartRepo.BatchDelete(orderedItems, ct);
+                _uow.CartRepo.BatchDelete(orderedItems, ct);
                 await _uow.SaveChangesAsync(ct);
 
                 cart.TotalPrice = await _uow.CartItemRepo.RecalculateCartTotalAsync(request.CartId);

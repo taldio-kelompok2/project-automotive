@@ -103,16 +103,14 @@
 
         foreach (var x in rows.Where(r => r.Status)) // Active
         {
-            Enum.TryParse<TransactionCategory>(x.Name, ignoreCase: true, out var cat);
 
             transactions.Add(new TransactionViewModel
             {
-                Id       = x.Id,
-                Name     = x.Name,                                         
-                Image    = string.IsNullOrWhiteSpace(x.ImageUrl) 
-                            ? "/images/payment/default.svg" 
-                            : x.ImageUrl,
-                Category = cat                                          
+                Id = x.Id,
+                Name = x.Name,
+                Image = string.IsNullOrWhiteSpace(x.ImageUrl)
+            ? $"/Icons/Transactions/{x.Name.ToLower()}.svg"
+            : x.ImageUrl,
             });
         }
 

@@ -1,10 +1,8 @@
 using AutoMapper;
 using AutomotiveApp.Application.Interfaces;
-using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.Courses.Queries
 {
@@ -18,6 +16,7 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
                 var (items, total) = await uow.CourseRepo.GetCoursesWithCategoryPaged(
                     page: request.Page,
                     itemTaken: request.ItemTaken,
+                    isRandom: request.IsRandom,
                     ct: ct
                 );
 
