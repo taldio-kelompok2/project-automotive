@@ -21,7 +21,7 @@
         else
         {
             <GuestNavbar />
-        }  
+        }
     }
 
     <MudMainContent Class="p-0">
@@ -41,11 +41,11 @@
     private bool _isAuthenticated = false;
     private bool _hideNavbar = false;
 
-        private readonly string[] _noNavbarPages = new[]
+    private readonly string[] _noNavbarPages = new[]
     {
-        "/email-confirmed",
-        "/success-purchase"
-    };
+"/email-confirmed",
+"/success-purchase"
+};
 
 
     protected override async Task OnInitializedAsync()
