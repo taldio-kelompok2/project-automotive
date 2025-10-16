@@ -2,12 +2,17 @@
 @inject ISnackbar Snackbar
 @inject IRentalCartService Cart
 
+@inject IPaymentMethodService PaymentSvc
+@using AutomotiveApp.Shared.Enums
+
 @implements IDisposable
+
 <MudDialog Class="rounded-3 py-2 px-4">
     <TitleContent>
         <MudText Class="text-center" Typo="Typo.h6" Color="Color.Dark" Style="font-weight: 500; font-family: Poppins;">
             Select Payment Method</MudText>
     </TitleContent>
+
     <DialogContent>
         <MudList T="TransactionViewModel" Class="pb-3 fluid" Color="@Color.Primary"
             @bind-SelectedValue="SelectedTransaction" SelectionMode="SelectionMode.SingleSelection">
@@ -15,15 +20,17 @@
             {
                 <MudListItem Value="@trans">
                     <MudStack @key="trans.Id" Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
-                        <MudImage Src="@trans.Image" Width="39" Height="39" />
+                        <MudImage Src="@trans.Image" Width="80" Height="40" />
                         <MudText Style="font-size: 1.125rem; font-weight:500; font-family: Poppins;" Color="Color.Dark">
-                            @trans.Category.ToString()
+                            @* @trans.Category.ToString() *@
+                            @trans.Name
                         </MudText>
                     </MudStack>
                 </MudListItem>
             }
         </MudList>
     </DialogContent>
+
     <DialogActions>
         <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
             <AppBaseButton Class="py-2" Width="ButtonWidth.Medium" Variant="Variant.Outlined" Color="Color.Primary"
@@ -45,11 +52,13 @@
     </DialogActions>
 </MudDialog>
 
-@code {
+@* @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public EventCallback<TransactionViewModel> OnSubmit { get; set; }
-    List<TransactionViewModel> transactions = new();
+    
+    private List<TransactionViewModel> transactions = new();
     private TransactionViewModel? SelectedTransaction;
+
     protected override void OnInitialized()
     {
         transactions = TransactionViewModel.InitDummyData();
@@ -74,5 +83,55 @@
         await OnSubmit.InvokeAsync(SelectedTransaction);
         MudDialog.Close(DialogResult.Ok(SelectedTransaction));
     }
+    
+    private void Cancel() => MudDialog.Cancel();
+} *@
+
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public EventCallback<TransactionViewModel> OnSubmit { get; set; }
+
+    private List<TransactionViewModel> transactions = new();
+    private TransactionViewModel? SelectedTransaction;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rows = await PaymentSvc.GetAllAsync();
+
+        transactions = new List<TransactionViewModel>();
+
+        foreach (var x in rows.Where(r => r.Status)) // Active
+        {
+            Enum.TryParse<TransactionCategory>(x.Name, ignoreCase: true, out var cat);
+
+            transactions.Add(new TransactionViewModel
+            {
+                Id       = x.Id,
+                Name     = x.Name,                                         
+                Image    = string.IsNullOrWhiteSpace(x.ImageUrl) 
+                            ? "/images/payment/default.svg" 
+                            : x.ImageUrl,
+                Category = cat                                          
+            });
+        }
+
+        Cart.OnLoadingChanged += StateHasChanged;
+    }
+
+    public void Dispose() => Cart.OnLoadingChanged -= StateHasChanged;
+
+    private async Task HandleOnSubmit()
+    {
+        if (SelectedTransaction is null)
+        {
+            Snackbar.Add("Please select a payment method.", Severity.Warning);
+            return;
+        }
+
+        await OnSubmit.InvokeAsync(SelectedTransaction);
+        MudDialog.Close(DialogResult.Ok(SelectedTransaction));
+    }
+
     private void Cancel() => MudDialog.Cancel();
 }

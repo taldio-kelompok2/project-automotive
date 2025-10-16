@@ -10,18 +10,24 @@ namespace AutomotiveApp.Infrastructure.Repositories
     public class BaseRepository<T> : IRepository<T>
         where T : class, IBaseEntity
     {
-        private readonly AppDbContext _context;
+        protected readonly AppDbContext _context;
 
         public BaseRepository(AppDbContext context)
         {
             _context = context;
         }
 
+        public IQueryable<T> Query()
+        {
+            return _context.Set<T>().AsQueryable();
+        }
+
         private IQueryable<T> BuildQuery(
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
             Expression<Func<T, bool>>? predicate = null)
         {
-            var query = _context.Set<T>().AsQueryable();
+            var query = _context.Set<T>()
+            .AsQueryable();
 
             if (modifier is not null)
                 query = modifier(query);
@@ -35,10 +41,11 @@ namespace AutomotiveApp.Infrastructure.Repositories
         public async Task<T?> GetByIdAsync(
             Guid id,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default)
         {
 
-            var query = BuildQuery(modifier);
+            var query = BuildQuery(modifier, predicate);
             return await query.FirstOrDefaultAsync(e => e.Id == id, ct);
         }
 
@@ -58,6 +65,11 @@ namespace AutomotiveApp.Infrastructure.Repositories
         {
             var query = BuildQuery(modifier);
             int total = await query.CountAsync(ct);
+
+            if (!query.Expression.ToString().Contains("OrderBy"))
+            {
+                query = query.OrderBy(e => true);
+            }
 
             var items = await query
                 .Skip((page - 1) * itemTaken)

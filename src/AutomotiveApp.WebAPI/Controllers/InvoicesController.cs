@@ -194,5 +194,42 @@ namespace AutomotiveApp.WebAPI.Controllers
                 items
             });
         }
+
+        // GET: /api/invoices/{id}/details
+        [HttpGet("{id:guid}/details")]
+        public async Task<ActionResult<InvoiceDetailsDto>> GetDetailsById(Guid id)
+        {
+            var inv = await _db.Invoices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == id);
+            if (inv is null) return NotFound();
+
+            var items = await (
+                from oi  in _db.OrderItems.AsNoTracking()
+                join cs  in _db.CourseSessions.AsNoTracking()   on oi.SessionId  equals cs.Id
+                join c   in _db.Courses.AsNoTracking()          on cs.CourseId   equals c.Id
+                join cat in _db.CourseCategories.AsNoTracking() on c.CategoryId  equals cat.Id
+                where oi.OrderId == inv.OrderId
+                select new InvoiceItemDto
+                {
+                    CourseName = c.Name,
+                    Type       = cat.Name,
+                    Schedule   = cs.Date,
+                    Price      = oi.Price
+                }
+            ).ToListAsync();
+
+            var dto = new InvoiceDetailsDto
+            {
+                Id          = inv.Id,
+                InvoiceCode = inv.InvoiceCode,
+                CreatedAt   = inv.CreatedAt,
+                TotalPrice  = inv.TotalPrice > 0 ? inv.TotalPrice : (long)items.Sum(x => x.Price),
+                Items       = items
+            };
+
+            return Ok(dto);
+        }
+
     }
 }

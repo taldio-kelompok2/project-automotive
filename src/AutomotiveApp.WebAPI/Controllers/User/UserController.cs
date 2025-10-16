@@ -1,12 +1,11 @@
-﻿using AutomotiveApp.Application.Features.Users.Commands;
+﻿using System.Net;
+using AutomotiveApp.Application.Features.Users.Commands;
 using AutomotiveApp.Application.Features.Users.Queries;
-using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -73,24 +72,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<Guid>();
 
-            try
-            {
-                var command = new CreateUser(userCreateDto);
-                var result = await _mediator.Send(command);
+            var command = new CreateUser(userCreateDto);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.Created;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.Created;
+            response.Data = result;
 
-                return StatusCode(201, response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return StatusCode(201, response);
         }
 
         [HttpGet("paged")]
@@ -100,24 +89,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<PaginatedResult<UserQueryDto>>();
 
-            try
-            {
-                var query = new GetUsersPaged(page, itemTaken);
-                var result = await _mediator.Send(query);
+            var query = new GetUsersPaged(page, itemTaken);
+            var result = await Mediator.Send(query);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = System.Net.HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.InternalServerError;
-                response.Errors = [ex.Message];
-                return StatusCode(500, response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("{userId:guid}")]
@@ -125,32 +104,16 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<UserProfileDto>();
 
-            try
-            {
-                var query = new GetUserById(userId);
-                var result = await _mediator.Send(query);
+            var query = new GetUserById(userId);
+            var result = await Mediator.Send(query);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.InternalServerError;
-                response.Errors = [ex.Message];
-                return StatusCode(500, response);
-            }
+            return Ok(response);
         }
+
 
         [HttpPut("{userId:guid}")]
         public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(
@@ -159,24 +122,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<bool>();
 
-            try
-            {
-                var command = new UpdateUser(userId, userUpdateDto);
-                var result = await _mediator.Send(command);
+            var command = new UpdateUser(userId, userUpdateDto);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpDelete("{userId:guid}")]
@@ -184,31 +137,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<bool>();
 
-            try
-            {
-                var command = new DeleteUser(userId);
-                var result = await _mediator.Send(command);
+            var command = new DeleteUser(userId);
+            var result = await Mediator.Send(command);
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                return Ok(response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.InternalServerError;
-                response.Errors = [ex.Message];
-                return StatusCode(500, response);
-            }
+            return Ok(response);
         }
     }
 }

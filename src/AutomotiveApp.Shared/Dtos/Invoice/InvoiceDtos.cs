@@ -31,4 +31,21 @@ namespace AutomotiveApp.Application.Invoices
         public long TotalPrice { get; set; }
     }
 
+    public class InvoiceDetailsDto
+    {
+        public Guid Id { get; set; }
+        public string InvoiceCode { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public long TotalPrice { get; set; }
+        public List<InvoiceItemDto> Items { get; set; } = new();
+    }
+
+    public class InvoiceItemDto
+    {
+        public string CourseName { get; set; } = "";   
+        public string Type { get; set; } = "";        
+        public DateTime Schedule { get; set; }        
+        public decimal Price { get; set; }             
+    }
+
 }

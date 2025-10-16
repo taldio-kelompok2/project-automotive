@@ -1,4 +1,4 @@
-namespace AutomotiveApp.Shared.Enums
+namespace AutomotiveApp.Domain.Enums
 {
     public enum OrderStatus
     {

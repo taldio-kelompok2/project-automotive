@@ -3,8 +3,8 @@
     public class UserQueryDto
     {
         public Guid Id { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
+        public required string UserName { get; set; }
+        public required string Email { get; set; }
         public bool Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

@@ -103,12 +103,6 @@ namespace AutomotiveApp.Infrastructure.Data
                 .WithOne(ci => ci.Cart)
                 .HasForeignKey(ci => ci.CartId);
 
-            // setup property
-
-            modelBuilder.Entity<PaymentMethod>()
-                .Property(cc => cc.Name)
-                .HasConversion<string>();
-
             // setup Constraint
             modelBuilder.Entity<Course>()
             .ToTable(c => c.HasCheckConstraint("CK_Course_Price_Positive", "[Price] >= 0"));

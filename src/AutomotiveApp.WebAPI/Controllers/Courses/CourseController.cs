@@ -1,14 +1,14 @@
+using System.Net;
 using AutoMapper;
 using AutomotiveApp.Application.Features.Courses.Commands;
 using AutomotiveApp.Application.Features.Courses.Queries;
 using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
-using AutomotiveApp.Shared.Enums;
-using AutomotiveApp.Shared.Exceptions;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using AutomotiveApp.WebAPI.Dto.Courses;
+using AutomotiveApp.WebAPI.Helper;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,92 +21,56 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
     public class CourseController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage) : BaseApiController(mediator)
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourseQueryDto>>> GetCourses()
+        public async Task<ActionResult<IEnumerable<CourseQueryDto>>> GetAll()
         {
             var response = new ApiResponse<IEnumerable<CourseQueryDto>>();
+            var query = new GetCourses();
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var query = new GetCourses();
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CourseQueryDetailDto>> GetCourseById([FromRoute] Guid id,
+        public async Task<ActionResult<CourseQueryDetailDto>> GetById([FromRoute] Guid id,
         [FromServices] IValidator<GetCourseById> validator)
         {
-            var query = new GetCourseById(id);
-            var validation = await validator.ValidateAsync(query);
+            var user = User.GetCurrentUserId();
+            var query = new GetCourseById(id, user);
+            await validator.ValidateAndThrowAsync(query);
             var response = new ApiResponse<CourseQueryDetailDto>();
 
-            if (!validation.IsValid) return HandleValidationFailure<CourseQueryDetailDto>(validation);
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpGet("paged")]
-        public async Task<ActionResult<PaginatedResult<CourseQueryDto>>> GetPagedCourses(
+        public async Task<ActionResult<PaginatedResult<CourseQueryDto>>> GetPaged(
             [FromQuery] int page = 1,
             [FromQuery] int itemTaken = 6
             )
         {
             var response = new ApiResponse<PaginatedResult<CourseQueryDto>>();
+            var query = new GetCoursesPaged(page, itemTaken);
+            var result = await Mediator.Send(query);
 
-            try
-            {
-                var query = new GetCoursesPaged(page, itemTaken);
-                var result = await _mediator.Send(query);
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
-                response.Data = result;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
 
         [HttpPost]
-        public async Task<ActionResult<CourseQueryDto>> AddCourse([FromForm] CourseCreateRequest request,
+        public async Task<ActionResult<CourseQueryDto>> Add([FromForm] CourseCreateRequest request,
         [FromServices] IValidator<CourseCreateRequest> validator)
         {
             var response = new ApiResponse<CourseQueryDto>();
@@ -124,9 +88,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
                 dto.ImageFilename = imageFileName;
                 var command = new AddCourseCommand(dto);
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
+                response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
                 return Ok(response);
             }
@@ -137,7 +101,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.DeleteFileAsync<Course>(imageFileName);
                 }
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
+                response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
 
                 return BadRequest(response);
@@ -145,7 +109,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<ActionResult<CourseQueryDto>> EditCourse([FromRoute] Guid id, [FromForm] CourseEditRequest request,
+        public async Task<ActionResult<CourseQueryDto>> Edit([FromRoute] Guid id, [FromForm] CourseEditRequest request,
         IValidator<CourseEditRequest> validator)
         {
             var response = new ApiResponse<CourseQueryDto>();
@@ -165,9 +129,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.ReplaceFileAsync<Course>(imageFileName, request.Image.OpenReadStream());
                 }
                 dto.ImageFilename = imageFileName;
-                var result = await _mediator.Send(command);
+                var result = await Mediator.Send(command);
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
+                response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
 
                 return Ok(response);
@@ -179,7 +143,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.DeleteFileAsync<Course>(imageFileName);
                 }
                 response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
+                response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
 
                 return BadRequest(response);
@@ -187,35 +151,17 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<ActionResult> DeleteCourse([FromRoute] Guid id)
+        public async Task<ActionResult> Delete([FromRoute] Guid id)
         {
             var response = new ApiResponse<string>();
-            try
-            {
-                var command = new DeleteCourseCommand(id);
-                await _mediator.Send(command);
-                response.Data = $"Course {id} is successfully deleted.";
+            var command = new DeleteCourseCommand(id);
+            await Mediator.Send(command);
+            response.Data = $"Course {id} is successfully deleted.";
 
-                response.Success = true;
-                response.StatusCode = HttpCode.OK;
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
 
-                return Ok(response);
-            }
-            catch (NotFoundException<Course> ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
-                response.Errors = [ex.Message];
-                return NotFound(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
-
+            return Ok(response);
         }
 
     }
