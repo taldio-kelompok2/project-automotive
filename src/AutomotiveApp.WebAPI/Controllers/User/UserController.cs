@@ -27,7 +27,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = ["Access token is required"];
                     return BadRequest(response);
                 }
@@ -36,7 +36,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 if (string.IsNullOrEmpty(stringUserId))
                 {
                     response.Success = false;
-                    response.StatusCode = HttpCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = ["Invalid JWT"];
                     return BadRequest(response);
                 }
@@ -46,7 +46,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 var result = await _mediator.Send(query);
 
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
                 response.Data = result;
 
                 return Ok(response);
@@ -54,14 +53,12 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             catch (KeyNotFoundException ex)
             {
                 response.Success = false;
-                response.StatusCode = HttpCode.NotFound;
                 response.Errors = [ex.Message];
                 return NotFound(response);
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.StatusCode = HttpCode.InternalServerError;
                 response.Errors = [ex.Message];
                 return StatusCode(500, response);
             }

@@ -24,6 +24,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var result = await Mediator.Send(command);
 
             response.Success = true;
+            response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
 
             return Ok(response);
@@ -34,10 +35,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
             Console.WriteLine($"login: {loginRequestDto}");
-            try
-            {
-                var command = new LoginCommand(loginRequestDto);
-                var result = await _mediator.Send(command);
+
+            var command = new LoginCommand(loginRequestDto);
+            var result = await _mediator.Send(command);
 
             response.Success = true;
             response.Data = result;
@@ -132,21 +132,21 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
+            try 
+            {
+                var command = new ForgotPasswordCommand(request.Email);
+                var result = await Mediator.Send(command);
 
-            var command = new ForgotPasswordCommand(request.Email);
-            var result = await Mediator.Send(command);
+                response.Success = true;
+                response.Data = result;
 
-            response.Success = true;
-            response.Data = result;
-
-                return Ok(response);
+                    return Ok(response);
             }
-            catch (Exception ex)
+            catch (Exception ex) // temp: biar gak expose email yg ada
             {
                 Console.WriteLine($"forgot password error: {ex.Message}");
 
                 response.Success = true;
-                response.StatusCode = HttpCode.OK;
                 return Ok(response);
             }
         }
@@ -162,15 +162,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.Data = result;
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.StatusCode = HttpCode.BadRequest;
-                response.Errors = [ex.Message];
-                return BadRequest(response);
-            }
+            return Ok(response);
         }
     }
 }
