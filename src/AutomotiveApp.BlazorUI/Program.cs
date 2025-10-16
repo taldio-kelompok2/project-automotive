@@ -1,8 +1,11 @@
 using AutomotiveApp.BlazorUI.Components;
 using AutomotiveApp.BlazorUI.Services.Implementation;
 using AutomotiveApp.BlazorUI.Services.Interface;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using MudBlazor.Services;
+using MyApp.BlazorUI.Services;
 using System.Globalization;
 using AutomotiveApp.BlazorUI.Services.Invoices;
 
@@ -11,8 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddHttpClient<IAuthService, AuthService>("API", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5001");
+}).AddHttpMessageHandler<AuthMessageHandler>();
 
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthMessageHandler>();
+
 
 //Mud blazor implementation
 builder.Services.AddMudServices(config =>

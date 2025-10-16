@@ -1,0 +1,62 @@
+﻿@page "/confirm-email"
+@inject NavigationManager Nav
+@inject IAuthService AuthService
+
+@using MudBlazor
+@using AutomotiveApp.BlazorUI.Services.Interface
+@using AutomotiveApp.Shared.Dtos.Auth
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall"
+              Class="d-flex flex-column align-center justify-center"
+              Style="min-height: 80vh;">
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large"
+                         Class="mb-5" Style="@(_loading ? "" : "display:none;")" Indeterminate=true />
+
+    <MudText Typo="Typo.h5" Class="mb-2" Color="Color.Primary">Email Confirmation</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4 text-center">@_message</MudText>
+</MudContainer>
+
+@code {
+    private string _message = "Reading confirmation details...";
+    private bool _loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (!query.TryGetValue("userId", out var userId) ||
+            !query.TryGetValue("token", out var token))
+        {
+            _message = "❌ Invalid or malformed confirmation link.";
+            _loading = false;
+            StateHasChanged();
+            return;
+        }
+
+        try
+        {
+            var success = await AuthService.ConfirmEmailAsync(userId!, token!);
+
+            if (success)
+            {
+                _message = "✅ Your email has been successfully confirmed!";
+                await Task.Delay(2000);
+                Nav.NavigateTo("/email-confirmed", forceLoad: true);
+            }
+            else
+            {
+                _message = "❌ Email confirmation failed. The link may have expired.";
+            }
+        }
+        catch
+        {
+            _message = "⚠️ Something went wrong while confirming your email.";
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+}

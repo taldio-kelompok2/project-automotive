@@ -31,6 +31,28 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             return BadRequest(errorResponse);
         }
+
+        protected string? ExtractAccessTokenFromHeader()
+        {
+            try
+            {
+                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrEmpty(authorizationHeader))
+                    return null;
+
+                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    return authorizationHeader.Substring("Bearer ".Length).Trim();
+                }
+
+                return authorizationHeader;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
 }

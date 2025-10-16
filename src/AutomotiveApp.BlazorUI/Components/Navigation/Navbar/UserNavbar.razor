@@ -1,4 +1,6 @@
 @inject NavigationManager NavManager
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
 @rendermode InteractiveServer
 
 <MudAppBar class="py-2 px-4" Fixed="false" Elevation="0" Dense="true">
@@ -6,21 +8,25 @@
     <MudText Typo="Typo.h6" @onclick="() => NavManager.NavigateTo(LANDING_PAGE)" style="cursor: pointer;">
         Otomobil
     </MudText>
+
     <MudSpacer />
+    
     <div class="d-none d-md-flex">
         <div class="d-flex align-items-center justify-content-evenly gap-3">
+            @* TODO: Add cart link *@
             <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" Color="Color.Primary"
-                aria-label="Shoppingcart" />
+                aria-label="Shoppingcart" /> 
             <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary" Class="px-0"
-                OnClick="@(() => { })">My Class
+                       OnClick="@(() => NavManager.NavigateTo(MY_CLASS_PAGE))">
+                My Class
             </MudButton>
-            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Invoice
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => NavManager.NavigateTo(INVOICE_PAGE))">Invoice
             </MudButton>
             <span class="nav-seperator">|</span>
             <div class="d-flex align-items-center justify-content-between gap-3">
-                <MudIconButton Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Primary"
-                    aria-label="Profile" />
-                <MudIconButton Icon="@Icons.Material.Outlined.ExitToApp" Size="Size.Small" Color="Color.Secondary"
+                <MudIconButton Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Primary" OnClick="@(() => NavManager.NavigateTo(PROFILE_PAGE))"
+                    aria-label="Profile"  />
+                <MudIconButton Icon="@Icons.Material.Outlined.ExitToApp" Size="Size.Small" Color="Color.Secondary" OnClick="LogoutAsync"
                     aria-label="Logout" />
             </div>
         </div>
@@ -32,15 +38,25 @@
         @if (expandMenu)
         {
             <div class="mobile-dropdown-menu">
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">My Class
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                           OnClick="@(() => NavManager.NavigateTo("/my-class"))">
+                    My Class
                 </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Invoice
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                           OnClick="@(() => NavManager.NavigateTo("/invoice"))">
+                    Invoice
                 </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Cart
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                           OnClick="@(() => NavManager.NavigateTo("/cart"))">
+                    Cart
                 </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Profile
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                           OnClick="@(() => NavManager.NavigateTo("/profile"))">
+                    Profile
                 </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0" OnClick="@(() => { })">Logout
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="px-0"
+                           OnClick="LogoutAsync">
+                    Logout
                 </MudButton>
             </div>
         }
@@ -48,8 +64,26 @@
 </MudAppBar>
 
 @code {
+
     private bool expandMenu = false;
     private const string LOGIN_PAGE = "/login";
     private const string REGISTER_PAGE = "/register";
     private const string LANDING_PAGE = "/";
+    private const string INVOICE_PAGE = "/invoice";
+    private const string MY_CLASS_PAGE = "/my-class";
+    private const string PROFILE_PAGE = "/profile";
+
+    private async Task LogoutAsync()
+    {
+        try
+        {
+            await AuthService.LogoutAsync();
+            Snackbar.Add("You have been logged out successfully.", Severity.Info);
+            NavManager.NavigateTo(LOGIN_PAGE, forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Logout failed: {ex.Message}", Severity.Error);
+        }
+    }
 }
