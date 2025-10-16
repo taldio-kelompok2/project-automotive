@@ -7,7 +7,6 @@ using AutomotiveApp.Domain.Entities.Courses.Cart;
 using AutomotiveApp.Domain.Entities.Orders;
 using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.Carts;
-using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Dtos.User;
 
 namespace AutomotiveApp.Application.Mapper
