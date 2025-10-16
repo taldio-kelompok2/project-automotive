@@ -3,7 +3,7 @@ using AutomotiveApp.Domain.Entities.Courses.Cart;
 using AutomotiveApp.Infrastructure.Data;
 using AutomotiveApp.Infrastructure.Repositories;
 using AutomotiveApp.Shared.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using MediatR;
 
 namespace AutomotiveApp.Infrastructure.Implementation.Repositories
 {
@@ -11,12 +11,13 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     : BaseRepository<Cart>(context), ICartRepository
     {
 
-        public async Task BatchDelete(IEnumerable<CartItem> items, CancellationToken ct = default)
+        public Task<Unit> BatchDelete(IEnumerable<CartItem> items, CancellationToken ct = default)
         {
             if (!items.Any())
                 throw new NotFoundException<Cart>("No items found for the provided Ids in cart.");
 
             _context.CartItems.RemoveRange(items);
+            return Task.FromResult(Unit.Value);
         }
     }
 }
