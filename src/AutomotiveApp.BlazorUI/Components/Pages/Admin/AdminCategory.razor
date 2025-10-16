@@ -91,6 +91,7 @@
         var res = await CategorySvc.GetAllAsync(); 
 
         categories = res
+            .OrderByDescending(x => x.CreatedAt)
             .Select((x, idx) => new CategoryViewModel
             {
                 ID          = idx + 1,
@@ -122,6 +123,7 @@
     {
         var rows = await CategorySvc.GetAllAsync();
         categories = rows
+             .OrderByDescending(x => x.CreatedAt)
             .Select((x, idx) => new CategoryViewModel
             {
                 ID          = idx + 1,
