@@ -8,8 +8,8 @@ namespace AutomotiveApp.Domain.Entities.Orders
 {
     public class Order : BaseEntity
     {
-        public required long TotalPrice { get; set; } = 0;
-        public required OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public long TotalPrice { get; set; } = 0;
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         // Foreign Keys
         public Guid UserId { get; set; }

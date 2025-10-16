@@ -1,27 +1,29 @@
 using System;
+using System.Diagnostics.Eventing.Reader;
+using AutomotiveApp.Domain.Entities.Courses;
+using Microsoft.AspNetCore.Localization;
 
 namespace AutomotiveApp.Shared.Dtos.OrderItem
 {
-    public class OrderItemCreateDto
+    public class OrderItemCreateDto : BaseCommandDto, IDto
     {
         public long Price { get; set; }
         public Guid OrderId { get; set; }
         public Guid SessionId { get; set; }
     }
 
-    public class OrderItemUpdateDto
+    public class OrderItemUpdateDto : BaseCommandDto, IDto
     {
         public long Price { get; set; }
         public Guid SessionId { get; set; }
     }
 
-    public class OrderItemReadDto
+    public class OrderItemReadDto : BaseQueryDto, IDto
     {
-        public Guid Id { get; set; }
-        public long Price { get; set; }
-        public Guid OrderId { get; set; }
-        public Guid SessionId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public required long Price { get; set; }
+        public required Guid OrderId { get; set; }
+        public required Guid SessionId { get; set; }
+        public required CourseSession Session { get; set; }
+
     }
 }

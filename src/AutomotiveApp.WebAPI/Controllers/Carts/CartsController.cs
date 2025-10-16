@@ -57,18 +57,19 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
         }
 
         [HttpGet("me")]
-        public async Task<ActionResult<IEnumerable<CartReadDto>>> GetCurrentUser()
+        public async Task<ActionResult<IEnumerable<CartReadDetailsDto>>> GetCurrentUser()
         {
-            var response = new ApiResponse<IEnumerable<CartReadDto>>();
+            var response = new ApiResponse<IEnumerable<CartReadDetailsDto>>();
             var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
             Expression<Func<Cart, bool>> predicate = cb => cb.UserId == userId;
 
             var carts = await _uow.CartRepo.FindAsync(predicate: predicate, modifier: q => q
                 .Include(c => c.Items)
                 .ThenInclude(ci => ci.Session)
-                .ThenInclude(s => s.Course));
+                .ThenInclude(s => s.Course)
+                .ThenInclude(s => s.Category));
 
-            var result = _mapper.Map<IEnumerable<CartReadDto>>(carts);
+            var result = _mapper.Map<IEnumerable<CartReadDetailsDto>>(carts);
 
             response.Success = true;
             response.Data = result;
@@ -77,14 +78,19 @@ namespace AutomotiveApp.WebAPI.Controllers.Carts
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CartDetailsReadDto>> GetById([FromRoute] Guid id,
-        [FromServices] IValidator<CartDetailsReadDto> validator)
+        public async Task<ActionResult<CartReadDto>> GetById([FromRoute] Guid id,
+        [FromServices] IValidator<CartReadDetailsDto> validator)
         {
-            var response = new ApiResponse<CartDetailsReadDto>();
+            var response = new ApiResponse<CartReadDetailsDto>();
             var cart = await _uow.CartRepo.GetByIdAsync(id,
-            modifier: q => q.Include(c => c.Items));
+            modifier: q => q
+                .Include(c => c.Items)
+                .ThenInclude(ci => ci.Session)
+                .ThenInclude(s => s.Course)
+                .ThenInclude(c => c.Category)
+                );
 
-            var cartDetails = _mapper.Map<CartDetailsReadDto>(cart);
+            var cartDetails = _mapper.Map<CartReadDetailsDto>(cart);
             await validator.ValidateAndThrowAsync(cartDetails);
 
             response.Success = true;

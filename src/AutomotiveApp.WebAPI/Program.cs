@@ -26,6 +26,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using AutomotiveApp.Shared.Response;
 using System.Text.Json;
+using AutomotiveApp.Domain.Entities.Orders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,10 @@ builder.Services.AddScoped<ICourseBookingRepository, CoursebookingRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderitemRepository>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 //Email Service
