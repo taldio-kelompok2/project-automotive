@@ -20,10 +20,10 @@ namespace AutomotiveApp.Shared.Dtos.OrderItem
 
     public class OrderItemReadDto : BaseQueryDto, IDto
     {
-        public required long Price { get; set; }
-        public required Guid OrderId { get; set; }
-        public required Guid SessionId { get; set; }
-        public required CourseSession Session { get; set; }
+        public long Price { get; set; }
+        public Guid OrderId { get; set; }
+        public Guid SessionId { get; set; }
+        public CourseSession Session { get; set; } = null!;
 
     }
 }
