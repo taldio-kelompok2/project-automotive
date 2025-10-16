@@ -1,0 +1,14 @@
+﻿@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<MudAppBar class="py-2 px-4" Fixed="false" Elevation="0" Dense="true">
+    <img class="logo" src="icons/main.svg" @onclick="() => Nav.NavigateTo(LANDING_PAGE)" style="cursor: pointer;" />
+    <MudText Typo="Typo.h6" @onclick="() => Nav.NavigateTo(LANDING_PAGE)" style="cursor: pointer;">
+        Otomobil
+    </MudText>
+    <MudSpacer />
+</MudAppBar>
+
+@code {
+    private const string LANDING_PAGE = "/";
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "src\\AutomotiveApp.WebAPI\\AutomotiveApp.WebAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\AutomotiveApp.BlazorUI\\AutomotiveApp.BlazorUI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

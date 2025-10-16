@@ -1,9 +1,12 @@
 @inject NavigationManager Nav
 @inject IDialogService DialogService
+@inject IAuthService AuthService
 
 @rendermode InteractiveServer
 @layout AuthLayout
 @page "/login"
+@using AutomotiveApp.BlazorUI.Services.Interface
+@using AutomotiveApp.Shared.Dtos.Auth
 
 <AuthHeader Title="Welcome Back!" SubTitle="Please login first" />
 <EditForm OnValidSubmit="OnValidSubmit" Model="@_loginModel">
@@ -18,9 +21,18 @@
                 Color="Color.Tertiary">Click here
             </MudLink>
         </div>
+
         <AppBaseButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
             Disabled="@(!IsFormFilled())" Width="ButtonWidth.Medium" Class="ml-auto">
-            Login
+            @if (_isLoading)
+            {
+                <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Indeterminate="true" />
+                <span class="ml-2">Logging in...</span>
+            }
+            else
+            {
+                <span>Login</span>
+            }
         </AppBaseButton>
         <div class="d-flex gap-1 justify-content-center p-4">
             <MudText Typo="Typo.body2">
@@ -34,15 +46,17 @@
 </EditForm>
 
 @code {
+
     private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
     private const string HOME_PAGE = "/";
     private const string REGISTER_PAGE = "/register";
     private LoginViewModel _loginModel = new LoginViewModel();
-    private RenderFragment LoginDialogContent =>
-    @<div>
-        <MudText Typo="Typo.body2">Name: @_loginModel.Email</MudText>
-        <MudText Typo="Typo.body2">Password: @_loginModel.Password</MudText>
-    </div>;
+    private bool _isLoading = false;
+
+    // private RenderFragment LoginDialogContent =>
+    // @<div>
+    //     <MudText Typo="Typo.body2">Welcome back, @_loginModel.Email</MudText>
+    // </div>;
 
     private bool IsFormFilled()
     {
@@ -58,24 +72,73 @@
         return true;
     }
 
-    @* TODO: Remove on Auth Implementation *@
-    private async Task OpenDialogAsync(string location)
+    private async Task ShowSuccessDialogAsync()
     {
         var parameters = new DialogParameters
         {
             ["Title"] = "Login Successful",
-            ["Content"] = LoginDialogContent,
-            ["Location"] = location
+            ["Content"] = (RenderFragment)(builder =>
+            {
+                builder.OpenElement(0, "div");
+                builder.AddContent(1, $"Welcome back, {_loginModel.Email}!");
+                builder.CloseElement();
+            })
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true };
+        await DialogService.ShowAsync<AuthResultDialog>("Success", parameters, options);
+    }
 
-        await DialogService.ShowAsync<AuthResultDialog>("Login Successful", parameters, options);
+    private async Task ShowErrorDialogAsync(string message)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Login Failed",
+            ["Content"] = (RenderFragment)(builder =>
+            {
+                builder.OpenElement(0, "div");
+                builder.AddContent(1, message);
+                builder.CloseElement();
+            })
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
     }
 
     private async Task OnValidSubmit()
     {
-        _loginModel.Success = true;
-        await OpenDialogAsync(HOME_PAGE);
+        _isLoading = true;
+
+        try
+        {
+            var request = new LoginRequestDto
+            {
+                Email = _loginModel.Email,
+                Password = _loginModel.Password
+            };
+
+            var result = await AuthService.LoginAsync(request);
+
+            if (result != null)
+            {
+                await ShowSuccessDialogAsync();
+
+                await Task.Delay(2000);
+                Nav.NavigateTo(HOME_PAGE, forceLoad: true);
+            }
+            else
+            {
+                await ShowErrorDialogAsync("Invalid email or password. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowErrorDialogAsync($"Login failed: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 }

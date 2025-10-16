@@ -12,7 +12,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
         {
             var user = await userManager.FindByEmailAsync(req.Email);
             if (user == null) 
-                return true;
+                throw new KeyNotFoundException("Email not found");
 
             if (!await userManager.IsEmailConfirmedAsync(user))
                 throw new InvalidOperationException("Email needs to be confirmed for password reset");

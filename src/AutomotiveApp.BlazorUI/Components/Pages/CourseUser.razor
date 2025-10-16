@@ -1,10 +1,11 @@
-﻿@* TODO: change url *@
-@page "/user-courses"
+﻿@page "/my-class"
 
 @rendermode InteractiveServer
 
+@* TODO: rename file? *@
 <PageTitle>My Class</PageTitle>
 
+@* <AuthorizeRedirect Role="Admin"> *@
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
         <MudGrid Class="m-0 pt-4 pb-4 px-md-5 px-4" Justify="Justify.Center">
@@ -27,6 +28,7 @@
 </div>
 
 <Footer />
+@* </AuthorizeRedirect> *@
 
 @code {
     [Inject] IJSRuntime JS { get; set; } = default!;

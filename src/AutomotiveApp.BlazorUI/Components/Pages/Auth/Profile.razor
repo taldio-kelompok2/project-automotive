@@ -1,0 +1,84 @@
+﻿@page "/profile"
+@using AutomotiveApp.Shared.Dtos.User
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    @if (_loading)
+    {
+        <div class="d-flex justify-center align-center" style="min-height: 60vh;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else if (_user == null)
+    {
+        <MudPaper Class="p-6 d-flex flex-column align-center text-center">
+            <MudText Typo="Typo.h6" Color="Color.Error" Class="pt-3 pb-2">⚠️ Failed to load profile information.</MudText>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadProfile" Class="mt-3 mb-3">
+                Retry
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="rounded-lg elevation-3">
+            <MudText Typo="Typo.h2" Color="Color.Primary" Class="p-5 pb-1">My Profile</MudText>
+
+            <MudGrid Class="p-5">
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2">Username</MudText>
+                    <MudText Typo="Typo.body1">@_user.UserName</MudText>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2">Email</MudText>
+                    <MudText Typo="Typo.body1">@_user.Email</MudText>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2">Phone Number</MudText>
+                    <MudText Typo="Typo.body1">@(_user.PhoneNumber ?? "-")</MudText>
+                </MudItem>
+            </MudGrid>
+
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private UserProfileDto? _user;
+    private bool _loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadProfileAsync();
+        }
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        // ambil token disini karena gabisa dri local storage saat prerender
+        var token = await LocalStorage.GetItemAsStringAsync("authToken");
+
+        try
+        {
+            _loading = true;
+            StateHasChanged();
+
+            _user = await AuthService.GetCurrentUserAsync(token);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadProfile()
+    {
+        await LoadProfileAsync();
+    }
+}
