@@ -1,11 +1,27 @@
-﻿<MudDialog>
+﻿@using AutomotiveApp.Shared.Enums
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using Microsoft.AspNetCore.Components.Forms
+
+<MudDialog>
     <DialogContent>
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="mb-2" />
-            <MudSelect T="Status" @bind-Value="_category.Status" Label="Status" Required="true">
+            <MudTextField @bind-Value="_vm.Name" Label="Category Name" Required="true" Class="mb-2" />
+            <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-3" />
+
+            <MudItem Class="my-3">
+                <MudText Typo="Typo.body2" Class="mb-1">Image:</MudText>
+                <InputFile OnChange="OnFileSelected" />
+                @if (!string.IsNullOrWhiteSpace(_vm.Logo))
+                {
+                    <MudText Typo="Typo.body2" Class="mt-1">Current: @_vm.Logo</MudText>
+                }
+            </MudItem>
+
+            @* <MudSelect T="Status" @bind-Value="_vm.Status" Label="Status" Required="true">
                 <MudSelectItem Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
-            </MudSelect>
+            </MudSelect> *@
+
         </MudForm>
     </DialogContent>
 
@@ -19,10 +35,42 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public CategoryViewModel? Item { get; set; }
 
-    private CategoryViewModel _category = new();
+    private CategoryViewModel _vm = new();
     private MudForm _form = default!;
-
+        
     protected override void OnInitialized()
+    {
+        if (Item is not null)
+        {
+            _vm = new CategoryViewModel
+            {
+                ID          = Item.ID,
+                CategoryId  = Item.CategoryId,
+                Name        = Item.Name,
+                Description = Item.Description,
+                Logo        = Item.Logo,
+                Status      = Item.Status
+            };
+        }
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+            MudDialog.Close(DialogResult.Ok(_vm));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is not null)
+            _vm.File = file;
+    }
+
+    @* protected override void OnInitialized()
     {
         if (Item != null)
         {
@@ -32,16 +80,14 @@
                 Status = Item.Status
             };
         }
-    }
+    } *@
 
-    private async Task Save()
+    @* private async Task Save()
     {
         await _form.Validate();
         if (_form.IsValid)
         {
             MudDialog.Close(DialogResult.Ok(_category));
         }
-    }
-
-    private void Cancel() => MudDialog.Cancel();
+    } *@
 }

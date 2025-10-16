@@ -1,6 +1,12 @@
 ﻿@page "/admin/category"
 @rendermode InteractiveServer
 @inject IDialogService DialogService
+@inject HttpClient Http
+@inject ICourseCategoryService CategorySvc
+@using AutomotiveApp.Shared.Dtos.Courses
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using AutomotiveApp.Shared.Enums
+@inject ISnackbar Snackbar
 
 @layout AdminLayout
 
@@ -8,12 +14,16 @@
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Category Management</MudText>
+
     <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCategoryDialog" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Category</AppBaseButton>
-    <AdminTable TItem="CategoryViewModel" Items="categories" Columns="categoryColumns" OnEdit="OnCategoryEdit" />
+    
+    <AdminTable TItem="CategoryViewModel" Items="categories" Columns="categoryColumns" OnEdit="OnCategoryEdited" />
 </MudPaper>
 
 @code {
-    private List<CategoryViewModel> categories = new()
+    private List<CategoryViewModel> categories = new();
+
+    @* private List<CategoryViewModel> categories = new()
     {
         new CategoryViewModel { Name = "Beginner", Status = Status.Active },
         new CategoryViewModel { Name = "Advanced", Status = Status.Active },
@@ -28,23 +38,44 @@
         new CategoryViewModel { Name = "Defensive Driving", Status = Status.Active },
         new CategoryViewModel { Name = "Night Driving", Status = Status.Inactive },
         new CategoryViewModel { Name = "Emergency Maneuvers", Status = Status.Active }
-    };
+    }; *@
 
-    List<ColumnDefinition<CategoryViewModel>> categoryColumns = new()
+    private List<ColumnDefinition<CategoryViewModel>> categoryColumns = new()
     {
+        new ColumnDefinition<CategoryViewModel>
+        {
+            Header = "ID",
+            CellTemplate = category => @category.ID,
+            IsSearchable = true
+        },
         new ColumnDefinition<CategoryViewModel>
         {
             Header = "Category Name",
             CellTemplate = category => @category.Name,
             IsSearchable = true
         },
+
         new ColumnDefinition<CategoryViewModel>
+        {
+            Header = "Description",
+            CellTemplate = category => @category.Description,
+            IsSearchable = true
+        },
+
+        new ColumnDefinition<CategoryViewModel>
+        {
+            Header = "Image",
+            CellTemplate = category => @category.Logo,
+            IsImageColumn = true,
+            IsSearchable = false
+        },
+        @* new ColumnDefinition<CategoryViewModel>
         {
             Header = "Status",
             CellTemplate = category => @category.Status,
             IsSearchable = true,
             IsStatusColumn = true
-        },
+        }, *@
         new ColumnDefinition<CategoryViewModel>
         {
             Header = "Action",
@@ -55,25 +86,132 @@
         }
     };
 
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await CategorySvc.GetAllAsync(); 
+
+        categories = res
+            .OrderByDescending(x => x.CreatedAt)
+            .Select((x, idx) => new CategoryViewModel
+            {
+                ID          = idx + 1,
+                CategoryId  = x.Id,
+                Name        = x.Name,
+                Description = x.Description ?? "",
+                Logo        = ResolveLogoUrl(x.ImageUrl), 
+                @* Status = Status.Active *@
+            })
+            .ToList();
+    }
+
+    private string ResolveLogoUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "/images/coursecategory/placeholder.svg";
+
+        var v = value.Trim();
+        if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return v;
+        if (v.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+            return v;
+
+        var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        return $"{api}/images/CourseCategory/{v}";
+    }
+
+    private async Task ReloadList()
+    {
+        var rows = await CategorySvc.GetAllAsync();
+        categories = rows
+             .OrderByDescending(x => x.CreatedAt)
+            .Select((x, idx) => new CategoryViewModel
+            {
+                ID          = idx + 1,
+                CategoryId  = x.Id,
+                Name        = x.Name,
+                Description = x.Description ?? "",
+                Logo        = ResolveLogoUrl(x.ImageUrl), 
+                @* Status = Status.Active *@
+            })
+            .ToList();
+        StateHasChanged();
+    }
+
     private async Task ShowAddCategoryDialog()
     {
         var dialog = await DialogService.ShowAsync<AddCategoryDialog>("Add Category");
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is CategoryViewModel newCategory)
+        if (result is not { Canceled: false, Data: CategoryViewModel vm })
+            return;
+
+        try
         {
-            categories.Add(newCategory);
-            StateHasChanged();
+            // file null tetap kirim tanpa file.
+            Guid? id;
+            if (vm.File is null)
+            {
+                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, file: null!);
+            }
+            else
+            {
+                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File);
+            }
+
+            if (id is null)
+            {
+                Snackbar.Add("Category Added Failed", Severity.Error);
+                return;
+            }
+
+            await ReloadList();
+            Snackbar.Add("Category Added Successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Category Added Failed : {ex.Message}", Severity.Error);
         }
     }
 
-    private void OnCategoryEdit(CategoryViewModel category)
+    private async Task OnCategoryEdited(CategoryViewModel vm)
     {
-        var idx = categories.FindIndex(c => c.Name == category.Name);
-        if (idx >= 0)
+        try
         {
-            categories[idx] = category;
+            var ok = await CategorySvc.UpdateMultipartAsync(
+                vm.CategoryId,
+                vm.Name,
+                vm.Description,
+                vm.File
+            );
+
+            if (!ok)
+            {
+                Snackbar.Add("Category Added Failed", Severity.Error);
+                return;
+            }
+
+            // supaya gambar langsung ke-refresh di tabel
+            var row = categories.FirstOrDefault(c => c.CategoryId == vm.CategoryId);
+            if (row is not null)
+            {
+                row.Name        = vm.Name;
+                row.Description = vm.Description;
+
+                if (vm.File is not null)
+                {
+                    var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
+                    var ext = Path.GetExtension(vm.File.Name);
+                    row.Logo = $"{baseUrl}/images/CourseCategory/{vm.CategoryId}{ext}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                }
+            }
+
             StateHasChanged();
+            Snackbar.Add("Category Updated Successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Category Added Failed : {ex.Message}", Severity.Error);
         }
     }
+
 }
