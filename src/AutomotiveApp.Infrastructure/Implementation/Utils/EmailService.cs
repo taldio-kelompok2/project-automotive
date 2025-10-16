@@ -50,8 +50,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
         public async Task SendConfirmationEmailAsync(string email, string userId, string token)
         {
             var encodedToken = WebUtility.UrlEncode(token);
-            // should be frontend url for POST request to work
-            var appBaseUrl = _configuration["AppBaseUrl"] ?? "http://localhost:7245/api/auth";
+            var appBaseUrl = _configuration["AppBaseUrl"] ?? "https://localhost:7245";
             var confirmationLink = $"{appBaseUrl}/confirm-email?userId={userId}&token={encodedToken}";
 
             var subject = "Confirm Your Email - Otomobil";
@@ -85,9 +84,8 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
         public async Task SendPasswordResetEmailAsync(string email, string token)
         {
             var encodedToken = WebUtility.UrlEncode(token);
-            // should be frontend url for POST request to work
-            var appBaseUrl = _configuration["AppBaseUrl"] ?? "http://localhost:7245/api/auth";
-            var resetLink = $"{appBaseUrl}/reset-password?email={email}&token={encodedToken}";
+            var appBaseUrl = _configuration["AppBaseUrl"] ?? "https://localhost:7245";
+            var resetLink = $"{appBaseUrl}/new-password?email={email}&token={encodedToken}";
 
             var subject = "Reset Your Password - Otomobil";
             var body = $"""

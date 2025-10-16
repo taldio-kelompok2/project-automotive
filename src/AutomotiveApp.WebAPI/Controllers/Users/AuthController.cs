@@ -24,6 +24,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var result = await Mediator.Send(command);
 
             response.Success = true;
+            response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
 
             return Ok(response);
@@ -33,8 +34,10 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var response = new ApiResponse<AuthResponseDto>();
+            Console.WriteLine($"login: {loginRequestDto}");
+
             var command = new LoginCommand(loginRequestDto);
-            var result = await Mediator!.Send(command);
+            var result = await _mediator.Send(command);
 
             response.Success = true;
             response.Data = result;
@@ -129,14 +132,23 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
+            try 
+            {
+                var command = new ForgotPasswordCommand(request.Email);
+                var result = await Mediator.Send(command);
 
-            var command = new ForgotPasswordCommand(request.Email);
-            var result = await Mediator.Send(command);
+                response.Success = true;
+                response.Data = result;
 
-            response.Success = true;
-            response.Data = result;
+                    return Ok(response);
+            }
+            catch (Exception ex) // temp: biar gak expose email yg ada
+            {
+                Console.WriteLine($"forgot password error: {ex.Message}");
 
-            return Ok(response);
+                response.Success = true;
+                return Ok(response);
+            }
         }
 
         [HttpPost("reset-password")]
@@ -151,28 +163,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Data = result;
 
             return Ok(response);
-        }
-
-        private string? ExtractAccessTokenFromHeader()
-        {
-            try
-            {
-                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrEmpty(authorizationHeader))
-                    return null;
-
-                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    return authorizationHeader.Substring("Bearer ".Length).Trim();
-                }
-
-                return authorizationHeader;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }
