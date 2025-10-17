@@ -36,8 +36,9 @@ public class AuthMessageHandler : DelegatingHandler
                 token = await _localStorage.GetItemAsStringAsync("authToken");
             }
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
+            Console.WriteLine(ex);
             // Happens if called during prerendering before JSRuntime is ready
             return await base.SendAsync(request, cancellationToken);
         }
@@ -94,8 +95,10 @@ public class AuthMessageHandler : DelegatingHandler
                 }
             }
         }
-            return response;
-        }
+
+        Console.WriteLine("[AuthHandler] Sending request");
+        return response;
+    }
 
     private async Task<string?> TryRefreshTokenAsync(string accessToken, string refreshToken)
     {

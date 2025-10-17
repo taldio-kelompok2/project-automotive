@@ -7,8 +7,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         private readonly ILogger<RentalCartService> _logger;
         private readonly ICartService _cartService;
         private readonly ITransactionService _transactionService;
-
-        public Guid UserId { get; set; } = Guid.Parse("aeafb671-9423-4613-8910-abedcfb48485");
         public Guid Id { get; set; }
         public List<RentalCartItemViewModel> RentalCartItems { get; set; } = [];
         public bool IsLoading { get; set; } = false;
