@@ -7,5 +7,6 @@ namespace AutomotiveApp.WebAPI.Dto.Courses
         public string? Name { get; set; }
         public string? Description { get; set; }
         public IFormFile? Image { get; set; }
+        public IFormFile? HeroImage { get; set; }
     }
 }

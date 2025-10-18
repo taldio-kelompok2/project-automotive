@@ -24,6 +24,10 @@ namespace AutomotiveApp.WebAPI.Validators.CourseCategory
             RuleFor(x => x.Image)
                 .Must(f => f == null || ImageExtension.Contains(Path.GetExtension(f.FileName).ToLower()))
                 .WithMessage("Invalid image file type. Only JPG, JPEG, PNG, or SVG formats are supported.");
+                
+            RuleFor(x => x.HeroImage)
+                .Must(f => f == null || ImageExtension.Contains(Path.GetExtension(f.FileName).ToLower()))
+                .WithMessage("Invalid hero image file type. Only JPG, JPEG, PNG, or SVG formats are supported.");
 
         }
     }
