@@ -22,6 +22,7 @@ builder.Services.AddHttpClient<IAuthService, AuthService>("API", client =>
 }).AddHttpMessageHandler<AuthMessageHandler>();
 
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthMessageHandler>();
 

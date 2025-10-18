@@ -22,6 +22,5 @@ namespace AutomotiveApp.Domain.Entities.Auth
         public virtual ICollection<Order> Orders { get; set; } = [];
         public virtual ICollection<CourseBooking> Bookings { get; set; } = [];
         public virtual Cart? Cart { get; set; }
-
     }
 }

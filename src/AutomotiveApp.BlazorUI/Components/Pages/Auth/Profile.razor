@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
+<AuthorizeRedirect Role="Admin">
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
     @if (_loading)
     {
@@ -45,6 +46,7 @@
         </MudPaper>
     }
 </MudContainer>
+</AuthorizeRedirect>
 
 @code {
     private UserProfileDto? _user;

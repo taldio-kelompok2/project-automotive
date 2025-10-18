@@ -65,6 +65,8 @@
 
 @code {
 
+
+
     private bool expandMenu = false;
     private const string LOGIN_PAGE = "/login";
     private const string REGISTER_PAGE = "/register";
@@ -79,6 +81,8 @@
         {
             await AuthService.LogoutAsync();
             Snackbar.Add("You have been logged out successfully.", Severity.Info);
+
+            await Task.Delay(1000);
             NavManager.NavigateTo(LOGIN_PAGE, forceLoad: true);
         }
         catch (Exception ex)

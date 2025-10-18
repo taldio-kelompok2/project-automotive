@@ -5,6 +5,9 @@ using MediatR;
 namespace AutomotiveApp.Application.Features.Users.Queries
 {
     // size of page based on admin page
-    public record GetUsersPaged(int page = 1, int pageSize = 10)
+    public record GetUsersPaged(
+        int Page = 1, 
+        int PageSize = 10,
+        string? Search = null)
         : IRequest<PaginatedResult<UserQueryDto>>;
 }

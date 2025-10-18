@@ -30,7 +30,6 @@ public class AuthMessageHandler : DelegatingHandler
 
         try
         {
-            // Avoid JSRuntime call if prerendering (when not yet interactive)
             if (_localStorage is not null)
             {
                 token = await _localStorage.GetItemAsStringAsync("authToken");
@@ -46,13 +45,11 @@ public class AuthMessageHandler : DelegatingHandler
             Console.WriteLine($"[AuthHandler] Failed to get token: {ex.Message}");
         }
 
-        // Attach existing access token if available
         if (!string.IsNullOrWhiteSpace(token))
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // Handle 401 Unauthorized
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             try
@@ -61,7 +58,6 @@ public class AuthMessageHandler : DelegatingHandler
             }
             catch (InvalidOperationException)
             {
-                // Same case: ignore if prerendering
                 return response;
             }
             catch (Exception ex)
