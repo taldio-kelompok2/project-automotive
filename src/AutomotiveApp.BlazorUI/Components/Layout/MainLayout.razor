@@ -1,32 +1,35 @@
 ﻿@inject NavigationManager Nav
-@inherits LayoutComponentBase
+@inject IRentalCartService Cart
 @inject AuthenticationStateProvider AuthStateProvider
-@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
 
 <MudLayout>
     <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
     <MudPopoverProvider />
     <MudDialogProvider @rendermode="InteractiveServer" />
     <MudSnackbarProvider />
-    @if (_hideNavbar)
-    {
-        <BlankNavbar />
-    }
-    else
-    {
-        @if (_isAuthenticated)
+
+    <CascadingValue Value="_userContext">
+        @if (_hideNavbar)
         {
-            <UserNavbar />
+            <BlankNavbar />
         }
         else
         {
-            <GuestNavbar />
+            <AuthorizeView>
+                <Authorized>
+                    <UserNavbar />
+                </Authorized>
+                <NotAuthorized>
+                    <GuestNavbar />
+                </NotAuthorized>
+            </AuthorizeView>
         }
-    }
 
-    <MudMainContent Class="p-0">
-        @Body
-    </MudMainContent>
+        <MudMainContent Class="p-0">
+            @Body
+        </MudMainContent>
+    </CascadingValue>
 </MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -38,11 +41,10 @@
 @code {
     private readonly MudTheme _theme = new AppTheme();
     private bool _isDarkMode = false;
-    private bool _isAuthenticated = false;
+    private UserContext _userContext = new();
     private bool _hideNavbar = false;
 
-    private readonly string[] _noNavbarPages = new[]
-    {
+    private readonly string[] _noNavbarPages = {
 "/email-confirmed",
 "/success-purchase"
 };
@@ -50,21 +52,23 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Initialize user state
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _userContext = _userContext.Update(user);
+
         // Track route changes
         Nav.LocationChanged += (_, __) => UpdateNavbarVisibility();
 
         // Initial navbar visibility
         UpdateNavbarVisibility();
 
-        // Determine initial auth state
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-
         // Listen for authentication state changes
         AuthStateProvider.AuthenticationStateChanged += async (task) =>
         {
             var state = await task;
-            _isAuthenticated = state.User.Identity?.IsAuthenticated ?? false;
+            _userContext = _userContext.Update(state.User);
+            if (_userContext.IsAuthenticated) await Cart.GetUserCartData();
             StateHasChanged();
         };
     }

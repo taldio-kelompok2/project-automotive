@@ -1,3 +1,4 @@
+@using AutomotiveApp.BlazorUI.Models.Auth.Context
 @using AutomotiveApp.BlazorUI.Services.Implementation
 @using AutomotiveApp.Domain.Entities.Courses
 @using AutomotiveApp.Shared.Dtos.Courses
@@ -134,6 +135,10 @@
 <Footer />
 
 @code {
+
+    [CascadingParameter] 
+    public UserContext UserContext { get; set; } = default!;
+
     [Parameter]
     public Guid Id { get; set; }
     [Parameter]
@@ -143,6 +148,7 @@
     private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new ();
     private ApiResponse<CourseQueryDetailDto> chosenCar = new();
     private Dictionary<Guid,DateTime> Sessions = []; 
+
     private RenderFragment SnackbarToCart =>
     @<MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
         <MudText Typo="Typo.body1">
@@ -155,10 +161,11 @@
         </AppBaseButton>
     </MudStack>;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if(!firstRender) return;
+
         cars = await CourseService.GetPaged(1, 6, true);
-        await Cart.GetUserCartData();
     }
     protected override async Task OnParametersSetAsync()
     {
@@ -168,8 +175,6 @@
             return;
         }
         Sessions = chosenCar.Data.Sessions;  
-
-        Console.WriteLine(Sessions);  
     }
 
     private async Task AddToCartHandler()
@@ -200,9 +205,7 @@
             return false;
         }
 
-        var parameters = new DialogParameters
-        {
-        };
+        var parameters = new DialogParameters();
 
         var dialog = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters);
         var result = await dialog.Result;
@@ -253,12 +256,9 @@
         }
     }
 
-
-
     private void GoCheckout()
     {
         Navigation.NavigateTo(uri: $"checkout");
-
     }
 
 }

@@ -19,7 +19,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         public TransactionService(HttpClient http)
         {
             _http = http;
-            var dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhZWFmYjY3MS05NDIzLTQ2MTMtODkxMC1hYmVkY2ZiNDg0ODUiLCJlbWFpbCI6ImJ1eWVyQGV4YW1wbGUuY29tIiwidW5pcXVlX25hbWUiOiJidXllckBleGFtcGxlLmNvbSIsImp0aSI6IjM0OGQ0YTExLTIwOWQtNGU0OC1iM2MxLTkzNzUyNWY2MjliYiIsImlhdCI6MTc2MDYxMTA5MCwicm9sZSI6IkJ1eWVyIiwibmJmIjoxNzYwNjExMDkwLCJleHAiOjE3NjA2MTQ2OTAsImlzcyI6IkF1dG9tb3RpdmVBcHAiLCJhdWQiOiJBdXRvbW90aXZlQXBwLVVzZXJzIn0.PZxXMc8iw9ES3NtLCDG6HctILtz1ab92UNUmLF2JOy4";
+            var dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhZWFmYjY3MS05NDIzLTQ2MTMtODkxMC1hYmVkY2ZiNDg0ODUiLCJlbWFpbCI6ImJ1eWVyQGV4YW1wbGUuY29tIiwidW5pcXVlX25hbWUiOiJidXllckBleGFtcGxlLmNvbSIsImp0aSI6ImNmY2JmM2U2LWE3NzktNDk0ZC04ODk2LTdiNjUwOWJlZjQ5OSIsImlhdCI6MTc2MDYxNDc2MSwicm9sZSI6IkJ1eWVyIiwibmJmIjoxNzYwNjE0NzYxLCJleHAiOjE3NjA2MTgzNjEsImlzcyI6IkF1dG9tb3RpdmVBcHAiLCJhdWQiOiJBdXRvbW90aXZlQXBwLVVzZXJzIn0.HPFJlMGz1dPbl-yYARfGdt24r68CJ7PR48jzqcWcekk";
             _http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", dummyToken);
         }
