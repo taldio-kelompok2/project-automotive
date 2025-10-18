@@ -6,10 +6,9 @@ namespace AutomotiveApp.BlazorUI.Models.Transaction
     {
         // private readonly string ImagePath = "Icons/Transactions/";
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string? Name { get; set; } 
+        public string? Name { get; set; }
         // public TransactionCategory Category = TransactionCategory.BCA;
         // public string Image { get; set; } = null!;
-        public TransactionCategory Category { get; set; }
         public string? Image { get; set; }
 
         public TransactionViewModel() { }

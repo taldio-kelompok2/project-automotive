@@ -29,11 +29,12 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
                 );
         }
 
-        public async Task<PaginatedResult<Course>> GetCoursesWithCategoryPaged(CancellationToken ct, int page = 1, int itemTaken = 6)
+        public async Task<PaginatedResult<Course>> GetCoursesWithCategoryPaged(CancellationToken ct, int page = 1, int itemTaken = 6, bool isRandom = false)
         {
             return await GetAllPagedAsync(
                 page: page,
                 itemTaken: itemTaken,
+                isRandom: isRandom,
                 modifier: q => q
                         .Include(c => c.Category),
                     ct: ct

@@ -16,11 +16,11 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         private readonly ILocalStorageService _localStorage;
         private readonly AuthenticationStateProvider _authStateProvider;
         public AuthService(
-            HttpClient httpClient,
+            IHttpClientFactory httpFactory,
             ILocalStorageService localStorage,
             AuthenticationStateProvider authStateProvider)
         {
-            _httpClient = httpClient;
+            _httpClient = httpFactory.CreateClient("ServerAPI");
             _localStorage = localStorage;
             _authStateProvider = authStateProvider;
         }
@@ -50,7 +50,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                         _httpClient.DefaultRequestHeaders.Authorization =
                             new AuthenticationHeaderValue("Bearer", apiResponse.Data.AccessToken);
 
-                        ((CustomAuthStateProvider) _authStateProvider).NotifyUserAuthentication(apiResponse.Data.AccessToken);
+                        ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(apiResponse.Data.AccessToken);
 
                         return apiResponse.Data;
                     }
@@ -58,7 +58,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
                 return null;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine($"err: {ex.Message}");
                 return null;
@@ -183,7 +183,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             }
         }
 
-        
+
         public async Task<bool> ConfirmEmailAsync(string userId, string token)
         {
             try

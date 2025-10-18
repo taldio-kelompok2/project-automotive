@@ -16,15 +16,18 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddHttpClient<IAuthService, AuthService>("API", client =>
+
+builder.Services.AddScoped<IRentalCartService, RentalCartService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddTransient<AuthMessageHandler>();
+
+builder.Services.AddHttpClient("ServerAPI", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5001");
 }).AddHttpMessageHandler<AuthMessageHandler>();
-
-builder.Services.AddScoped<IRentalCartService, RentalCartService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-builder.Services.AddScoped<AuthMessageHandler>();
 
 
 //Mud blazor implementation
@@ -50,8 +53,11 @@ if (string.IsNullOrWhiteSpace(apiBaseUrl))
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
 // Service FE yang memanggil API
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
+
 
 var app = builder.Build();
 

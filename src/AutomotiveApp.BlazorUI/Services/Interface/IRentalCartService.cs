@@ -6,18 +6,21 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
 {
     public interface IRentalCartService
     {
-        List<RentalCartViewModel> RentalCart { get; set; }
+        List<RentalCartItemViewModel> RentalCartItems { get; set; }
+        Guid Id { get; set; }
         bool IsLoading { get; }
         bool SelectedAll { get; set; }
         int TotalPrice { get; set; }
         bool IsCartEmpty { get; }
         event Action? OnCartChanged;
         event Action? OnLoadingChanged;
+        Task GetUserCartData();
         void ToggleSelectAll(bool value);
-        void AddItem(CarViewModel cartItem, DateTime? rentalDate);
-        bool TryRemoveItem(RentalCartViewModel cartItem);
-        void ClearAll();
-        Task FinalizeInstantPaymentAsync(CarViewModel rental, TransactionViewModel transaction, DateTime? rentalDate);
-        Task FinalizePaymentAsync();
+        Task AddItem(Guid sessionid);
+        Task<bool> RemoveSelectedItemsAsync();
+        Task<bool> RemoveItemAsync(RentalCartItemViewModel cartItem);
+        Task ClearAllAsync();
+        Task FinalizeInstantPaymentAsync(Guid SessionId, Guid PaymentId);
+        Task FinalizePaymentAsync(Guid PaymentId);
     }
 }

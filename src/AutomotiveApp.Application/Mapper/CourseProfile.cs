@@ -18,9 +18,7 @@ namespace AutomotiveApp.Application.Mapper
 
             CreateMap<Course, CourseQueryDetailDto>()
             .ForMember(dest => dest.Sessions,
-            opt => opt.MapFrom(src => src.Sessions
-            .OrderBy(s => s.Date)
-            .Select(s => s.Date)))
+            opt => opt.MapFrom(src => src.Sessions.ToDictionary(s => s.Id, s => s.Date)))
             .ForMember(dest => dest.ImageUrl, opt =>
             opt.MapFrom<ImageUrlResolver<Course, CourseQueryDto>>())
             .ForMember(dest => dest.Category,

@@ -1,23 +1,29 @@
 ﻿@page "/course/{category}"
+
+@using AutomotiveApp.Shared.Dtos.Courses
+@using AutomotiveApp.Shared.Models
+@using AutomotiveApp.Shared.Response
+@using Microsoft.AspNetCore.Mvc.ApiExplorer
 @using MudBlazor
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject ICourseService CourseService
 
 <PageTitle>Course Menu</PageTitle>
 
 <MudHidden Breakpoint="Breakpoint.SmAndDown">
     <MudImage Src="@HeroImage" Class="p-0 m-0" ObjectFit="ObjectFit.Cover" Style="display:flex;
-                         width:100%;
-                         height:300px;
-                         object-fit:cover;
-                         border-bottom: 1px solid #BDBDBD" />
+                        width:100%;
+                        height:300px;
+                        object-fit:cover;
+                        border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
 <MudHidden Breakpoint="Breakpoint.MdAndUp">
     <MudImage Src="@HeroImage" Class="p-0 m-0" ObjectFit="ObjectFit.Cover" Style="display:flex;
-                         width:100%;
-                         height:200px;
-                         object-fit:cover;
-                         border-bottom: 1px solid #BDBDBD" />
+                        width:100%;
+                        height:200px;
+                        object-fit:cover;
+                        border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
 
 <MudStack Class="p-4 p-sm-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
@@ -58,11 +64,14 @@
     </MudHidden>
     <!-- Courses card -->
     <MudGrid Spacing="6" Class="px-2 pb-8 mb-16">
-        @foreach (var car in cars)
+        @if (cars.Data?.Items.Any() ?? false)
         {
-            <MudItem xs="12" sm="6" md="4">
-                <CarCard Car="car" />
-            </MudItem>
+            @foreach (var car in cars.Data.Items)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <CarCard Car="car" />
+                </MudItem>
+            }
         }
     </MudGrid>
 </MudContainer>
@@ -72,9 +81,7 @@
 @code {
     [Parameter]
     public string? Category { get; set; }
-
-    private List<CarViewModel> allCars = new List<CarViewModel>();
-    private List<CarViewModel> cars = new List<CarViewModel>();
+    private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new();
 
     private readonly Random _random = new();
 
@@ -103,23 +110,23 @@
         _ => CarCategory.SUV
     };
 
-
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(200);
-        allCars = CarViewModel.InitDummyData();
-        LoadData();
+        cars = await CourseService.GetPaged();
+        @* allCars = CarViewModel.InitDummyData(); *@
+        @* LoadData(); *@
     }
 
     protected override Task OnParametersSetAsync()
     {
-        if (allCars is not null)
-            LoadData();
+        @* if (allCars is not null)
+            LoadData(); *@
 
         return Task.CompletedTask;
     }
 
-    private void LoadData()
+    @* private void LoadData()
     {
         cars = string.IsNullOrEmpty(Category)
         ? allCars
@@ -129,7 +136,7 @@
         .OrderBy(_ => _random.Next())
         .Take(6)
         .ToList();
-    }
+    } *@
 
     private void NavigateToCourseDetail(string courseTitle)
     {

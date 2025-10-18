@@ -1,7 +1,15 @@
-@page "/course/{category}/{name}"
-@using MudBlazor
+@using AutomotiveApp.BlazorUI.Models.Auth.Context
+@using AutomotiveApp.BlazorUI.Services.Implementation
+@using AutomotiveApp.Domain.Entities.Courses
+@using AutomotiveApp.Shared.Dtos.Courses
+@using AutomotiveApp.Shared.Models
+@using AutomotiveApp.Shared.Response
+@using MudBlazor 
+
+@page "/course/{id:guid}"
 @rendermode InteractiveServer
 @inject IRentalCartService Cart
+@inject ICourseService CourseService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IDialogService Dialog
@@ -13,15 +21,15 @@
         Class="m-0  ms-lg-5 d-flex justify-content-center justify-content-lg-start"
         Style="align-self:center;">
         <!-- Mobile (xs, sm) -->
-        <MudImage Src="@chosenCar.Image" Class="d-block d-md-none"
+        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-block d-md-none"
             Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
 
         <!-- Tablet (md only) -->
-        <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-none mt-3"
+        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-none d-md-block d-lg-none mt-3"
             Style="width:95%; object-fit:cover; border:1px solid #BDBDBD;" />
 
         <!-- Desktop (lg and up) -->
-        <MudImage Src="@chosenCar.Image" Class="d-none d-md-block d-lg-block"
+        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-none d-md-block d-lg-block"
             Style="width:90%; object-fit:cover; border:1px solid #BDBDBD;" />
     </MudItem>
 
@@ -30,40 +38,38 @@
         Style="flex-grow:1; display:flex; flex-direction:column;">
         <div class="px-0 mx-0" style="flex:1; display:flex; flex-direction:column;">
             <MudText Typo="Typo.h6" Class="p-0" Style="font-weight: 400; color: #828282; font-size: 20px">
-                @CategoryTitle.ToString()</MudText>
-            <MudText Typo="Typo.h4" Class="pt-2" Style="font-weight: 600;">@chosenCar.Name</MudText>
+                @chosenCar.Data?.Category</MudText>
+            <MudText Typo="Typo.h4" Class="pt-2" Style="font-weight: 600;">@chosenCar.Data?.Name</MudText>
             <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" Style="font-weight:600">IDR
-                @chosenCar.Price.ToString("N0")</MudText>
+                @chosenCar.Data?.Price.ToString("N0")</MudText>
 
             <!-- schedule dropdown -->
             <MudForm @ref="ScheduleForm">
                 <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                    <MudSelect T="DateTime ?" Class="my-8 pb-8 pb-md-0 select-schedule" 
+                    <MudSelect T="Guid?" Class="my-8 pb-8 pb-md-0 select-schedule" 
                         Variant="Variant.Outlined" IconSize="Size.Large"
-                        @bind-Value="_selectedSchedule" Required="true"
+                        @bind-Value="_selectedSessionId" Required="true"
                         Placeholder="Select schedule" Dense="true" FitContent="true"
                         RequiredError="Please select a schedule">
-                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 27))">
-                            <MudText Typo="Typo.body2">Wednesday, 27 July 2022</MudText>
+                        @foreach(var session in Sessions.OrderBy(s => s.Value)) {
+                            <MudSelectItem T="Guid?" Value="@(session.Key)">
+                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
                         </MudSelectItem>
-                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 29))">
-                            <MudText Typo="Typo.body2">Friday, 29 July 2022</MudText>
-                        </MudSelectItem>
+                        }
                     </MudSelect>
                 </MudHidden>
 
                 <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                    <MudSelect T="DateTime ?" @bind-Value="_selectedSchedule" Required="true" 
+                    <MudSelect T="Guid?" @bind-Value="_selectedSessionId" Required="true" 
                         Class="my-8 pb-8 pb-md-0 select-schedule" 
                         Variant="Variant.Outlined" IconSize="Size.Large"
                         Placeholder="Select schedule" Dense="true" FitContent="true" FullWidth="true"
                         RequiredError="Please select a schedule">
-                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 27))">
-                            <MudText Typo="Typo.body2">Wednesday, 27 July 2022</MudText>
+                        @foreach(var session in Sessions.OrderBy(s => s.Value)) {
+                            <MudSelectItem T="Guid?" Value="@(session.Key)">
+                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
                         </MudSelectItem>
-                        <MudSelectItem T="DateTime ?" Value="@(new DateTime(2022, 7, 29))">
-                            <MudText Typo="Typo.body2">Friday, 29 July 2022</MudText>
-                        </MudSelectItem>
+                        }
                     </MudSelect>
                 </MudHidden>
             </MudForm>
@@ -117,7 +123,7 @@
     </MudHidden>
     <!-- Courses card -->
     <MudGrid Spacing="6" Class="px-2 pb-8 mb-16">
-        @foreach (var car in cars)
+        @foreach (var car in cars.Data?.Items ?? [])
         {
             <MudItem xs="12" sm="6" md="4">
                 <CarCard Car="car" />
@@ -129,17 +135,19 @@
 <Footer />
 
 @code {
+
+    [CascadingParameter] 
+    public UserContext UserContext { get; set; } = default!;
+
     [Parameter]
-    public string? Category { get; set; }
+    public Guid Id { get; set; }
     [Parameter]
     public string Name { get; set; } = null!;
-    private DateTime? _selectedSchedule = null;
+    private Guid? _selectedSessionId;
     private MudForm ScheduleForm = null!;
-
-    private List<CarViewModel> allCars = new List<CarViewModel>();
-    private List<CarViewModel> cars = new List<CarViewModel>();
-    private CarViewModel chosenCar = new CarViewModel();
-    private readonly Random _random = new();
+    private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new ();
+    private ApiResponse<CourseQueryDetailDto> chosenCar = new();
+    private Dictionary<Guid,DateTime> Sessions = []; 
 
     private RenderFragment SnackbarToCart =>
     @<MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
@@ -153,67 +161,20 @@
         </AppBaseButton>
     </MudStack>;
 
-    private CarCategory CategoryTitle => Category?.ToLowerInvariant() switch
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        "electric" => CarCategory.Electric,
-        "hatchback" => CarCategory.Hatchback,
-        "lcgc" => CarCategory.LCGC,
-        "offroad" => CarCategory.Offroad,
-        "truck" => CarCategory.Truck,
-        "suv" => CarCategory.SUV,
-        "mpv" => CarCategory.MPV,
-        "sedan" => CarCategory.Sedan,
-        _ => CarCategory.SUV
-    };
+        if(!firstRender) return;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await Task.Delay(200);
-        allCars = CarViewModel.InitDummyData();
-        LoadData();
+        cars = await CourseService.GetPaged(1, 6, true);
     }
-    protected override Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if (allCars is not null)
-            LoadData();
-
-        return Task.CompletedTask;
-    }
-
-    private void LoadData()
-    {
-        // get cars
-        if (!string.IsNullOrEmpty(Category))
-            cars = allCars
-            .Where(c => string.IsNullOrEmpty(Category) ||
-            c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(_ => _random.Next())
-            .Take(6)
-            .ToList();
-        else
-            cars = allCars;
-
-        // get chosen course
-        string normalizedTitle = Name.Replace("-", " ").Trim().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(Name))
-        {
-            chosenCar = allCars
-            .FirstOrDefault(c => c.Name.ToLowerInvariant().Equals(normalizedTitle))
-            ?? new CarViewModel { Name = "", Category = CarCategory.Electric, Image = "", Price = 0 };
+        chosenCar = await CourseService.GetById(Id);
+        if(chosenCar.Data == null) {
+            Navigation.NavigateTo("error");
+            return;
         }
-        else
-        {
-            chosenCar = new CarViewModel { Name = "Car not found", Category = CarCategory.Electric, Image = "", Price = 0 };
-        }
-
-        if (cars != null && chosenCar != null)
-            cars.RemoveAll(c => c.Name.ToLowerInvariant().Equals(normalizedTitle));
-    }
-
-    private void NavigateToCourseDetail(string courseTitle)
-    {
-        string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo(uri: $"course/{Category}/{normalizedTitle}");
+        Sessions = chosenCar.Data.Sessions;  
     }
 
     private async Task AddToCartHandler()
@@ -224,7 +185,10 @@
 
         try
         {
-            Cart.AddItem(chosenCar, _selectedSchedule);
+            if(_selectedSessionId == null) {
+                return;
+            }
+            await Cart.AddItem(_selectedSessionId.Value);
             Snackbar.Add(SnackbarToCart, Severity.Info);
         }
         catch (Exception ex)
@@ -233,53 +197,68 @@
         }
     }
 
-    private async Task InstantPaymentHandler() {
+    private async Task<bool> OpenDialogAsync()
+    {
+        if (_selectedSessionId == null)
+        {
+            Snackbar.Add("Session is not selected.", Severity.Error);
+            return false;
+        }
+
+        var parameters = new DialogParameters();
+
+        var dialog = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters);
+        var result = await dialog.Result;
+
+        if (result!.Canceled || result.Data is not TransactionViewModel transaction)
+        {
+            Snackbar.Add("Payment was canceled or invalid.", Severity.Warning);
+            return false;
+        }
+        
+        try
+        {
+            await Cart.FinalizeInstantPaymentAsync(_selectedSessionId.Value, transaction.Id);
+            return true; // success
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Payment failed: {ex.Message}", Severity.Error);
+            return false;
+        }
+    }
+
+    private async Task InstantPaymentHandler()
+    {
         await ScheduleForm.Validate();
         if (!ScheduleForm.IsValid) return;
 
         try
         {
-            if(!await OpenDialogAsync()) {
-                Snackbar.Add("Payment successful, Redirecting in 2 second", Severity.Success,
-                config =>
-                {
-                    config.VisibleStateDuration = 2000;
-                });
+            var result = await OpenDialogAsync(); // true = payment success, false = failed/canceled
+
+            if (result)
+            {
+                Snackbar.Add("Payment successful, Redirecting in 2 seconds", Severity.Success,
+                    config => config.VisibleStateDuration = 2000);
+
                 await Task.Delay(2000);
                 Navigation.NavigateTo("/success-purchase");
+            }
+            else
+            {
+                Snackbar.Add("Payment was canceled or failed.", Severity.Warning);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add(ex.Message, Severity.Error);
+            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
         }
-    }
-
-    private async Task<bool> OpenDialogAsync() {
-        var parameters = new DialogParameters
-        {
-            ["OnSubmit"] = EventCallback.Factory.Create<TransactionViewModel>(this, HandleDialogSubmit)
-        };
-
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-
-        var dialogRef = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters, options);
-        var transactionResult = await dialogRef.Result;
-
-        return transactionResult?.Canceled! ?? true;
-    }
-
-    private async Task HandleDialogSubmit(TransactionViewModel transaction)
-    {
-        await Cart.FinalizeInstantPaymentAsync(chosenCar, transaction, _selectedSchedule);
     }
 
     private void GoCheckout()
     {
         Navigation.NavigateTo(uri: $"checkout");
-
     }
-
-
 
 }

@@ -1,13 +1,14 @@
+@using AutomotiveApp.Shared.Dtos.Courses
 @rendermode InteractiveServer
 
 @inject NavigationManager Nav
 
-<div class="card card-car" @onclick="() => NavigateToCourseDetail(Car)">
-    <img src=@Car.Image class="car-card-img-top">
+<div class="card card-car" @onclick="() => NavigateToCourseDetail(Car.Id)">
+    <img src=@Car.ImageUrl class="car-card-img-top">
     <div class="card-body card-car-body">
         <div class="d-flex flex-column gap-1">
             <div class="card-car-category">
-                <MudText Typo="Typo.body2" class="fw-light" Color="Color.Secondary">@Car.Category.ToString()
+                <MudText Typo="Typo.body2" class="fw-light" Color="Color.Secondary">@(Car.Category ?? "Unknown")
                 </MudText>
             </div>
             <div class="card-car-title">@Car.Name</div>
@@ -20,11 +21,10 @@
 
 
 @code {
-    [Parameter] public CarViewModel Car { get; set; } = null!;
+    [Parameter] public CourseQueryDto Car { get; set; } = null!;
 
-    private void NavigateToCourseDetail(CarViewModel car)
+    private void NavigateToCourseDetail(Guid CourseId)
     {
-        string normalizedTitle = car.Name.Replace(" ", "-").ToLowerInvariant();
-        Nav.NavigateTo($"/course/{car.Category.ToString().ToLowerInvariant()}/{normalizedTitle}");
+        Nav.NavigateTo($"/course/{CourseId}");
     }
 }

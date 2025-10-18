@@ -1,11 +1,24 @@
-﻿<MudDialog>
+﻿@using AutomotiveApp.Shared.Enums
+@using AutomotiveApp.BlazorUI.Models.Admin
+@using Microsoft.AspNetCore.Components.Forms
+
+<MudDialog>
     <DialogContent>
+
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_category.Name" Label="Category Name" Required="true" Class="mb-2" />
-            <MudSelect @bind-Value="_category.Status" Label="Status" Required="true">
+            <MudTextField @bind-Value="_vm.Name" Label="Category Name" Required="true" Class="mb-2" />
+            <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-3" />
+
+            <MudItem Class="my-3">
+                <MudText Typo="Typo.body2" Class="mb-1">Image:</MudText>
+                <InputFile OnChange="OnFileSelected" />
+            </MudItem>
+
+            @* <MudSelect @bind-Value="_vm.Status" Label="Status" Required="true">
                 <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
-            </MudSelect>
+            </MudSelect> *@
+
         </MudForm>
     </DialogContent>
 
@@ -18,7 +31,26 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private CategoryViewModel _category = new();
+    private CategoryViewModel _vm = new();
+    private MudForm _form = default!;
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+            MudDialog.Close(DialogResult.Ok(_vm));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is not null)
+            _vm.File = file;
+    }
+
+    @* private CategoryViewModel _category = new();
     private MudForm _form = default!;
 
     private async Task Save()
@@ -29,7 +61,5 @@
             // return to caller
             MudDialog.Close(DialogResult.Ok(_category));
         }
-    }
-
-    private void Cancel() => MudDialog.Cancel();
+    } *@
 }

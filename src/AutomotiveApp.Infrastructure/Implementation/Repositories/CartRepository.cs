@@ -11,13 +11,12 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
     : BaseRepository<Cart>(context), ICartRepository
     {
 
-        public Task<Unit> BatchDelete(IEnumerable<CartItem> items, CancellationToken ct = default)
+        public void BatchDelete(IEnumerable<CartItem> items, CancellationToken ct = default)
         {
             if (!items.Any())
                 throw new NotFoundException<Cart>("No items found for the provided Ids in cart.");
 
             _context.CartItems.RemoveRange(items);
-            return Task.FromResult(Unit.Value);
         }
     }
 }
