@@ -65,9 +65,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<Guid>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
+        public async Task<ActionResult<ApiResponse<bool>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
         {
-            var response = new ApiResponse<Guid>();
+            var response = new ApiResponse<bool>();
 
             var command = new CreateUser(userCreateDto);
             var result = await Mediator.Send(command);
@@ -82,11 +82,27 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpGet("paged")]
         public async Task<ActionResult<ApiResponse<PaginatedResult<UserQueryDto>>>> GetPagedUsers(
                     [FromQuery] int page = 1,
-                    [FromQuery] int itemTaken = 10)
+                    [FromQuery] int itemTaken = 10,
+                    [FromQuery] string? search = null)
         {
             var response = new ApiResponse<PaginatedResult<UserQueryDto>>();
 
-            var query = new GetUsersPaged(page, itemTaken);
+            var query = new GetUsersPaged(page, itemTaken, search);
+            var result = await Mediator.Send(query);
+
+            response.Success = true;
+            response.StatusCode = System.Net.HttpStatusCode.OK;
+            response.Data = result;
+
+            return Ok(response);
+        }
+
+        [HttpGet("all")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<UserQueryDto>>>> GetAllUsers()
+        {
+            var response = new ApiResponse<IEnumerable<UserQueryDto>>();
+
+            var query = new GetAllUsers();
             var result = await Mediator.Send(query);
 
             response.Success = true;
