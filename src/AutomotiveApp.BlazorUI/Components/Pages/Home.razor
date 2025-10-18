@@ -113,7 +113,8 @@
             @foreach (var c in categories.Data.Items)
             {
                 <MudItem xs="6" sm="4" md="3">
-                    <MudLink Href="@($"/course/{c.Name.ToLower()}")" Style="text-decoration:none;color:inherit;">
+                    @* <MudLink Href="@($"/course/{c.Name.ToLower()}")" Style="text-decoration:none;color:inherit;"> *@
+                    <MudLink Href="@($"/course-category/{c.Id}")" Style="text-decoration:none;color:inherit;">
                         <div class="category-card hover-pointer">
                             <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
                                 <MudImage Src="@ResolveCatImage(c.ImageUrl)"

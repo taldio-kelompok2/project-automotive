@@ -1,4 +1,4 @@
-﻿@page "/course/{category}"
+﻿@page "/course-category/{id:guid}"
 
 @using AutomotiveApp.Shared.Dtos.Courses
 @using AutomotiveApp.Shared.Models
@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject ICourseService CourseService
+@inject ICourseCategoryService CategorySvc
 
 <PageTitle>Course Menu</PageTitle>
 
@@ -26,7 +27,7 @@
                         border-bottom: 1px solid #BDBDBD" />
 </MudHidden>
 
-<MudStack Class="p-4 p-sm-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
+@* <MudStack Class="p-4 p-sm-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
         <MudText Typo="Typo.h4" Class="text-black mx-4 px-4 mt-1" Align="Align.Left" Style="font-weight: 600;">
             @CategoryTitle</MudText>
@@ -49,7 +50,30 @@
             culpa qui officia deserunt mollit anim id est laborum.nulla pariatur. Excepteur sint occaecat cupidatat non
             proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</MudText>
     </MudHidden>
+</MudStack> *@
+
+<MudStack Class="p-4 p-sm-5 my-2" Style="border-bottom: 1px solid #E0E0E0;">
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudText Typo="Typo.h4" Class="text-black mx-4 px-4 mt-1" Align="Align.Left" Style="font-weight: 600;">
+            @CategoryTitle
+        </MudText>
+        <MudText Typo="Typo.subtitle1" Class="text-black mx-4 px-4 mb-5 pt-2 pb-3"
+                 Style="text-align: justify; line-height: 1.5;">
+            @CategoryDescription
+        </MudText>
+    </MudHidden>
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudText Typo="Typo.h4" Class="text-black mt-1" Align="Align.Left" Style="font-weight: 600;">
+            @CategoryTitle
+        </MudText>
+        <MudText Typo="Typo.subtitle1" Class="text-black pt-2 pb-3"
+                 Style="text-align: justify; line-height: 1.5;">
+            @CategoryDescription
+        </MudText>
+    </MudHidden>
 </MudStack>
+
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4" Style="background-color: white">
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
@@ -74,73 +98,89 @@
             }
         }
     </MudGrid>
+
 </MudContainer>
 
 <Footer />
 
 @code {
-    [Parameter]
-    public string? Category { get; set; }
+    [Parameter] public Guid id { get; set; }
+
     private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new();
 
-    private readonly Random _random = new();
+    private Guid? _categoryId;
+    private string CategoryTitle = "";        
+    private string HeroImage = "images/CourseMenu/Hero-SUV.svg"; 
+    private string CategoryDescription = "";  
 
-    private string HeroImage => Category?.ToLower() switch
-    {
-        "electric" => "images/CourseMenu/Hero-Electric.svg",
-        "hatchback" => "images/CourseMenu/Hero-Hatchback.svg",
-        "lcgc" => "images/CourseMenu/Hero-LCGC.svg",
-        "offroad" => "images/CourseMenu/Hero-Offroad.svg",
-        "truck" => "images/CourseMenu/Hero-Truck.svg",
-        "suv" => "images/CourseMenu/Hero-SUV.svg",
-        "mpv" => "images/CourseMenu/Hero-MPV.svg",
-        "sedan" => "images/CourseMenu/Hero-Sedan.svg",
-        _ => "images/CourseMenu/Hero-SUV.svg"
-    };
-    private CarCategory CategoryTitle => Category?.ToLowerInvariant() switch
-    {
-        "electric" => CarCategory.Electric,
-        "hatchback" => CarCategory.Hatchback,
-        "lcgc" => CarCategory.LCGC,
-        "offroad" => CarCategory.Offroad,
-        "truck" => CarCategory.Truck,
-        "suv" => CarCategory.SUV,
-        "mpv" => CarCategory.MPV,
-        "sedan" => CarCategory.Sedan,
-        _ => CarCategory.SUV
-    };
+    // --- Another Course ---
+    private const int PageSize = 6;
+    private int page = 1;
+    private int totalPages;
+    private bool isLoading;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(200);
-        cars = await CourseService.GetPaged();
-        @* allCars = CarViewModel.InitDummyData(); *@
-        @* LoadData(); *@
+        page = 1;
+        await LoadCategoryAsync();
+        await LoadCoursesAsync(page);
     }
 
-    protected override Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        @* if (allCars is not null)
-            LoadData(); *@
-
-        return Task.CompletedTask;
+        page = 1;
+        await LoadCategoryAsync();
+        await LoadCoursesAsync(page);
     }
 
-    @* private void LoadData()
+    private async Task LoadCoursesAsync(int p)
     {
-        cars = string.IsNullOrEmpty(Category)
-        ? allCars
-        : allCars
-        .Where(c => string.IsNullOrEmpty(Category) ||
-        c.Category.ToString().Equals(Category, StringComparison.OrdinalIgnoreCase))
-        .OrderBy(_ => _random.Next())
-        .Take(6)
-        .ToList();
-    } *@
+        isLoading = true;
+        try
+        {
+            var res = await CourseService.GetPaged(p, PageSize);
 
-    private void NavigateToCourseDetail(string courseTitle)
-    {
-        string normalizedTitle = courseTitle.Replace(" ", "-").ToLowerInvariant();
-        Navigation.NavigateTo($"course/{Category}/{normalizedTitle}");
+            cars = res ?? new ApiResponse<PaginatedResult<CourseQueryDto>>
+            {
+                Success = true,
+                Data = new PaginatedResult<CourseQueryDto>(Enumerable.Empty<CourseQueryDto>(), 0)
+            };
+
+            totalPages = cars.Data is null
+                ? 0
+                : (int)Math.Ceiling((double)cars.Data.TotalCount / PageSize);
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
+
+    private async Task OnPageChanged(int newPage)
+    {
+        page = newPage;
+        await LoadCoursesAsync(page);
+    }
+
+    private async Task LoadCategoryAsync()
+    {
+        var all = await CategorySvc.GetAllAsync();
+        var cat = all.FirstOrDefault(c => c.Id == id);
+        if (cat is null)
+        {
+            CategoryTitle = "Course";
+            HeroImage = "images/CourseMenu/Hero-SUV.svg";
+            return;
+        }
+
+        CategoryTitle = cat.Name ?? "";
+        CategoryDescription = cat.Description ?? "";
+
+        HeroImage = !string.IsNullOrWhiteSpace(cat.HeroImageUrl)
+            ? cat.HeroImageUrl
+            : (!string.IsNullOrWhiteSpace(cat.ImageUrl) ? cat.ImageUrl : "images/CourseMenu/Hero-SUV.svg");
+    }
+    
 }
+
+    
