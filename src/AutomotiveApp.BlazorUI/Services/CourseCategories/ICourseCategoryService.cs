@@ -12,6 +12,7 @@ public interface ICourseCategoryService
         string name,
         string description,
         IBrowserFile? file = null,
+        IBrowserFile? heroFile = null,
         CancellationToken ct = default);
 
     Task<bool> UpdateMultipartAsync(
@@ -19,6 +20,7 @@ public interface ICourseCategoryService
         string name,
         string description,
         IBrowserFile? file = null,
+        IBrowserFile? heroFile = null,
         CancellationToken ct = default);
 
     Task<ApiResponse<PaginatedResult<CourseCategoryQueryDto>>> GetPagedAsync(

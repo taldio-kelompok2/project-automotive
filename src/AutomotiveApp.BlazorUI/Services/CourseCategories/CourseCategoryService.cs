@@ -22,6 +22,7 @@ public class CourseCategoryService : ICourseCategoryService
         string name,
         string description,
         IBrowserFile? file = null,
+        IBrowserFile? heroFile = null,
         CancellationToken ct = default)
     {
         using var content = new MultipartFormDataContent();
@@ -32,6 +33,12 @@ public class CourseCategoryService : ICourseCategoryService
         {
             var stream = file.OpenReadStream(long.MaxValue);
             content.Add(new StreamContent(stream), "Image", file.Name);
+        }
+
+        if (heroFile is not null)
+        {
+            var hstream = heroFile.OpenReadStream(long.MaxValue);
+            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name); 
         }
 
         using var resp = await _http.PostAsync("api/CourseCategory", content, ct);
@@ -46,6 +53,7 @@ public class CourseCategoryService : ICourseCategoryService
         string name,
         string description,
         IBrowserFile? file = null,
+        IBrowserFile? heroFile = null,
         CancellationToken ct = default)
     {
         using var content = new MultipartFormDataContent();
@@ -59,6 +67,12 @@ public class CourseCategoryService : ICourseCategoryService
         {
             var stream = file.OpenReadStream(long.MaxValue);
             content.Add(new StreamContent(stream), "Image", file.Name);
+        }
+
+        if (heroFile is not null)
+        {
+            var hstream = heroFile.OpenReadStream(long.MaxValue);
+            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name); 
         }
 
         using var req = new HttpRequestMessage(HttpMethod.Patch, $"api/CourseCategory/{id}")
