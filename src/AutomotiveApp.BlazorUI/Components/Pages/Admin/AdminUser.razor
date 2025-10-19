@@ -1,7 +1,8 @@
 ﻿@page "/admin/user"
+@using AutomotiveApp.Shared.Dtos.User
 @rendermode InteractiveServer
 @inject IDialogService DialogService
-
+@inject IUserService UserService
 
 @layout AdminLayout
 
@@ -14,38 +15,80 @@
 </MudPaper>
 
 @code {
-
-    private List<UserViewModel> users = new()
-    {
-        new UserViewModel { Email="admin@dlanguage.com", Name="Super Admin", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="nurimamiskandar@gmail.com", Name="Nur Imam Iskandar", Role=AdminUserRole.User, Status=Status.Active},
-        new UserViewModel { Email="imam.stmik15@gmail.com", Name="Iskandar", Role=AdminUserRole.User, Status=Status.Active},
-        new UserViewModel { Email="iniemaildummysaya@gmail.com", Name="Dummy User", Role=AdminUserRole.User, Status=Status.Inactive},
-        new UserViewModel { Email="yusrisahrul.works@gmail.com", Name="yusri sahrul", Role=AdminUserRole.User, Status=Status.Active},
-        new UserViewModel { Email="yusribootcamp@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="adasdasda@gmail.com", Name="yusri test", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="asdasd@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="dssdsdsd@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="dssd6767d@gmail.com", Name="yusri sahrul test", Role=AdminUserRole.Admin, Status=Status.Active},
-        new UserViewModel { Email="iniemail@gmail.com", Name="Dummy User", Role=AdminUserRole.User, Status=Status.Inactive},
-    };
+    private List<UserViewModel> users = new();
 
     List<ColumnDefinition<UserViewModel>> userColumns = new()
     {
         new ColumnDefinition<UserViewModel> { Header = "Name", CellTemplate = u => u.Name, IsSearchable = true, IsStatusColumn = false },
         new ColumnDefinition<UserViewModel> { Header = "Email", CellTemplate = u => u.Email, IsSearchable = true, IsStatusColumn = false },
+        new ColumnDefinition<UserViewModel> { Header = "Phone", CellTemplate = u => u.PhoneNumber, IsSearchable = false, IsStatusColumn = false },
         new ColumnDefinition<UserViewModel> { Header = "Role", CellTemplate = u => u.Role, IsSearchable = false, IsStatusColumn = false },
-        new ColumnDefinition<UserViewModel> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = true, IsStatusColumn = true },
+        new ColumnDefinition<UserViewModel> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = false, IsStatusColumn = true },
         new ColumnDefinition<UserViewModel> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false, IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
     };
 
-    private void OnUserEdit(UserViewModel user)
+    protected override async Task OnInitializedAsync()
     {
-        var idx = users.FindIndex(c => c.Name == user.Name);
-        if (idx >= 0)
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        var rows = await UserService.GetAllUsers();
+        users = rows.Select(x => new UserViewModel
         {
-            users[idx] = user;
-            StateHasChanged();
+            Id = x.Id,
+            Name = x.UserName,
+            Email = x.Email,
+            PhoneNumber = x.PhoneNumber,
+            Role = RoleMapper(x.Roles),
+            Status = x.Status ? Status.Active : Status.Inactive
+        }).ToList();
+    }
+
+    // string list to enum
+    private UserRole RoleMapper(List<string> input)
+    {
+        var role = input.FirstOrDefault() ?? "Buyer";
+        if (role.Equals("Admin"))
+        {
+            return UserRole.Admin;
+        }
+        return UserRole.Buyer;
+    }
+
+    // enum to bool
+    private bool StatusMapper(Status input)
+    {
+        if (input == Status.Active)
+            return true;
+
+        return false;
+    }
+
+    private async Task OnUserEdit(UserViewModel user)
+    {
+        var loadingDialog = await DialogService.ShowAsync<LoadingDialog>("Updating user...");
+        await Task.Delay(1000);
+
+        try
+        {
+            var updatedUser = new UserUpdateRequestDto
+            {
+                UserName = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role.ToString(),
+                Status = StatusMapper(user.Status),
+            };
+
+            var success = await UserService.UpdateUser(user.Id, updatedUser);
+            if (success)
+                await LoadUsersAsync();
+        }
+        finally
+        {
+            loadingDialog.Close();
         }
     }
 
@@ -54,10 +97,31 @@
         var dialog = await DialogService.ShowAsync<AddUserDialog>("Add User");
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is UserViewModel newUser)
+        if (!result.Canceled && result.Data is UserViewModel user)
         {
-            users.Add(newUser);
-            StateHasChanged();
+            var loadingDialog = await DialogService.ShowAsync<LoadingDialog>("Adding user...");
+            await Task.Delay(1000);
+
+            try
+            {
+                var input = new UserCreateRequestDto
+                {
+                    UserName = user.Name,
+                    Email = user.Email,
+                    Password = user.Password,
+                    PhoneNumber = user.PhoneNumber,
+                    Role = user.Role.ToString(),
+                    Status = StatusMapper(user.Status),
+                };
+
+                var success = await UserService.CreateUser(input);
+                if (success)
+                    await LoadUsersAsync();
+            }
+            finally
+            {
+                loadingDialog.Close();
+            }
         }
     }
 }
