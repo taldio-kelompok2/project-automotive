@@ -97,6 +97,14 @@
                 </MudItem>
             }
         }
+        else
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-6 mb-16 pb-4 pt-3">
+                    No Courses Available in this Category
+                </MudText>
+            </MudItem>
+        }
     </MudGrid>
 
 </MudContainer>
@@ -113,11 +121,15 @@
     private string HeroImage = "images/CourseMenu/Hero-SUV.svg"; 
     private string CategoryDescription = "";  
 
+
     // --- Another Course ---
     private const int PageSize = 6;
     private int page = 1;
     private int totalPages;
     private bool isLoading;
+    private const int ServerPageSize = 50; 
+    private List<CourseQueryDto> _allForCategory = new();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,6 +138,7 @@
         await LoadCoursesAsync(page);
     }
 
+
     protected override async Task OnParametersSetAsync()
     {
         page = 1;
@@ -133,7 +146,9 @@
         await LoadCoursesAsync(page);
     }
 
-    private async Task LoadCoursesAsync(int p)
+
+    @* No Filter Courses Category *@
+    @* private async Task LoadCoursesAsync(int p)
     {
         isLoading = true;
         try
@@ -154,13 +169,61 @@
         {
             isLoading = false;
         }
+    } *@
+
+
+    @* Filter Courses by CategoryId *@
+    private async Task LoadCoursesAsync(int p)
+    {
+        isLoading = true;
+        try
+        {
+            _allForCategory.Clear();
+
+            var fetchPage = 1;
+            while (true)
+            {
+                var res = await CourseService.GetPaged(fetchPage, ServerPageSize);
+                var pageItems = res.Data?.Items ?? Enumerable.Empty<CourseQueryDto>();
+
+                // filtering by CategoryId 
+                _allForCategory.AddRange(pageItems.Where(x => x.CategoryId == id));
+
+                // stop ketika jumlah item server < ServerPageSize (halaman terakhir)
+                if (res.Data is null || pageItems.Count() < ServerPageSize)
+                    break;
+
+                fetchPage++;
+            }
+
+            // pagination lokal
+            var totalFiltered = _allForCategory.Count;
+            totalPages = (int)Math.Ceiling((double)totalFiltered / PageSize);
+
+            var pageItemsLocal = _allForCategory
+                .Skip((p - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
+            cars = new ApiResponse<PaginatedResult<CourseQueryDto>>
+            {
+                Success = true,
+                Data = new PaginatedResult<CourseQueryDto>(pageItemsLocal, totalFiltered)
+            };
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
+
 
     private async Task OnPageChanged(int newPage)
     {
         page = newPage;
         await LoadCoursesAsync(page);
     }
+
 
     private async Task LoadCategoryAsync()
     {
