@@ -14,6 +14,11 @@
                 <InputFile OnChange="OnFileSelected" />
             </MudItem>
 
+            <MudItem Class="my-3">
+                <MudText Typo="Typo.body2" Class="mb-1">Hero:</MudText>
+                <InputFile OnChange="OnHeroSelected" />
+            </MudItem>
+
             @* <MudSelect @bind-Value="_vm.Status" Label="Status" Required="true">
                 <MudSelectItem T="Status" Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem T="Status" Value="Status.Inactive">Inactive</MudSelectItem>
@@ -48,6 +53,13 @@
         var file = e.File;
         if (file is not null)
             _vm.File = file;
+    }
+
+    private void OnHeroSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is not null)
+            _vm.HeroFile = file;   
     }
 
     @* private CategoryViewModel _category = new();

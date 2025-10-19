@@ -14,6 +14,12 @@ namespace AutomotiveApp.WebAPI.Mapper
                 opt => opt.MapFrom(src => src.Image != null ? src.Image.FileName : null)
             );
 
+            CreateMap<CourseCategoryCreateRequest, CourseCategoryCommandDto>()
+            .ForMember(
+                dest => dest.HeroImageFileName,
+                opt => opt.MapFrom(src => src.HeroImage != null ? src.HeroImage.FileName : null)
+            );
+
             CreateMap<CourseCategoryEditRequest, CourseCategoryEditDto>()
             .ForAllMembers(opt =>
             {

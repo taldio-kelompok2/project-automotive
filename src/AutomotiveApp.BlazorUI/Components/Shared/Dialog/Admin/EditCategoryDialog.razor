@@ -17,6 +17,15 @@
                 }
             </MudItem>
 
+            <MudItem Class="my-3">
+                <MudText Typo="Typo.body2" Class="mb-1">Hero:</MudText>
+                <InputFile OnChange="OnHeroSelected" />
+                @if (!string.IsNullOrWhiteSpace(_vm.Hero))
+                {
+                    <MudText Typo="Typo.body2" Class="mt-1">Current: @_vm.Hero</MudText>
+                }
+            </MudItem>
+
             @* <MudSelect T="Status" @bind-Value="_vm.Status" Label="Status" Required="true">
                 <MudSelectItem Value="Status.Active">Active</MudSelectItem>
                 <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
@@ -49,6 +58,7 @@
                 Name        = Item.Name,
                 Description = Item.Description,
                 Logo        = Item.Logo,
+                Hero        = Item.Hero,
                 Status      = Item.Status
             };
         }
@@ -68,6 +78,13 @@
         var file = e.File;
         if (file is not null)
             _vm.File = file;
+    }
+
+    private void OnHeroSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is not null)
+            _vm.HeroFile = file;
     }
 
     @* protected override void OnInitialized()

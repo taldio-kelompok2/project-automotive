@@ -69,6 +69,13 @@
             IsImageColumn = true,
             IsSearchable = false
         },
+        new ColumnDefinition<CategoryViewModel>
+        {
+            Header = "Hero",
+            CellTemplate = category => @category.Hero,
+            IsImageColumn = true,
+            IsSearchable = false
+        },
         @* new ColumnDefinition<CategoryViewModel>
         {
             Header = "Status",
@@ -99,6 +106,7 @@
                 Name        = x.Name,
                 Description = x.Description ?? "",
                 Logo        = ResolveLogoUrl(x.ImageUrl), 
+                Hero        = ResolveHeroUrl(x.HeroImageUrl)
                 @* Status = Status.Active *@
             })
             .ToList();
@@ -108,6 +116,21 @@
     {
         if (string.IsNullOrWhiteSpace(value))
             return "/images/coursecategory/placeholder.svg";
+
+        var v = value.Trim();
+        if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return v;
+        if (v.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+            return v;
+
+        var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        return $"{api}/images/CourseCategory/{v}";
+    }
+
+    private string ResolveHeroUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "/images/coursecategory/placeholder-hero.svg"; 
 
         var v = value.Trim();
         if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -131,6 +154,7 @@
                 Name        = x.Name,
                 Description = x.Description ?? "",
                 Logo        = ResolveLogoUrl(x.ImageUrl), 
+                Hero        = ResolveHeroUrl(x.HeroImageUrl),
                 @* Status = Status.Active *@
             })
             .ToList();
@@ -149,13 +173,18 @@
         {
             // file null tetap kirim tanpa file.
             Guid? id;
-            if (vm.File is null)
+            if (vm.File is null && vm.HeroFile is null)
             {
-                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, file: null!);
+                id = await CategorySvc.CreateMultipartAsync(
+                    vm.Name, 
+                    vm.Description, 
+                    vm.File,
+                    vm.HeroFile
+                );
             }
             else
             {
-                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File);
+                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File, vm.HeroFile); 
             }
 
             if (id is null)
@@ -181,7 +210,8 @@
                 vm.CategoryId,
                 vm.Name,
                 vm.Description,
-                vm.File
+                vm.File,
+                vm.HeroFile
             );
 
             if (!ok)
@@ -202,6 +232,13 @@
                     var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
                     var ext = Path.GetExtension(vm.File.Name);
                     row.Logo = $"{baseUrl}/images/CourseCategory/{vm.CategoryId}{ext}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                }
+                
+                if (vm.HeroFile is not null)
+                {
+                    var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
+                    var ext = Path.GetExtension(vm.HeroFile.Name);
+                    row.Hero = $"{baseUrl}/images/CourseCategory/{vm.CategoryId}-hero{ext}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 }
             }
 
