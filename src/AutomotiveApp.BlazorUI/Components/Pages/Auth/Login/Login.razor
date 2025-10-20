@@ -1,12 +1,15 @@
 @inject NavigationManager Nav
 @inject IDialogService DialogService
 @inject IAuthService AuthService
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 @layout AuthLayout
 @page "/login"
 @using AutomotiveApp.BlazorUI.Services.Interface
 @using AutomotiveApp.Shared.Dtos.Auth
+@using System.Text.Json
+@using System.Text
 
 <AuthHeader Title="Welcome Back!" SubTitle="Please login first" />
 <EditForm OnValidSubmit="OnValidSubmit" Model="@_loginModel">
@@ -55,7 +58,7 @@
 
     // private RenderFragment LoginDialogContent =>
     // @<div>
-    //     <MudText Typo="Typo.body2">Welcome back, @_loginModel.Email</MudText>
+    // <MudText Typo="Typo.body2">Welcome back, @_loginModel.Email</MudText>
     // </div>;
 
     private bool IsFormFilled()
@@ -106,7 +109,7 @@
         await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
     }
 
-    private async Task OnValidSubmit()
+    @* private async Task OnValidSubmit()
     {
         _isLoading = true;
 
@@ -135,6 +138,30 @@
         catch (Exception ex)
         {
             await ShowErrorDialogAsync($"Login failed: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    } *@
+
+    private async Task OnValidSubmit()
+    {
+        _isLoading = true;
+        try
+        {
+            // Call the proxy login via JS fetch
+            var success = await AuthService.LoginViaProxyAsync(_loginModel.Email, _loginModel.Password);
+
+            if (success)
+            {
+                await ShowSuccessDialogAsync();
+                Nav.NavigateTo("/", forceLoad: true); // reload so SignalR picks up cookies
+            }
+            else
+            {
+                await ShowErrorDialogAsync("Invalid email or password.");
+            }
         }
         finally
         {

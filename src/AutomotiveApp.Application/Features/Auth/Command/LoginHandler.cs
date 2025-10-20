@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AutomotiveApp.Application.Interfaces.Utils;
+﻿using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Shared.Dtos.Auth;
 using MediatR;
@@ -55,6 +54,8 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             await userManager.UpdateAsync(user);
 
             //_logger.LogInformation("Login successful for email: {Email}", request.Email);
+
+            Console.WriteLine($"Token Expires: {DateTime.UtcNow.AddMinutes(jwtSettings.AccessTokenExpirationMinutes)}");
 
             return new AuthResponseDto
             {

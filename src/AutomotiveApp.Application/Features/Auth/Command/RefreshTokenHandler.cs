@@ -4,52 +4,20 @@ using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Shared.Dtos.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
     public class RefreshTokenHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings)
-        : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
+    : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
     {
         public async Task<AuthResponseDto> Handle(RefreshTokenCommand req, CancellationToken ct)
         {
             try
             {
-                // Get principal from expired access token
-                var principal = tokenService.GetPrincipalFromExpiredToken(req.AccessToken);
-                if (principal == null)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "Invalid access token"
-                    };
-                }
+                var user = await userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == req.RefreshToken, ct);
 
-                // Get user ID from claims
-                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "Invalid token claims"
-                    };
-                }
-
-                // Find user
-                var user = await userManager.FindByIdAsync(userId);
                 if (user == null || !user.Status)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "User not found or inactive"
-                    };
-                }
-
-                // Validate refresh token
-                if (user.RefreshToken != req.RefreshToken)
                 {
                     return new AuthResponseDto
                     {
@@ -58,12 +26,10 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                     };
                 }
 
-                // Check refresh token expiration
                 if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 {
-                    // Clear expired refresh token
                     user.RefreshToken = null;
-                    user.RefreshTokenExpiryTime = DateTime.Now;
+                    user.RefreshTokenExpiryTime = DateTime.UtcNow;
                     await userManager.UpdateAsync(user);
 
                     return new AuthResponseDto

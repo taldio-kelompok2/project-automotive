@@ -3,6 +3,6 @@ using MediatR;
 
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
-    public record RefreshTokenCommand(string RefreshToken, string AccessToken)
+    public record RefreshTokenCommand(string RefreshToken)
         : IRequest<AuthResponseDto>;
 }

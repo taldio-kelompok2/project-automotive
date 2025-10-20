@@ -1,5 +1,10 @@
+using System.Net;
 using AutomotiveApp.BlazorUI.Models.Cart;
 using AutomotiveApp.BlazorUI.Services.Interface;
+using AutomotiveApp.Domain.Entities.Courses.Cart;
+using AutomotiveApp.Shared.Dtos.CartItems;
+using AutomotiveApp.Shared.Response;
+using Blazored.LocalStorage;
 namespace AutomotiveApp.BlazorUI.Services.Implementation
 {
     public class RentalCartService : IRentalCartService
@@ -16,7 +21,11 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         public event Action? OnCartChanged;
         public event Action? OnLoadingChanged;
 
-        public RentalCartService(ILogger<RentalCartService> logger, ICartService cartService, ITransactionService transactionService)
+        public RentalCartService(
+            ILogger<RentalCartService> logger,
+            ICartService cartService,
+            ITransactionService transactionService
+            )
         {
             _cartService = cartService;
             _logger = logger;
@@ -42,6 +51,25 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 throw new InvalidOperationException(errors);
             }
         }
+
+        // WIP for guest Cart later
+        public async Task GetGuestCartData()
+        {
+            //clear all rental items
+            RentalCartItems.Clear();
+
+            //check cookies first if there are available cart Id
+
+            //generate a new Guid
+            Id = Guid.NewGuid();
+        }
+
+        // WIP for guest Cart later
+        public async Task AddItemToGuest()
+        {
+
+        }
+
         public void ToggleSelectAll(bool value)
         {
             SelectedAll = value;
@@ -49,7 +77,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             TotalPrice = RentalCartItems.Where(c => c.Selected).Sum(c => c.Item.Course.Price);
             _logger.LogInformation("All rental are selected: {SelectedAll}", SelectedAll);
         }
-        public async Task AddItem(Guid sessionid)
+        public async Task<ApiResponse<CartItemReadDto>> AddItem(Guid sessionid)
         {
             _logger.LogInformation("Attempting to add (SessionId: {SessionId}) to cart (CartId: {CartId})...",
                 sessionid, Id);
@@ -57,24 +85,26 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             if (Id == Guid.Empty)
                 await GetUserCartData();
 
-            var item = await _cartService.AddItemAsync(new CartItemViewModel { CartId = Id, SessionId = sessionid });
+            var response = await _cartService.AddItemAsync(new CartItemViewModel { CartId = Id, SessionId = sessionid });
 
-            if (item.Success && item.Data != null)
+            if (response.Success && response.Data != null)
             {
-                RentalCartItems.Add(new RentalCartItemViewModel { Item = item.Data });
+                RentalCartItems.Add(new RentalCartItemViewModel { Item = response.Data });
                 _logger.LogInformation(
                     "Successfully added Course '{CourseName}' (CourseId: {CourseId}, SessionId: {SessionId}) to cart (CartId: {CartId}).",
-                    item.Data.Course.Name, item.Data.Course.Id, item.Data.SessionId, Id);
+                    response.Data.Course.Name, response.Data.Course.Id, response.Data.SessionId, Id);
             }
             else
             {
-                var errors = item.Errors is not null ? string.Join(", ", item.Errors) : "Unknown error";
+                var errors = response.Errors is not null ? string.Join(", ", response.Errors) : "Unknown error";
                 _logger.LogError("Failed to add item. Errors: {Errors}", errors);
                 throw new InvalidOperationException(errors);
             }
 
             SelectedAll = false;
             OnCartChanged?.Invoke();
+
+            return response;
         }
 
         public async Task<bool> RemoveSelectedItemsAsync()

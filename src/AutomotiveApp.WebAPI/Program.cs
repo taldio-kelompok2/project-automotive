@@ -19,14 +19,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using Microsoft.Extensions.FileProviders;
-using AutomotiveApp.Infrastructure.Repositories;
 using AutomotiveApp.WebAPI.Middleware;
-using System.Net;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using AutomotiveApp.Shared.Response;
-using System.Text.Json;
-using AutomotiveApp.Domain.Entities.Orders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,16 +67,16 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IJwtSettings, JwtSettings>();
 
 // Configuration (appsettings.json)
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+?? throw new InvalidOperationException("JWT settings are not configured in appsettings.json.");
+builder.Services.AddSingleton<IJwtSettings>(jwtSettings);
+
 
 //Utils (Storage)
 builder.Services.AddSingleton<IFileStorage, LocalImageStorage>();
-builder.Services.AddSingleton(resolver =>
-    resolver.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSettings>>().Value);
 
 //Helpers 
 builder.Services.AddScoped<UrlGeneratorHelper>();
@@ -114,7 +107,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 .AddSignInManager<SignInManager<User>>();
 
 // Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+// builder.Services.AddScoped<IJwtSettings, JwtSettings>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -126,12 +119,12 @@ builder.Services.AddAuthentication(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = jwtSettings!.ValidateIssuer,
-            ValidateAudience = jwtSettings!.ValidateAudience,
-            ValidateLifetime = jwtSettings!.ValidateLifetime,
-            ValidateIssuerSigningKey = jwtSettings!.ValidateIssuerSigningKey,
-            ValidIssuer = jwtSettings!.Issuer,
-            ValidAudience = jwtSettings!.Audience,
+            ValidateIssuer = jwtSettings.ValidateIssuer,
+            ValidateAudience = jwtSettings.ValidateAudience,
+            ValidateLifetime = jwtSettings.ValidateLifetime,
+            ValidateIssuerSigningKey = jwtSettings.ValidateIssuerSigningKey,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkew)
         };
@@ -148,7 +141,24 @@ builder.Services.AddAuthentication(options =>
                 var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 Console.WriteLine($"JWT validated for user {userId}");
                 return Task.CompletedTask;
-            }
+            },
+            OnChallenge = async context =>
+                    {
+                        // Skip the default 401 response
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var apiResponse = new
+                        {
+                            Success = false,
+                            StatusCode = 401,
+                            Errors = new[] { "Unauthorized access. Please login." }
+                        };
+
+                        await context.Response.WriteAsJsonAsync(apiResponse);
+                    }
         };
     });
 
@@ -169,8 +179,8 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme. 
-                          Enter 'Bearer' [space] and then your token in the text input below.
-                          Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+                        Enter 'Bearer' [space] and then your token in the text input below.
+                        Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -194,6 +204,20 @@ builder.Services.AddSwaggerGen(c =>
                 new List<string>()
             }
         });
+});
+
+// Cors
+var allowedOrigins = new[] { "https://localhost:5160" };
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
@@ -220,7 +244,9 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/images"
 });
 
-// app.UseHttpsRedirection();
+
+app.UseHttpsRedirection();
+app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -1,0 +1,38 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Class="text-center" Typo="Typo.h6" Color="Color.Dark">
+            Login Required
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        <MudText Class="text-center mt-2" Typo="Typo.body1">
+            You need to log in to continue. Would you like to go to the login page?
+        </MudText>
+    </DialogContent>
+
+    <DialogActions>
+        <div Class="d-flex justify-center gap-2 mt-3">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToLogin">
+                Go to Login
+            </MudButton>
+
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                Cancel
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Inject] NavigationManager Nav { get; set; } = default!;
+    private const string LOGIN_PAGE = "/login";
+    private void GoToLogin()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+        Nav.NavigateTo(LOGIN_PAGE);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

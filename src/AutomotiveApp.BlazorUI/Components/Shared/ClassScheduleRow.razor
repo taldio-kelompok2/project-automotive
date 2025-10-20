@@ -1,18 +1,21 @@
-﻿@rendermode InteractiveServer
+﻿@using AutomotiveApp.Shared.Dtos.Courses
+@rendermode InteractiveServer
 
 <MudItem lg="12" Class="my-2 me-4 mx-md-5 p-0 pb-2" Style="border-bottom: 1px solid #BDBDBD;">
     <MudStack Class="py-3 d-flex flex-column flex-md-row">
-        <img src="@Car.Image" class="align-self-center image-responsive" />
+        <img src="@Car.ImageUrl" class="align-self-center image-responsive" />
         <MudStack Justify="Justify.Center" Spacing="2" Class="ps-md-2">
-            <MudText Style="font-weight: 400; color: #828282; font-family: 'Poppins', sans-serif;">@Car.Category</MudText>
-            <MudText Typo="Typo.h5" Style="font-weight: 600; font-family: 'Poppins', sans-serif;">@Car.Name</MudText>
-            <MudText Typo="Typo.h6" Color="Color.Primary"
-                     Style="font-weight: 500;">Schedule : Wednesday, 27 July 2022</MudText>
+            <MudText Style="font-weight: 400; color: #828282; font-family: 'Poppins', sans-serif;">@Car.Category
+            </MudText>
+            <MudText Typo="Typo.h5" Style="font-weight: 600; font-family: 'Poppins', sans-serif;">@Car.Course</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: 500;">Schedule :
+                @Car.Session.ToString("dddd, dd MMMM yyyy")
+            </MudText>
         </MudStack>
     </MudStack>
 </MudItem>
 
 @code {
     // maybe change to class later
-    [Parameter] public CarViewModel Car { get; set; } = null!;
+    [Parameter] public CourseBookingQueryDto Car { get; set; } = null!;
 }

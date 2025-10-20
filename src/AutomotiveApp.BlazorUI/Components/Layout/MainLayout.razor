@@ -52,11 +52,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize user state
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        _userContext = _userContext.Update(user);
-
         // Track route changes
         Nav.LocationChanged += (_, __) => UpdateNavbarVisibility();
 
@@ -68,9 +63,23 @@
         {
             var state = await task;
             _userContext = _userContext.Update(state.User);
-            if (_userContext.IsAuthenticated) await Cart.GetUserCartData();
             StateHasChanged();
         };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // refresh token
+            await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            _userContext = _userContext.Update(user);
+
+            StateHasChanged();
+        }
     }
 
     private void UpdateNavbarVisibility()

@@ -171,6 +171,9 @@ namespace AutomotiveApp.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageFileName")
                         .HasColumnType("nvarchar(max)");
 

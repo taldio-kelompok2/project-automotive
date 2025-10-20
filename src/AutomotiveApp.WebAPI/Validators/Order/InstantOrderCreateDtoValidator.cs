@@ -36,9 +36,10 @@ namespace AutomotiveApp.WebAPI.Validators.Order
                 .MustAsync(NoDuplicateSession)
                 .WithMessage("You already have an order for this session.");
 
-            RuleFor(x => x)
-                .MustAsync(NoConflictingBookings)
-                .WithMessage("You already have a booking on the same date.");
+            //bisa dinyalain kalo user ga bisa duplikat booking
+            // RuleFor(x => x)
+            //     .MustAsync(NoConflictingBookings)
+            //     .WithMessage("You already have a booking on the same date.");
         }
 
         private async Task<bool> NoDuplicateSession(InstantOrderCreateDto dto, CancellationToken ct)
