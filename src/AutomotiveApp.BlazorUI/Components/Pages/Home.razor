@@ -5,6 +5,11 @@
 @using AutomotiveApp.Shared.Models
 @using AutomotiveApp.Shared.Response
 
+
+@inject ICourseCategoryService CategorySvc
+@inject HttpClient Http
+
+
 @rendermode InteractiveServer
 @inject NavigationManager Nav
 @inject ICourseService CourseService
@@ -93,24 +98,53 @@
 </section>
 
 <section class="course-category mt-12">
-    <MudText class="text-center mb-6" Typo="Typo.h3" Color="Color.Primary">More car types you can choose</MudText>
-    <MudGrid>
-        @foreach (var category in Enum.GetValues(typeof(CarCategory)).Cast<CarCategory>())
+    <MudText class="text-center mb-6" Typo="Typo.h3" Color="Color.Primary">
+        More car types you can choose
+    </MudText>
+
+    @if (isCategoryLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true"
+                             Class="d-flex mx-auto my-8" />
+    }
+    else if (categories.Data?.Items.Any() ?? false)
+    {
+        <MudGrid>
+            @foreach (var c in categories.Data.Items)
+            {
+                <MudItem xs="6" sm="4" md="3">
+                    @* <MudLink Href="@($"/course/{c.Name.ToLower()}")" Style="text-decoration:none;color:inherit;"> *@
+                    <MudLink Href="@($"/course-category/{c.Id}")" Style="text-decoration:none;color:inherit;">
+                        <div class="category-card hover-pointer">
+                            <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
+                                <MudImage Src="@ResolveCatImage(c.ImageUrl)"
+                                          Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
+                                <MudText Typo="Typo.body1">@c.Name</MudText>
+                            </MudStack>
+                        </div>
+                    </MudLink>
+                </MudItem>
+            }
+        </MudGrid>
+
+        @if (categories.Data.TotalCount > CategoryPageSize)
         {
-            <MudItem xs="6" sm="4" md="3">
-                <MudLink Href="@($"/course/{category.ToString().ToLower()}")" Style="text-decoration:none;color:inherit;">
-                    <div class="category-card hover-pointer">
-                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
-                            <MudImage Src="@($"Images/Cars/Category/{category.ToString().ToLower()}.svg")"
-                                Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
-                            <MudText Typo="Typo.body1">@category.ToString()</MudText>
-                        </MudStack>
-                    </div>
-                </MudLink>
-            </MudItem>
+            <div class="d-flex justify-center mt-6">
+                <MudPagination Count="@categoryTotalPages"
+                               Selected="@categoryPage"
+                               SelectedChanged="@OnCategoryPageChanged"
+                               BoundaryCount="3" />
+            </div>
         }
-    </MudGrid>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="my-8">
+            Not Available Course Category
+        </MudText>
+    }
 </section>
+
 
 <Footer />
 
@@ -124,6 +158,9 @@
     {
         coursePage = 1;
         await LoadCoursesAsync(coursePage);
+
+        categoryPage = 1;
+        await LoadCategoriesAsync(categoryPage);
     }
 
     private async Task OnPageChanged(int page)
@@ -153,5 +190,47 @@
         {
             isLoading = false;
         }
+    }
+
+
+    // --- Course Category ---
+    private ApiResponse<PaginatedResult<CourseCategoryQueryDto>> categories = new();
+    private bool isCategoryLoading;
+    private int categoryPage;
+    private int categoryTotalPages;
+    private const int CategoryPageSize = 8;
+
+    private async Task OnCategoryPageChanged(int page)
+    {
+        categoryPage = page;
+        await LoadCategoriesAsync(categoryPage);
+    }
+
+    private async Task LoadCategoriesAsync(int page)
+    {
+        isCategoryLoading = true;
+        try
+        {
+            categories = await CategorySvc.GetPagedAsync(page, CategoryPageSize);
+            if (categories.Data != null)
+                categoryTotalPages = (int)Math.Ceiling((double)categories.Data.TotalCount / CategoryPageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+            categories = new();
+        }
+        finally { isCategoryLoading = false; }
+    }
+
+    private string ResolveCatImage(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return "/images/coursecategory/placeholder.svg";
+        if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return url;
+        if (url.StartsWith("/images/", StringComparison.OrdinalIgnoreCase)) return url;
+
+        var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
+        return $"{api}/images/CourseCategory/{url}";
     }
 }

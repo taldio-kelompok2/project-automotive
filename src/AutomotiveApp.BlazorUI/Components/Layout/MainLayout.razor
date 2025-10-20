@@ -1,4 +1,6 @@
-﻿@inject NavigationManager Nav
+﻿@using AutomotiveApp.BlazorUI.Models.Auth.Context
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Nav
 @inject IRentalCartService Cart
 @inject AuthenticationStateProvider AuthStateProvider
 @inherits LayoutComponentBase
@@ -44,10 +46,11 @@
     private UserContext _userContext = new();
     private bool _hideNavbar = false;
 
-    private readonly string[] _noNavbarPages = {
-"/email-confirmed",
-"/success-purchase"
-};
+    private readonly string[] _noNavbarPages = 
+    {
+        "/email-confirmed",
+        "/success-purchase"
+    };
 
 
     protected override async Task OnInitializedAsync()

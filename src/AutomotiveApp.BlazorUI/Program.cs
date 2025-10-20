@@ -34,6 +34,7 @@ builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddTransient<AuthMessageHandler>();

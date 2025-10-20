@@ -21,6 +21,20 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
     public class CourseCategoryController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage) : BaseApiController(mediator)
     {
+        // Helper Tambahan HeroImage
+        private string? ResolveHeroUrl(Guid id)
+        {
+            var root = Path.Combine(Directory.GetCurrentDirectory(), "Storage", "Images", "CourseCategory");
+            if (!Directory.Exists(root)) return null;
+
+            var pattern = $"{id}-hero.*";
+            var match = Directory.GetFiles(root, pattern).FirstOrDefault();
+            if (match is null) return null;
+
+            var fileName = Path.GetFileName(match);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            return $"{baseUrl}/images/CourseCategory/{fileName}";
+        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseCategoryQueryDto>>> GetCourseCategories()
@@ -29,6 +43,10 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             var query = new GetCourseCategories();
             var result = await Mediator.Send(query);
+
+            // HeroImage
+            foreach (var item in result)
+            item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
 
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
@@ -45,6 +63,10 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             await validator.ValidateAndThrowAsync(query);
 
             var result = await Mediator.Send(query);
+
+            // HeroImage
+            result.HeroImageUrl ??= ResolveHeroUrl(result.Id);
+
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
@@ -63,6 +85,10 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             var query = new GetCourseCategoriesPaged(page, itemTaken);
             var result = await Mediator.Send(query);
 
+            // HeroImage
+            foreach (var item in result.Items)
+            item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
+
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
@@ -78,6 +104,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             var response = new ApiResponse<CourseCategoryQueryDto>();
             await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
+            string? heroFileName  = null;
             var dto = mapper.Map<CourseCategoryCommandDto>(request);
             try
             {
@@ -87,7 +114,14 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.SaveFileAsync<CourseCategory>(request.Image.OpenReadStream(), imageFileName);
                 }
 
+                if (request.HeroImage != null)                 
+                {                                              
+                    heroFileName = $"{request.Id}-hero{Path.GetExtension(request.HeroImage.FileName)}"; 
+                    await ImageStorage.SaveFileAsync<CourseCategory>(request.HeroImage.OpenReadStream(), heroFileName); 
+                }     
+
                 dto.ImageFileName = imageFileName;
+                dto.HeroImageFileName = heroFileName;
                 var command = new AddCourseCategoryCommand(dto);
                 var result = await Mediator.Send(command);
                 response.Success = true;
@@ -100,6 +134,10 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 if (imageFileName != null)
                 {
                     await ImageStorage.DeleteFileAsync<CourseCategory>(imageFileName);
+                }
+                if (heroFileName != null)
+                {
+                    await ImageStorage.DeleteFileAsync<CourseCategory>(heroFileName);
                 }
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
@@ -118,6 +156,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             request.Id = id;
             await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
+            string? heroFileName  = null;
             var dto = mapper.Map<CourseCategoryEditDto>(request);
             var command = new EditCourseCategoryCommand(dto);
 
@@ -128,7 +167,15 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     imageFileName = $"{id}{Path.GetExtension(request.Image.FileName)}";
                     await ImageStorage.ReplaceFileAsync<CourseCategory>(imageFileName, request.Image.OpenReadStream());
                 }
+
+                if (request.HeroImage != null)
+                {
+                    heroFileName = $"{id}-hero{Path.GetExtension(request.HeroImage.FileName)}";
+                    await ImageStorage.ReplaceFileAsync<CourseCategory>(heroFileName, request.HeroImage.OpenReadStream());
+                }
+
                 dto.ImageFilename = imageFileName;
+                dto.HeroImageFilename = heroFileName;
                 var result = await Mediator.Send(command);
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
@@ -141,6 +188,10 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 if (imageFileName != null)
                 {
                     await ImageStorage.DeleteFileAsync<CourseCategory>(imageFileName);
+                }
+                if (heroFileName != null)
+                {
+                    await ImageStorage.DeleteFileAsync<CourseCategory>(heroFileName);
                 }
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
@@ -163,8 +214,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             return Ok(response);
         }
-
-
+        
     }
 
 }

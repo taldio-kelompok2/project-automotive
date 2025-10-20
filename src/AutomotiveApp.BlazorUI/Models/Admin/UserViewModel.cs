@@ -5,10 +5,13 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
 {
     public class UserViewModel
     {
-        public  string Email { get; set; }
+        public Guid Id { get; set; }
         public  string Name { get; set; }
-        public AdminUserRole Role { get; set; }
-        public Status Status { get; set; } = Status.Active; // default
+        public string Email { get; set; }
+        public string? Password { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; } = string.Empty;
+        public UserRole Role { get; set; }
+        public Status Status { get; set; } = Status.Active;
 
     }
 }
