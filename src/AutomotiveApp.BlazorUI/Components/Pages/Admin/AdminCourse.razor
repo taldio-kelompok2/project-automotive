@@ -38,6 +38,12 @@
         },
         new ColumnDefinition<CourseViewModel>
         {
+            Header = "Description",
+            CellTemplate = x => x.Description,
+            IsSearchable = false
+        },
+        new ColumnDefinition<CourseViewModel>
+        {
             Header = "Price",
             CellTemplate = course => $"IDR {course.Price.ToString("N0", new CultureInfo("id-ID"))}",
             IsSearchable = false
@@ -86,6 +92,7 @@
                 ID         = idx + 1,
                 CourseId   = x.Id,
                 Name       = x.Name,
+                Description= x.Description ?? string.Empty,
                 Price      = x.Price,
                 CategoryId = x.CategoryId,
                 Category   = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
@@ -128,6 +135,7 @@
         {
             Guid? id = await CourseSvc.CreateMultipartAsync(
                 vm.Name,
+                vm.Description ?? string.Empty,
                 vm.Price,
                 vm.CategoryId,
                 vm.File
@@ -155,6 +163,7 @@
             var ok = await CourseSvc.UpdateMultipartAsync(
                 vm.CourseId,
                 vm.Name,
+                vm.Description,
                 vm.Price,
                 vm.CategoryId,
                 vm.File
@@ -171,6 +180,7 @@
             if (row is not null)
             {
                 row.Name       = vm.Name;
+                row.Description= vm.Description ?? string.Empty;
                 row.Price      = vm.Price;
                 row.CategoryId = vm.CategoryId;
                 row.Category   = _catMap.TryGetValue(vm.CategoryId, out var catName) ? catName : row.Category;
