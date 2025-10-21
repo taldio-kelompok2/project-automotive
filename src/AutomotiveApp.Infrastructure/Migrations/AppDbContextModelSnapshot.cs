@@ -237,6 +237,9 @@ namespace AutomotiveApp.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("HeroImageFileName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageFileName")
                         .HasColumnType("nvarchar(max)");
 
