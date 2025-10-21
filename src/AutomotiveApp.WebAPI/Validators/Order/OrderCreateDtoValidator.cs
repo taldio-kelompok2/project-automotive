@@ -37,9 +37,9 @@ namespace AutomotiveApp.WebAPI.Validators.Order
                     .MustAsync(NoDuplicateSession)
                     .WithMessage("You already have an order for this session.");
 
-                RuleFor(x => x)
-                    .MustAsync(NoConflictingBookings)
-                    .WithMessage("You already have a booking on the same date.");
+                // RuleFor(x => x)
+                //     .MustAsync(NoConflictingBookings)
+                //     .WithMessage("You already have a booking on the same date.");
             });
 
             RuleFor(x => x.CartId)

@@ -32,8 +32,6 @@ namespace AutomotiveApp.WebAPI.Validators.CartItem
                 .WhenAsync(async (dto, ct) =>
                     await _uow.CourseSessionRepo.DataExistAsync(s => s.Id == dto.SessionId, ct: ct));
 
-            //conflicting schedule between BookedSession of user? (nunggu authentication)
-
         }
     }
 }

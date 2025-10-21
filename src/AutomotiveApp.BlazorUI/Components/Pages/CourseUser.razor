@@ -1,28 +1,38 @@
 ﻿@page "/my-class"
 
+@inject ICourseBookingService BookingService
+@inject NavigationManager Nav
+
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 @* TODO: rename file? *@
-<PageTitle>My Class</PageTitle>
+<PageTitle>Your Booked Sessions</PageTitle>
 
 @* <AuthorizeRedirect Role="Admin"> *@
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
         <MudGrid Class="m-0 pt-4 pb-4 px-md-5 px-4" Justify="Justify.Center">
-            @foreach (var car in pageData)
-            {
-                // TODO: tidy up component file name/location
-                <ClassScheduleRow Car="car"></ClassScheduleRow>
-            }
 
-            <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                <MudPagination Count="@pageCount" Selected="@_selectedPage" SelectedChanged="OnPageChange"
-                    Class="mt-4 px-0" />
-            </MudHidden>
-            <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                <MudPagination Count="@pageCount" Selected="@_selectedPage" SelectedChanged="OnPageChange"
-                    ShowPageButtons="false" ShowFirstButton="true" ShowLastButton="true" Class="mt-4 pe-5 me-3" />
-            </MudHidden>
+            @if (bookedSessions.Data?.Any() ?? false)
+            {
+                @foreach (var car in bookedSessions.Data)
+                {
+                    <ClassScheduleRow Car="car" />
+                }
+
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    @* Pagination controls here *@
+                </MudHidden>
+
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    @* Pagination controls here *@
+                </MudHidden>
+            }
+            else
+            {
+                <MudText>No booked sessions yet.</MudText>
+            }
         </MudGrid>
     </div>
 </div>
@@ -32,26 +42,27 @@
 
 @code {
     [Inject] IJSRuntime JS { get; set; } = default!;
+
+    [CascadingParameter]
+    public UserContext UserContext { get; set; } = default!;
     private int _selectedPage = 1;
     private int pageSize = 5;
     private int pageCount => (int)Math.Ceiling((double)cars.Count() / pageSize);
-    private List<CarViewModel> pageData = new List<CarViewModel>();
-
-    // temporary code based on cars
-    // TODO: change to use dynamic class/course based on user instead of cars
+    private ApiResponse<IEnumerable<CourseBookingQueryDto>> bookedSessions = new();
     private List<CarViewModel> cars = new List<CarViewModel>();
 
     protected override async Task OnInitializedAsync()
     {
         await Task.Delay(100);
         @* cars = CarViewModel.InitDummyData(); *@
-        pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList();
+        @* pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList(); *@
+
+        bookedSessions = await BookingService.GetUserBooking();
     }
 
     private async Task OnPageChange(int newPage)
     {
         _selectedPage = newPage;
-        pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList();
         await InvokeAsync(StateHasChanged);
         await JS.InvokeVoidAsync("scrollToTop");
     }

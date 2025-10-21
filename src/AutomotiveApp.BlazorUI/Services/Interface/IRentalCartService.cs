@@ -1,6 +1,8 @@
 using AutomotiveApp.BlazorUI.Models;
 using AutomotiveApp.BlazorUI.Models.Cart;
 using AutomotiveApp.BlazorUI.Models.Transaction;
+using AutomotiveApp.Shared.Dtos.CartItems;
+using AutomotiveApp.Shared.Response;
 
 namespace AutomotiveApp.BlazorUI.Services.Interface
 {
@@ -16,7 +18,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
         event Action? OnLoadingChanged;
         Task GetUserCartData();
         void ToggleSelectAll(bool value);
-        Task AddItem(Guid sessionid);
+        Task<ApiResponse<CartItemReadDto>> AddItem(Guid sessionid);
         Task<bool> RemoveSelectedItemsAsync();
         Task<bool> RemoveItemAsync(RentalCartItemViewModel cartItem);
         Task ClearAllAsync();

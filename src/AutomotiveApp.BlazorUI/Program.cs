@@ -5,18 +5,32 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using MudBlazor.Services;
-using MyApp.BlazorUI.Services;
 using System.Globalization;
 using AutomotiveApp.BlazorUI.Services.Invoices;
+using System.Net;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// Auth
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/access-denied";
+    });
+
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+.AddInteractiveServerComponents();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
@@ -28,8 +42,17 @@ builder.Services.AddTransient<AuthMessageHandler>();
 builder.Services.AddHttpClient("ServerAPI", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5001");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    UseCookies = true,
+    CookieContainer = new CookieContainer()
 }).AddHttpMessageHandler<AuthMessageHandler>();
 
+builder.Services.AddHttpClient("BareServer", c =>
+{
+    c.BaseAddress = new Uri("https://localhost:5001");
+});
 
 //Mud blazor implementation
 builder.Services.AddMudServices(config =>
@@ -57,10 +80,12 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+builder.Services.AddScoped<ICourseBookingService, CourseBookingService>();
 builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
 
-
 var app = builder.Build();
+
+builder.Services.AddAuthorization();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -70,18 +95,87 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 var cultureInfo = new CultureInfo("id-ID");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 app.UseHttpsRedirection();
 
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// cookies proxy api
+app.MapPost("/auth/proxy-login", async (HttpContext context, IHttpClientFactory httpFactory) =>
+{
+    using var sr = new StreamReader(context.Request.Body);
+    var body = await sr.ReadToEndAsync();
+
+    var backend = httpFactory.CreateClient("ServerAPI");
+    var req = new HttpRequestMessage(HttpMethod.Post, "api/auth/login")
+    {
+        Content = new StringContent(body, Encoding.UTF8, context.Request.ContentType ?? "application/json")
+    };
+
+    var res = await backend.SendAsync(req);
+
+    if (res.Headers.TryGetValues("Set-Cookie", out var cookies))
+    {
+        foreach (var cookie in cookies)
+        {
+            context.Response.Headers.Append("Set-Cookie", cookie);
+        }
+    }
+
+    context.Response.StatusCode = (int)res.StatusCode;
+    await res.Content.CopyToAsync(context.Response.Body);
+});
+
+app.MapPost("/auth/proxy-logout", (HttpContext context) =>
+{
+    var options = new CookieOptions
+    {
+        Expires = DateTimeOffset.UtcNow.AddDays(-1),
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/"
+    };
+
+    context.Response.Cookies.Append("AuthToken", "", options);
+    context.Response.Cookies.Append("RefreshToken", "", options);
+
+    return Results.Ok();
+});
+
+app.MapPost("/auth/proxy-refresh-token", async (HttpContext context, IHttpClientFactory httpFactory) =>
+{
+    var backend = httpFactory.CreateClient("ServerAPI");
+
+    var req = new HttpRequestMessage(HttpMethod.Post, "api/auth/refresh-token");
+
+    // Forward cookies from browser to backend
+    var cookieHeader = string.Join("; ", context.Request.Cookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+    req.Headers.Add("Cookie", cookieHeader);
+
+    var res = await backend.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted);
+    var content = await res.Content.ReadAsStringAsync();
+
+    // Forward Set-Cookie headers back to browser
+    if (res.Headers.TryGetValues("Set-Cookie", out var cookies))
+        foreach (var cookie in cookies)
+            context.Response.Headers.Append("Set-Cookie", cookie);
+
+    context.Response.StatusCode = (int)res.StatusCode;
+    context.Response.ContentType = "application/json";
+
+    await context.Response.WriteAsync(content);
+});
 
 app.Run();
 

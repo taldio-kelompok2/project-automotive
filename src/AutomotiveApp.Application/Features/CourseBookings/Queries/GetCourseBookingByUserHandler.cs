@@ -17,7 +17,8 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
                 .Include(cb => cb.Session)
-                .ThenInclude(s => s.Course);
+                .ThenInclude(s => s.Course)
+                .ThenInclude(c => c.Category);
 
             Expression<Func<CourseBooking, bool>> predicate = cb => cb.UserId == request.UserId;
 

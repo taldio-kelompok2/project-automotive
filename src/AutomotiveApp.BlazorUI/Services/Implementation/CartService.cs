@@ -1,8 +1,12 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using AutomotiveApp.BlazorUI.Models.Cart;
+using AutomotiveApp.BlazorUI.Models.Course;
 using AutomotiveApp.BlazorUI.Services.Interface;
 using AutomotiveApp.Shared.Dtos.CartItems;
 using AutomotiveApp.Shared.Dtos.Carts;
+using AutomotiveApp.Shared.Dtos.Courses;
+using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
@@ -13,9 +17,9 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         private const string BaseEndpoint = "api/Carts";
         private const string ItemEndpoint = "api/CartItems";
 
-        public CartService(IHttpClientFactory httpFactory)
+        public CartService(IHttpClientFactory httpClientFactory)
         {
-            _http = httpFactory.CreateClient("ServerAPI");
+            _http = httpClientFactory.CreateClient("ServerAPI");
         }
 
         private const int HttpTimeoutSeconds = 10;
@@ -47,16 +51,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(HttpTimeoutSeconds));
 
-            var response = await _http.GetFromJsonAsync<ApiResponse<CartReadDetailsDto>>($"{BaseEndpoint}/me", cts.Token)
-                            ?? new ApiResponse<CartReadDetailsDto>
-                            {
-                                Success = false,
-                                StatusCode = HttpStatusCode.InternalServerError,
-                                Data = null,
-                                Errors = ["Failed to load courses"]
-                            };
+            var response = await _http.GetAsync($"{BaseEndpoint}/me", cts.Token);
 
-            return response;
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<CartReadDetailsDto>>(cancellationToken: ct)
+                ?? new ApiResponse<CartReadDetailsDto>
+                {
+                    Success = false,
+                    StatusCode = response.StatusCode,
+                    Data = null,
+                    Errors = ["Failed to parse server response."]
+                };
+
+            return result;
+
         }
 
         public async Task<ApiResponse<CartItemReadDto>> AddItemAsync(CartItemViewModel vm, CancellationToken ct = default)

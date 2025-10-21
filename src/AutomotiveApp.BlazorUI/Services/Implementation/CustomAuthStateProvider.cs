@@ -1,55 +1,56 @@
-﻿using Blazored.LocalStorage;
+﻿using AutomotiveApp.BlazorUI.Services.Implementation;
+using AutomotiveApp.Shared.Dtos.Auth;
+using AutomotiveApp.Shared.Response;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
+using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-
-namespace MyApp.BlazorUI.Services;
+using System.Text.Json;
 
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
-    private readonly ILocalStorageService _localStorage;
-    private readonly HttpClient _httpClient;
+    private readonly ICookieService _cookieService;
+    private readonly IJSRuntime _js;
     private readonly AuthenticationState _anonymous;
 
-    public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient)
+    public CustomAuthStateProvider(ICookieService cookieService, IJSRuntime js)
     {
-        _localStorage = localStorage;
-        _httpClient = httpClient;
+        _cookieService = cookieService;
+        _js = js;
         _anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        try
+        var (accessToken, _) = _cookieService.GetTokens();
+        if (string.IsNullOrWhiteSpace(accessToken))
+            return _anonymous;
+
+        var claims = ParseClaimsFromJwt(accessToken);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+        return new AuthenticationState(user);
+    }
+
+    public async Task TryRefreshSessionAsync()
+    {
+        var (accessToken, refreshToken) = _cookieService.GetTokens();
+
+        if (string.IsNullOrWhiteSpace(accessToken) && !string.IsNullOrWhiteSpace(refreshToken))
         {
-            var token = await _localStorage.GetItemAsync<string>("authToken");
-
-            if (string.IsNullOrWhiteSpace(token))
-                return _anonymous;
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            var claims = ParseClaimsFromJwt(token);
-            var expiry = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-
-            if (expiry != null)
+            try
             {
-                var expiryDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiry));
+                var result = await _js.InvokeAsync<string>("refreshViaFetch", "/auth/proxy-refresh-token");
+                var response = JsonSerializer.Deserialize<ApiResponse<AuthResponseDto>>(result);
 
-                if (expiryDateTime <= DateTimeOffset.UtcNow)
+                if (response?.Data?.AccessToken is not null)
                 {
-                    await _localStorage.RemoveItemAsync("authToken");
-                    return _anonymous;
+                    NotifyUserAuthentication(response.Data.AccessToken);
                 }
             }
-
-            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-            return new AuthenticationState(user);
-        }
-        catch
-        {
-            return _anonymous;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AuthState] Manual refresh failed: {ex.Message}");
+            }
         }
     }
 
@@ -57,17 +58,15 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         var claims = ParseClaimsFromJwt(token);
         var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-        var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
-        NotifyAuthenticationStateChanged(authState);
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(authenticatedUser)));
     }
 
     public void NotifyUserLogout()
     {
-        var authState = Task.FromResult(_anonymous);
-        NotifyAuthenticationStateChanged(authState);
+        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 
-    private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    public static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(jwt);

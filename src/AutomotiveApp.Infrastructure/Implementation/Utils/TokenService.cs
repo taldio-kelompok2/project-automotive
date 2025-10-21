@@ -11,12 +11,12 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
 {
     public class TokenService : ITokenService
     {
-        private readonly JwtSettings _jwtSettings;
+        private readonly IJwtSettings _jwtSettings;
         private readonly UserManager<User> _userManager;
         private readonly JwtSecurityTokenHandler _tokenHandler;
 
         public TokenService(
-            JwtSettings jwtSettings,
+            IJwtSettings jwtSettings,
             UserManager<User> userManager)
         {
             _jwtSettings = jwtSettings;

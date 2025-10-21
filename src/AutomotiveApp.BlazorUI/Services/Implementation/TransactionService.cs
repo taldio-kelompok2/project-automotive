@@ -16,12 +16,9 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         private readonly HttpClient _http;
         private const string BaseEndpoint = "api/orders";
 
-        public TransactionService(HttpClient http)
+        public TransactionService(IHttpClientFactory httpClientFactory)
         {
-            _http = http;
-            var dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhZWFmYjY3MS05NDIzLTQ2MTMtODkxMC1hYmVkY2ZiNDg0ODUiLCJlbWFpbCI6ImJ1eWVyQGV4YW1wbGUuY29tIiwidW5pcXVlX25hbWUiOiJidXllckBleGFtcGxlLmNvbSIsImp0aSI6ImNmY2JmM2U2LWE3NzktNDk0ZC04ODk2LTdiNjUwOWJlZjQ5OSIsImlhdCI6MTc2MDYxNDc2MSwicm9sZSI6IkJ1eWVyIiwibmJmIjoxNzYwNjE0NzYxLCJleHAiOjE3NjA2MTgzNjEsImlzcyI6IkF1dG9tb3RpdmVBcHAiLCJhdWQiOiJBdXRvbW90aXZlQXBwLVVzZXJzIn0.HPFJlMGz1dPbl-yYARfGdt24r68CJ7PR48jzqcWcekk";
-            _http.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", dummyToken);
+            _http = httpClientFactory.CreateClient("ServerAPI");
         }
 
         private const int HttpTimeoutSeconds = 10;
