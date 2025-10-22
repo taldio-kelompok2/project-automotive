@@ -27,7 +27,6 @@
       <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
       <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
 
-    <!-- BARU (opsional saat edit) -->
       <MudDatePicker @bind-Date="_vm.Schedule" Label="Date (optional)" Class="mb-2" />
       <MudNumericField T="uint" @bind-Value="_vm.Capacity" Label="Capacity (optional)" Min="1" Class="mb-2" />
 
@@ -56,26 +55,29 @@
   private CourseViewModel _vm = new();
   private MudForm _form = default!;
 
-  protected override void OnInitialized()
+  protected override void OnParametersSet()
   {
-    if (Item is not null)
-    {
-      _vm = new CourseViewModel
+      if (Item is not null)
       {
-        ID         = Item.ID,
-        CourseId   = Item.CourseId,
-        Name       = Item.Name,
-        Description= Item.Description,
-        Price      = Item.Price,
-        CategoryId = Item.CategoryId,
-        Category   = Item.Category,
-        Image      = Item.Image
-      };
-    }
-    else
-    {
-      _vm.CategoryId = Guid.Empty;
-    }
+          _vm = new CourseViewModel
+          {
+              ID          = Item.ID,
+              CourseId    = Item.CourseId,
+              Name        = Item.Name,
+              Description = Item.Description,
+              Price       = Item.Price,
+              CategoryId  = Item.CategoryId,
+              Category    = Item.Category,
+              Image       = Item.Image,
+              Schedule    = Item.Schedule,  
+              Capacity    = Item.Capacity   
+          };
+      }
+      else
+      {
+          _vm = new CourseViewModel();
+          _vm.CategoryId = Guid.Empty;
+      }
   }
 
   protected override async Task OnInitializedAsync()

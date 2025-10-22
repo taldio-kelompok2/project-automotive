@@ -58,7 +58,7 @@
         new ColumnDefinition<CourseViewModel>
         {
             Header = "Date",
-            CellTemplate = x => x.Schedule?.ToString("dd MMM yyyy") ?? "-",
+            CellTemplate = x => @x.Schedule?.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("en-US")) ?? "-",
             IsSearchable = false
         },
         new ColumnDefinition<CourseViewModel>
@@ -104,7 +104,7 @@
         var sessRes = await CourseSessionSvc.GetAllAsync();
         var allSessions = sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>();
 
-        // mapping peta CourseId -> (Date, Capacity) 
+        // mapping CourseId 
         var now = DateTime.UtcNow;
         var chosenSession = allSessions
             .GroupBy(s => s.CourseId)
@@ -200,7 +200,7 @@
                 return;
             }
 
-            @* Save to CourseSession *@
+            // Save to CourseSession
             if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
             {
                 var okId = await CourseSessionSvc.CreateAsync(new()
@@ -227,6 +227,7 @@
     {
         try
         {
+            // update data course 
             var ok = await CourseSvc.UpdateMultipartAsync(
                 vm.CourseId,
                 vm.Name,
@@ -242,31 +243,72 @@
                 return;
             }
 
-
-            // course session update
+            // update CourseSession sesuai jadwal & kapasitas
             if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
             {
-                var okId = await CourseSessionSvc.CreateAsync(new()
-                {
-                    Date = date,
-                    Capacity = cap,
-                    CourseId = vm.CourseId
-                });
+                var sessRes = await CourseSessionSvc.GetAllAsync();
+                var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
+                                .Where(s => s.CourseId == vm.CourseId)
+                                .ToList();
 
-                if (okId is null)
-                    Snackbar.Add("Course Succesfully Updated, But Updated Course Session Failed", Severity.Warning);
+                var existing = PickEditableSession(sessions);
+
+                if (existing is null)
+                {
+                    // belum ada session => buat baru
+                    var createdId = await CourseSessionSvc.CreateAsync(new()
+                    {
+                        Date = date,
+                        Capacity = cap,
+                        CourseId = vm.CourseId
+                    });
+
+                    if (createdId is null)
+                        Snackbar.Add("Course updated, but creating session failed", Severity.Warning);
+                }
+                else
+                {
+                    // sudah ada session, hanya update jika ada perubahan
+                    var currentCap = existing.Capacity;
+                    var needUpdate = existing.Date != date || currentCap != cap;
+
+                    if (needUpdate)
+                    {
+                        //  UpdateAsync(Guid id, CourseSessionUpdateDto dto)
+                        var updated = await CourseSessionSvc.UpdateAsync(
+                            existing.Id,
+                            new()
+                            {
+                                Date = date,
+                                Capacity = cap,
+                                CourseId = vm.CourseId
+                            });
+
+                        // var updated = await CourseSessionSvc.UpdateAsync(new()
+                        // {
+                        //     Id = existing.Id,
+                        //     Date = date,
+                        //     Capacity = cap,
+                        //     CourseId = vm.CourseId
+                        // });
+
+                        if (!updated)
+                            Snackbar.Add("Course updated, but updating session failed", Severity.Warning);
+                    }
+                }
             }
 
-
-            // refresh baris + gambar (cache-busting)
+            // refresh data + gambar 
             var row = courses.FirstOrDefault(c => c.CourseId == vm.CourseId);
             if (row is not null)
             {
-                row.Name       = vm.Name;
-                row.Description= vm.Description ?? string.Empty;
-                row.Price      = vm.Price;
-                row.CategoryId = vm.CategoryId;
-                row.Category   = _catMap.TryGetValue(vm.CategoryId, out var catName) ? catName : row.Category;
+                row.Name        = vm.Name;
+                row.Description = vm.Description ?? string.Empty;
+                row.Price       = vm.Price;
+                row.CategoryId  = vm.CategoryId;
+                row.Category    = _catMap.TryGetValue(vm.CategoryId, out var catName) ? catName : row.Category;
+                row.Schedule    = vm.Schedule;
+                row.Capacity    = vm.Capacity;
 
                 if (vm.File is not null)
                 {
@@ -284,4 +326,23 @@
             Snackbar.Add($"Course update failed: {ex.Message}", Severity.Error);
         }
     }
+
+    private static CourseSessionQueryDto? PickEditableSession(IEnumerable<CourseSessionQueryDto> sessions)
+    {
+        var now = DateTime.UtcNow;
+
+        var upcoming = sessions
+            .Where(s => s.Date >= now)
+            .OrderBy(s => s.Date)
+            .FirstOrDefault();
+
+        return upcoming ?? sessions
+            .OrderByDescending(s => s.Date)
+            .FirstOrDefault();
+    }
+
+
+
+
+
 }
