@@ -9,6 +9,7 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
         public int ID { get; set; }
         public Guid CourseId { get; set; }
         public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
         public int Price { get; set; } = 0;
         public Guid CategoryId { get; set; }
         public string Category { get; set; } = "-";

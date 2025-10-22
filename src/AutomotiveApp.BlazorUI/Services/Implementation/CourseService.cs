@@ -15,6 +15,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
         public async Task<Guid?> CreateMultipartAsync(
             string name,
+            string description,
             int price,
             Guid categoryId,
             IBrowserFile? file = null,
@@ -22,6 +23,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         {
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(name, Encoding.UTF8), "Name");
+            content.Add(new StringContent(description, Encoding.UTF8), "Description");
             content.Add(new StringContent(price.ToString(), Encoding.UTF8), "Price");
             content.Add(new StringContent(categoryId.ToString(), Encoding.UTF8), "CategoryId");
 
@@ -41,6 +43,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         public async Task<bool> UpdateMultipartAsync(
             Guid id,
             string? name,
+            string? description,
             int? price,
             Guid? categoryId,
             IBrowserFile? file = null,
@@ -50,6 +53,8 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             if (!string.IsNullOrWhiteSpace(name))
                 content.Add(new StringContent(name, Encoding.UTF8), "Name");
+            if (!string.IsNullOrWhiteSpace(description))
+                content.Add(new StringContent(description, Encoding.UTF8), "Description");
             if (price.HasValue)
                 content.Add(new StringContent(price.Value.ToString(), Encoding.UTF8), "Price");
             if (categoryId.HasValue)
