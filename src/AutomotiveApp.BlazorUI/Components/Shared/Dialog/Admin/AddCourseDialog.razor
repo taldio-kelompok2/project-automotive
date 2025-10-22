@@ -24,6 +24,9 @@
             <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
             <MudTextField @bind-Value="_vm.Price" Label="Price" Required="true" Class="mb-2" />
 
+            <MudDatePicker @bind-Date="_vm.Schedule" Label="Date" Required="true" Class="mb-2" />
+            <MudNumericField T="uint" @bind-Value="_vm.Capacity" Label="Capacity" Required="true" Min="1" Class="mb-2" />
+
             <MudItem Class="my-3" >
                 <MudText Typo="Typo.body2" Class="mb-1">Course Image:</MudText>
                 <InputFile OnChange="OnFileSelected" />

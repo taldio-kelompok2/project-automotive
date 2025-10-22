@@ -4,6 +4,7 @@
 @inject HttpClient Http
 @inject ICourseService CourseSvc
 @inject ICourseCategoryService CategorySvc
+@inject ICourseSessionService CourseSessionSvc
 @using AutomotiveApp.Shared.Dtos.Courses
 @using AutomotiveApp.BlazorUI.Models.Admin
 @inject ISnackbar Snackbar
@@ -56,6 +57,18 @@
         },
         new ColumnDefinition<CourseViewModel>
         {
+            Header = "Date",
+            CellTemplate = x => x.Schedule?.ToString("dd MMM yyyy") ?? "-",
+            IsSearchable = false
+        },
+        new ColumnDefinition<CourseViewModel>
+        {
+            Header = "Capacity",
+            CellTemplate = x => x.Capacity.ToString(),
+            IsSearchable = false
+        },
+        new ColumnDefinition<CourseViewModel>
+        {
             Header = "Image",
             CellTemplate = x => x.Image,
             IsImageColumn = true,
@@ -80,23 +93,63 @@
         await ReloadList();
     }
 
+
     private async Task ReloadList()
     {
+        // courses
         var res = await CourseSvc.GetAllAsync();
         var rows = res.Data ?? Enumerable.Empty<CourseQueryDto>();
 
-        courses = rows
-            .OrderByDescending(x => x.CreatedAt) 
-            .Select((x, idx) => new CourseViewModel
+        // sessions
+        var sessRes = await CourseSessionSvc.GetAllAsync();
+        var allSessions = sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>();
+
+        // mapping peta CourseId -> (Date, Capacity) 
+        var now = DateTime.UtcNow;
+        var chosenSession = allSessions
+            .GroupBy(s => s.CourseId)
+            .Select(g =>
             {
-                ID         = idx + 1,
-                CourseId   = x.Id,
-                Name       = x.Name,
-                Description= x.Description ?? string.Empty,
-                Price      = x.Price,
-                CategoryId = x.CategoryId,
-                Category   = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
-                Image      = ResolveImageUrl(x.ImageUrl)
+                var upcoming = g.Where(s => s.Date >= now)
+                                .OrderBy(s => s.Date)
+                                .FirstOrDefault();
+                var picked = upcoming ?? g.OrderByDescending(s => s.Date).FirstOrDefault();
+                return new
+                {
+                    CourseId = g.Key,
+                    Date = picked?.Date,
+                    Capacity = picked?.Capacity
+                };
+            })
+            .ToDictionary(x => x.CourseId, x => (x.Date, x.Capacity));
+
+        // mapping ke VM
+        courses = rows
+            .OrderByDescending(x => x.CreatedAt)
+            .Select((x, idx) =>
+            {
+                DateTime? sched = null;
+                uint cap = 0;
+
+                if (chosenSession.TryGetValue(x.Id, out var s))
+                {
+                    sched = s.Date;
+                    cap = s.Capacity ?? 0u;
+                }
+
+                return new CourseViewModel
+                {
+                    ID          = idx + 1,
+                    CourseId    = x.Id,
+                    Name        = x.Name,
+                    Description = x.Description ?? string.Empty,
+                    Price       = x.Price,
+                    CategoryId  = x.CategoryId,
+                    Category    = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
+                    Image       = ResolveImageUrl(x.ImageUrl),
+                    Schedule    = sched,        
+                    Capacity    = cap
+                };
             })
             .ToList();
 
@@ -147,6 +200,20 @@
                 return;
             }
 
+            @* Save to CourseSession *@
+            if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
+            {
+                var okId = await CourseSessionSvc.CreateAsync(new()
+                {
+                    Date = date,
+                    Capacity = cap,
+                    CourseId = id.Value
+                });
+
+                if (okId is null)
+                    Snackbar.Add("Course Saved, But Create Session Failed", Severity.Warning);
+            }
+
             await ReloadList();
             Snackbar.Add("Course added successfully", Severity.Success);
         }
@@ -174,6 +241,22 @@
                 Snackbar.Add("Course update failed", Severity.Error);
                 return;
             }
+
+
+            // course session update
+            if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
+            {
+                var okId = await CourseSessionSvc.CreateAsync(new()
+                {
+                    Date = date,
+                    Capacity = cap,
+                    CourseId = vm.CourseId
+                });
+
+                if (okId is null)
+                    Snackbar.Add("Course Succesfully Updated, But Updated Course Session Failed", Severity.Warning);
+            }
+
 
             // refresh baris + gambar (cache-busting)
             var row = courses.FirstOrDefault(c => c.CourseId == vm.CourseId);

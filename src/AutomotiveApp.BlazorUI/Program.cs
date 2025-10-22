@@ -82,6 +82,7 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<ICourseBookingService, CourseBookingService>();
 builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
+builder.Services.AddScoped<ICourseSessionService, CourseSessionService>();
 
 var app = builder.Build();
 
