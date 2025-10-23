@@ -1,4 +1,7 @@
 @rendermode InteractiveServer
+@using AutomotiveApp.Shared.Dtos.Courses
+@inject NavigationManager Nav
+@inject ICourseCategoryService CategorySvc
 
 @inject NavigationManager Nav
 
@@ -14,12 +17,18 @@
         <MudText Typo="Typo.body1" Color="Color.Primary">Product</MudText>
         <div>
             <ul class="footer-text">
-                @foreach(string category in categories)
+                @if (visibleCats.Count == 0)
                 {
-                    <li @onclick="() => GoToCategory(category)" role="button" tabindex="0">@category</li>
+                    <li>-</li>
+                }
+                else
+                {
+                    @foreach (var c in visibleCats)
+                    {
+                        <li @onclick="() => GoToCategory(c.Id)" role="button" tabindex="0">@c.Name</li>
+                    }
                 }
             </ul>
-
         </div>
     </MudStack>
 
@@ -58,8 +67,73 @@
 </footer>
 
 @code {
-    private List<string> categories = Enum.GetNames(typeof(CarCategory)).ToList();
+    @* private List<string> categories = Enum.GetNames(typeof(CarCategory)).ToList();
 
     private void GoToCategory(string category)
-        => Nav.NavigateTo($"/course/{category.ToLowerInvariant()}");
+        => Nav.NavigateTo($"/course/{category.ToLowerInvariant()}"); *@
+    
+    private List<(Guid Id, string Name)> allCats = new();
+    // yang ditampilkan (random & berganti)
+    private List<(Guid Id, string Name)> visibleCats = new();
+
+    private readonly Random _rnd = new();
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // data kategori dari API
+        var res = await CategorySvc.GetAllAsync();
+        foreach (var c in res.OrderByDescending(x => x.CreatedAt))
+        {
+            var name = string.IsNullOrWhiteSpace(c.Name) ? "-" : c.Name!;
+            allCats.Add((c.Id, name));
+        }
+
+        // fallback
+        if (allCats.Count == 0)
+        {
+            visibleCats = new() { (Guid.Empty, "Course") };
+            return;
+        }
+
+        PickRandomVisible();
+        StateHasChanged();
+
+        // auto random 15 detik 
+        _cts = new CancellationTokenSource();
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        _ = StartRotateAsync(_cts.Token);
+    }
+
+    private async Task StartRotateAsync(CancellationToken token)
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(token))
+            {
+                PickRandomVisible();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { /* dispose */ }
+    }
+
+    private void PickRandomVisible()
+    {
+        // get data 8 random
+        int take = Math.Min(8, allCats.Count);
+        visibleCats = allCats.OrderBy(_ => _rnd.Next()).Take(take).ToList();
+    }
+
+    private void GoToCategory(Guid id)
+        => Nav.NavigateTo($"/course-category/{id}");
+
+    public async ValueTask DisposeAsync()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _timer?.Dispose();
+        await Task.CompletedTask;
+    }
 }
