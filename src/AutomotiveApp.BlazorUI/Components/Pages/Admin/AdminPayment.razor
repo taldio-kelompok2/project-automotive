@@ -28,6 +28,9 @@
     // === Map Internal ===
     private readonly Dictionary<string, Guid> _nameToId = new(StringComparer.OrdinalIgnoreCase);
 
+    // === Cek Double Name ===
+    private static string Norm(string? s) => (s ?? "").Trim().ToUpperInvariant();
+
     // private List<PaymentMethodViewModel> paymentMethods = new()
     // {
     //    new PaymentMethodViewModel { ID = 1, Name = "DANA", Logo = "/images/payment/dana.svg", Status = Status.Active },
@@ -95,6 +98,14 @@
         return $"{api}/images/PaymentMethod/{v}";
     }
 
+    private bool NameExists(string name, Guid? excludeId = null)
+    {
+        var key = Norm(name);
+        return paymentMethods.Any(x =>
+            Norm(x.Name) == key &&
+            (excludeId == null || x.PaymentMethodId != excludeId.Value));
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -137,6 +148,13 @@
         @* if (result.Canceled || result.Data is not PaymentMethodViewModel vm) return; *@
         if (result is not { Canceled: false, Data: PaymentMethodViewModel vm })
             return;
+        
+        // cek double name
+        if (NameExists(vm.Name))
+        {
+            Snackbar.Add($"Payment method '{vm.Name}' already exists", Severity.Error);
+            return;
+        }
 
         if (vm.File is not null)
         {
@@ -151,6 +169,7 @@
                 Snackbar.Add("Payment method add failed", Severity.Error);
                 return;
             }
+
         }
         else
         {
@@ -161,6 +180,7 @@
                 Status = vm.Status == Status.Active,
                 ImageFilename = null
             };
+
             var id = await PaymentSvc.CreateAsync(create);
 
             if (id is null)
@@ -176,6 +196,13 @@
 
     private async Task OnPaymentMethodEdit(PaymentMethodViewModel vm)
     {
+        // cek double name
+        if (NameExists(vm.Name, vm.PaymentMethodId))
+        {
+            Snackbar.Add($"Payment method '{vm.Name}' already exists.", Severity.Error);
+            return;
+        }
+
         // file baru => multipart
         try
         {
