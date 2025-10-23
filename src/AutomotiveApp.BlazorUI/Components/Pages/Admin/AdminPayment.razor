@@ -3,9 +3,11 @@
 @inject IDialogService DialogService
 @inject HttpClient Http
 @inject IPaymentMethodService PaymentSvc
+@inject ISnackbar Snackbar
 @using System.Net.Http.Json
 @using AutomotiveApp.Shared.Enums
 @using AutomotiveApp.Application.PaymentMethods  
+@using MudBlazor
 
 @layout AdminLayout
 
@@ -95,18 +97,25 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rows = await PaymentSvc.GetAllAsync();
-        paymentMethods = rows
-            .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) => new PaymentMethodViewModel
-            {
-                ID     = idx + 1,
-                PaymentMethodId = x.Id,
-                Name   = x.Name,
-                Logo            = ResolveLogoUrl(x.ImageUrl),
-                Status = x.Status ? Status.Active : Status.Inactive
-            })
-            .ToList();
+        try
+        {
+            var rows = await PaymentSvc.GetAllAsync();
+            paymentMethods = rows
+                .OrderByDescending(x => x.CreatedAt)
+                .Select((x, idx) => new PaymentMethodViewModel
+                {
+                    ID     = idx + 1,
+                    PaymentMethodId = x.Id,
+                    Name   = x.Name,
+                    Logo   = ResolveLogoUrl(x.ImageUrl),
+                    Status = x.Status ? Status.Active : Status.Inactive
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load payment methods: {ex.Message}", Severity.Error);
+        }
     }
 
     private static string? ExtractFileNameOrNull(string? urlOrPath) 
@@ -137,7 +146,11 @@
                 vm.Status == Status.Active,
                 vm.File
             );
-            if (newId is null) return;
+            if (newId is null)
+            {
+                Snackbar.Add("Payment method add failed", Severity.Error);
+                return;
+            }
         }
         else
         {
@@ -149,55 +162,94 @@
                 ImageFilename = null
             };
             var id = await PaymentSvc.CreateAsync(create);
-            if (id is null) return;
+
+            if (id is null)
+            {
+                Snackbar.Add("Payment method add failed", Severity.Error);
+                return;
+            }
         }
 
         await ReloadList();
+        Snackbar.Add("Payment method added successfully", Severity.Success);
     }
 
     private async Task OnPaymentMethodEdit(PaymentMethodViewModel vm)
     {
         // file baru => multipart
-        if (vm.File is not null)
+        try
         {
-            var ok = await PaymentSvc.UpdateMultipartAsync(
-                vm.PaymentMethodId,
-                vm.Name,
-                vm.Status == Status.Active,
-                vm.File
-            );
-            if (!ok) return;
-        }
-        else
-        {
-            // tanpa file => JSON
-            var update = new AutomotiveApp.Application.PaymentMethods.PaymentMethodUpdateDto
+            bool ok;
+            if (vm.File is not null)
             {
-                Name = vm.Name,
-                Status = vm.Status == Status.Active,
-                ImageFilename = null 
-            };
-            var ok = await PaymentSvc.UpdateAsync(vm.PaymentMethodId, update);
-            if (!ok) return;
-        }
+                ok = await PaymentSvc.UpdateMultipartAsync(
+                    vm.PaymentMethodId,
+                    vm.Name,
+                    vm.Status == Status.Active,
+                    vm.File
+                );
+            }
+            else
+            {
+                // tanpa file => JSON
+                var update = new AutomotiveApp.Application.PaymentMethods.PaymentMethodUpdateDto
+                {
+                    Name = vm.Name,
+                    Status = vm.Status == Status.Active,
+                    ImageFilename = null 
+                };
+                ok = await PaymentSvc.UpdateAsync(vm.PaymentMethodId, update);
+            }
 
-        await ReloadList();
+            if (!ok)
+            {
+                Snackbar.Add("Payment method update failed", Severity.Error);
+                return;
+            }
+
+            await ReloadList();
+
+            if (vm.File is not null)
+            {
+                var row = paymentMethods.FirstOrDefault(x => x.PaymentMethodId == vm.PaymentMethodId);
+                if (row is not null)
+                {
+                    var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');
+                    var ext = Path.GetExtension(vm.File.Name);
+                    row.Logo = $"{baseUrl}/images/PaymentMethod/{vm.PaymentMethodId}{ext}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                }
+            }
+
+            StateHasChanged();
+            Snackbar.Add("Payment method updated successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Payment method update failed: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task ReloadList()
     {
-        var rows = await PaymentSvc.GetAllAsync();
-        paymentMethods = rows
-            .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) => new PaymentMethodViewModel
-            {
-                ID     = idx + 1,
-                PaymentMethodId = x.Id,
-                Name   = x.Name,
-                Logo            = ResolveLogoUrl(x.ImageUrl),
-                Status = x.Status ? Status.Active : Status.Inactive
-            })
-            .ToList();
-        StateHasChanged();
+        try
+        {
+            var rows = await PaymentSvc.GetAllAsync();
+            paymentMethods = rows
+                .OrderByDescending(x => x.CreatedAt)
+                .Select((x, idx) => new PaymentMethodViewModel
+                {
+                    ID              = idx + 1,
+                    PaymentMethodId = x.Id,
+                    Name            = x.Name,
+                    Logo            = ResolveLogoUrl(x.ImageUrl),
+                    Status          = x.Status ? Status.Active : Status.Inactive
+                })
+                .ToList();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to refresh list: {ex.Message}", Severity.Error);
+        }
     }
 }
