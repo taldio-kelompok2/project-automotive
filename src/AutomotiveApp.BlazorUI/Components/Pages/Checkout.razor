@@ -4,6 +4,7 @@
 @inject ISnackbar Snackbar
 
 @page "/checkout"
+
 @rendermode InteractiveServer
 @layout MainLayout
 
@@ -212,11 +213,16 @@
         await Cart.FinalizePaymentAsync(transaction.Id);
     }
 
-    private bool _initialized = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Cart.GetUserCartData();
+        if (firstRender)
+        {
+            // ini wajib
+            await Task.Delay(100);
+            await Cart.GetUserCartData();
+            StateHasChanged();
+        }
     }
 
     protected override void OnInitialized()

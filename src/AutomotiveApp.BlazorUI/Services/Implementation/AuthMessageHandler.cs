@@ -1,39 +1,49 @@
-﻿using AutomotiveApp.BlazorUI.Services.Implementation;
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Net;
+﻿using AutomotiveApp.BlazorUI.Models.Auth.Context;
+using AutomotiveApp.BlazorUI.Services.Implementation;
 using System.Net.Http.Headers;
 
 public class AuthMessageHandler : DelegatingHandler
 {
     private readonly ICookieService _cookieService;
-    private readonly AuthenticationStateProvider _authStateProvider;
+    private readonly ILogger<AuthMessageHandler> _logger;
 
-    public AuthMessageHandler(
-        AuthenticationStateProvider authenticationStateProvider,
-        IHttpClientFactory clientFactory,
-        ICookieService cookieService
-    )
+    public AuthMessageHandler(ICookieService cookieService, ILogger<AuthMessageHandler> logger)
     {
-
-        _authStateProvider = authenticationStateProvider;
         _cookieService = cookieService;
+        _logger = logger;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var (accessToken, _) = _cookieService.GetTokens();
+        _logger.LogDebug("API call to {RequestUri}", request.RequestUri);
+
+        var accessToken = GetAccessToken();
+        _logger.LogDebug("Access token available: {HasToken}", !string.IsNullOrEmpty(accessToken));
 
         if (!string.IsNullOrWhiteSpace(accessToken))
+        {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        }
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // If server rejects -> logout
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        return response;
+    }
+
+    private string? GetAccessToken()
+    {
+        var scopeServices = CircuitServicesAccessor.Current.Value;
+        if (scopeServices != null)
         {
-            ((CustomAuthStateProvider)_authStateProvider).NotifyUserLogout();
+            var userContext = scopeServices.GetRequiredService<UserContextService>();
+            if (!string.IsNullOrWhiteSpace(userContext.Current.AccessToken))
+            {
+                return userContext.Current.AccessToken;
+            }
         }
 
-        return response;
+        // Fallback to cookies
+        var (accessToken, _) = _cookieService.GetTokens();
+        return accessToken;
     }
 }

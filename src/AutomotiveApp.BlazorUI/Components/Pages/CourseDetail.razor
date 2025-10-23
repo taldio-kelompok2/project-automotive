@@ -12,6 +12,7 @@
 @inject IRentalCartService Cart
 @inject ICourseService CourseService
 @inject ISnackbar Snackbar
+@inject UserContextService UserContext
 @inject NavigationManager Navigation
 @inject IDialogService Dialog
 
@@ -76,7 +77,7 @@
 
         <div class="d-block d-lg-none d-flex justify-content-center" Style="width:100%;margin-top: auto;">
             <MudStack Spacing="2" Class="justify-center w-100">
-            @if(UserContext.IsAuthenticated) {
+            @if(UserContext.Current.IsAuthenticated) {
                 <PurchaseButtonGroup Width="ButtonWidth.Medium" AddToCart="@AddToCartHandler" InstantPayment="@InstantPaymentHandler" /> 
             }else {
                 <PurchaseButtonGroup Width="ButtonWidth.Medium" AddToCart="@OpenLoginDialogAsync" InstantPayment="@OpenLoginDialogAsync" /> 
@@ -85,7 +86,7 @@
         </div>
         <div class="d-none d-lg-block" Style=" margin-top: auto;">
             <MudStack Row="true" Spacing="2">
-                @if(UserContext.IsAuthenticated) {
+                @if(UserContext.Current.IsAuthenticated) {
                 <PurchaseButtonGroup Width="ButtonWidth.Long" AddToCart="@AddToCartHandler" InstantPayment="@InstantPaymentHandler" /> 
             }else {
                 <PurchaseButtonGroup Width="ButtonWidth.Long" AddToCart="@OpenLoginDialogAsync" InstantPayment="@OpenLoginDialogAsync" /> 
@@ -136,8 +137,6 @@
 
 @code {
 
-    [CascadingParameter] 
-    public UserContext UserContext { get; set; } = default!;
 
     [Parameter]
     public Guid Id { get; set; }

@@ -7,24 +7,27 @@
     <MudText Typo="Typo.h6">Dashboard</MudText>
 </MudAppBar>
 
-<MudDrawer @bind-Open="_drawerOpen"
-           Anchor="Anchor.Left"
-           Variant="DrawerVariant.Mini"
-           Elevation="2"
-           Class="d-flex">
+<MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Variant="DrawerVariant.Mini" Elevation="2" Class="d-flex">
     <MudNavMenu>
         <div class="d-flex justify-content-end mb-3" style="border-bottom: 1px solid #828282; height: 55px;">
-            <MudIconButton OnClick="@ToggleDrawer" Icon="@(_drawerOpen? Icons.Material.Filled.KeyboardArrowLeft : Icons.Material.Filled.KeyboardArrowRight)" />
+            <MudIconButton OnClick="@ToggleDrawer"
+                Icon="@(_drawerOpen? Icons.Material.Filled.KeyboardArrowLeft : Icons.Material.Filled.KeyboardArrowRight)" />
         </div>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_DASHBOARD_PAGE))" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_USER_PAGE))" Icon="@Icons.Material.Filled.AccountBox">User</MudNavLink>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_COURSE_PAGE))" Icon="@Icons.Material.Filled.DirectionsCar">Course</MudNavLink>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_CATEGORY_PAGE))" Icon="@Icons.Material.Outlined.Category">Category</MudNavLink>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_PAYMENT_PAGE))" Icon="@Icons.Material.Filled.AccountBalanceWallet">Payment Method</MudNavLink>
-        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_INVOICE_PAGE))" Icon="@Icons.Material.Filled.Article">Invoice</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_DASHBOARD_PAGE))"
+            Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_USER_PAGE))" Icon="@Icons.Material.Filled.AccountBox">
+            User</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_COURSE_PAGE))"
+            Icon="@Icons.Material.Filled.DirectionsCar">Course</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_CATEGORY_PAGE))"
+            Icon="@Icons.Material.Outlined.Category">Category</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_PAYMENT_PAGE))"
+            Icon="@Icons.Material.Filled.AccountBalanceWallet">Payment Method</MudNavLink>
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_INVOICE_PAGE))" Icon="@Icons.Material.Filled.Article">
+            Invoice</MudNavLink>
     </MudNavMenu>
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudSpacer/>
+        <MudSpacer />
     </MudHidden>
     <MudNavMenu Class="mb-3">
         <MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
@@ -42,12 +45,12 @@
     private const string ADMIN_INVOICE_PAGE = "/admin/invoice";
 
     void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-    
+
     private async Task LogoutAsync()
     {
         try
         {
-            await AuthService.LogoutAsync();
+            await AuthService.LogoutViaProxyAsync();
             Snackbar.Add("You have been logged out successfully.", Severity.Info);
 
             await Task.Delay(1000);

@@ -49,7 +49,7 @@
 </EditForm>
 
 @code {
-
+    [Parameter] public string? ReturnUrl { get; set; }
     private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
     private const string HOME_PAGE = "/";
     private const string REGISTER_PAGE = "/register";
@@ -60,6 +60,7 @@
     // @<div>
     // <MudText Typo="Typo.body2">Welcome back, @_loginModel.Email</MudText>
     // </div>;
+
 
     private bool IsFormFilled()
     {
@@ -156,7 +157,10 @@
             if (success)
             {
                 await ShowSuccessDialogAsync();
-                Nav.NavigateTo("/", forceLoad: true); // reload so SignalR picks up cookies
+                var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                Console.WriteLine(redirect);
+                Nav.NavigateTo(redirect, forceLoad: true);
+                // reload so SignalR picks up cookies
             }
             else
             {
