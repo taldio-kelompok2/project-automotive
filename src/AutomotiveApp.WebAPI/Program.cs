@@ -245,7 +245,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();

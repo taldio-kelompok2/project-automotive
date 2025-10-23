@@ -1,6 +1,6 @@
 ﻿@page "/admin/dashboard"
 @rendermode InteractiveServer
-
+@inject IDashboardService DashboardService
 @layout AdminLayout
 
 <PageTitle>Dashboard</PageTitle>
@@ -40,7 +40,7 @@
         </MudItem>
     </MudGrid>
 
-    <AdminTable TItem="InvoiceRow" Items="Invoices" Columns="InvoiceColumns" />
+    <AdminTable TItem="DashboardInvoiceModel" Items="Invoices" Columns="InvoiceColumns" />
 </MudPaper>
 
 
@@ -78,34 +78,45 @@
     private string FormatIdr(decimal v) => string.Format(Indo, "IDR {0:N0}", v);
 
     // Statistik
-    private int TotalActiveUsers => 3;
-    private int TotalPayments    => 7;
-    private int TotalMembers     => 2;
+    private int TotalActiveUsers;
+    private int TotalPayments;
+    private int TotalMembers;
 
-    // Table
-    public class InvoiceRow
+    private List<DashboardInvoiceModel> Invoices = new();
+
+    private List<ColumnDefinition<DashboardInvoiceModel>> InvoiceColumns => new()
     {
-        public string Email { get; set; } = "";
-        public string InvoiceNo { get; set; } = "";
-        public DateTime Date { get; set; }
-        public int TotalCourse { get; set; }
-        public decimal TotalPrice { get; set; }
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "Date", CellTemplate = x => x.Date.ToString("dddd, dd MMM yyyy", new CultureInfo("en-US")), IsSearchable = true },
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "Email", CellTemplate = x => x.Email, IsSearchable = true },
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "No. Invoice", CellTemplate = x => x.InvoiceCode, IsSearchable = true },
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "Total Course", CellTemplate = x => x.TotalCourse.ToString(), IsSearchable = false },
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "Total Price", CellTemplate = x => FormatIdr(x.TotalPrice), IsSearchable = false },
+        new ColumnDefinition<DashboardInvoiceModel> { Header = "Action", IsActionColumn = true, ShowDetails = true }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardAsync();
     }
 
-    private List<InvoiceRow> Invoices = new()
+    private async Task LoadDashboardAsync()
     {
-        new() { Email="adityapratamafebriono@gmail.com", InvoiceNo="DLA00002", Date=new(2023,5,20), TotalCourse=3, TotalPrice=1_450_000 },
-        new() { Email="kietpascalasmara@gmail.com", InvoiceNo="DLA00003", Date=new(2023,5,25), TotalCourse=2, TotalPrice=500_000 },
-        new() { Email="gregoriusivanhalim@gmail.com", InvoiceNo="DLA00003", Date=new(2023,5,30), TotalCourse=1, TotalPrice=250_000 }
-    };
+        var overview = await DashboardService.GetOverview();
+        TotalActiveUsers = overview.ActiveUsers;
+        TotalPayments = overview.TotalPayments;
+        TotalMembers = overview.TotalUsers;
 
-    private List<ColumnDefinition<InvoiceRow>> InvoiceColumns => new()
-    {
-        new ColumnDefinition<InvoiceRow> { Header = "Email", CellTemplate = x => x.Email, IsSearchable = true },
-        new ColumnDefinition<InvoiceRow> { Header = "No. Invoice", CellTemplate = x => x.InvoiceNo, IsSearchable = true },
-        new ColumnDefinition<InvoiceRow> { Header = "Date", CellTemplate = x => x.Date.ToString("dddd, dd MMM yyyy", new CultureInfo("en-US")), IsSearchable = true },
-        new ColumnDefinition<InvoiceRow> { Header = "Total Course", CellTemplate = x => x.TotalCourse.ToString(), IsSearchable = false },
-        new ColumnDefinition<InvoiceRow> { Header = "Total Price", CellTemplate = x => FormatIdr(x.TotalPrice), IsSearchable = false },
-        new ColumnDefinition<InvoiceRow> { Header = "Action", IsActionColumn = true, ShowDetails = true }
-    };
+        var rows = await DashboardService.GetDashboardTransactions();
+        Invoices = rows.Select(x => new DashboardInvoiceModel
+        {
+            UserId = x.UserId,
+            UserName = x.UserName,
+            Email = x.Email,
+            InvoiceCode = x.InvoiceCode,
+            Date = x.CreatedAt,
+            TotalCourse = x.CourseCount,
+            TotalPrice = x.TotalPrice,
+            PaymentMethodName = x.PaymentMethodName,
+        }).ToList();
+    }
 }

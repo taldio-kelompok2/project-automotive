@@ -14,5 +14,10 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
         {
             return await Query().Select(i => (int?)i.InvoiceNumber).MaxAsync() ?? 0;
         }
+
+        public async Task<long> GetTotalRevenue()
+        {
+            return await Query().SumAsync(i => i.TotalPrice);
+        }
     }
 }
