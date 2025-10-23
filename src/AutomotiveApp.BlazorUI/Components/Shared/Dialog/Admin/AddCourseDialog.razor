@@ -1,26 +1,34 @@
-﻿<MudDialog Class="m-2">
+﻿@using AutomotiveApp.BlazorUI.Models.Admin
+@using Microsoft.AspNetCore.Components.Forms
+
+<MudDialog Class="m-2">
     <DialogContent>
         <MudForm @ref="_form">
-            <MudSelect T="CarCategory" @bind-Value="_course.Category" Label="Category" Required="true" Class="mb-2">
-                @foreach (var cat in Enum.GetValues<CarCategory>())
+
+            <MudSelect T="Guid" 
+                @bind-Value="_vm.CategoryId" 
+                Label="Category" 
+                Placeholder="-- Select Category --"
+                Required="true" 
+                Class="mb-2">
+
+                <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Category --</MudSelectItem>
+
+                @foreach (var kv in Categories)
                 {
-                    <MudSelectItem Value="cat">@cat</MudSelectItem>
+                    <MudSelectItem Value="@kv.Key">@kv.Value</MudSelectItem>
                 }
             </MudSelect>
-            <MudTextField @bind-Value="_course.Name" Label="Course Name" Required="true" Class="mb-2" />
+            
+            <MudTextField @bind-Value="_vm.Name" Label="Course Name" Required="true" Class="mb-2" />
+            <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
+            <MudTextField @bind-Value="_vm.Price" Label="Price" Required="true" Class="mb-2" />
+
             <MudItem Class="my-3" >
                 <MudText Typo="Typo.body2" Class="mb-1">Course Image:</MudText>
                 <InputFile OnChange="OnFileSelected" />
             </MudItem>
-            <MudNumericField @bind-Value="_course.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
-            <MudDatePicker @bind-Date="_course.Schedule" Label="Schedule" Class="mb-2" />
-            <MudSelect T="Status"
-                       Label="Status"
-                       @bind-Value="_course.Status"
-                       Required="true">
-                <MudSelectItem Value="Status.Active">Active</MudSelectItem>
-                <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
-            </MudSelect>
+
         </MudForm>
     </DialogContent>
 
@@ -32,18 +40,20 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Dictionary<Guid, string> Categories { get; set; } = new();
 
-    private CourseViewModel _course = new();
+    private CourseViewModel _vm = new()
+    {
+        CategoryId = Guid.Empty
+    };
+
     private MudForm _form = default!;
 
     private async Task Save()
     {
         await _form.Validate();
         if (_form.IsValid)
-        {
-            // return to caller
-            MudDialog.Close(DialogResult.Ok(_course));
-        }
+            MudDialog.Close(DialogResult.Ok(_vm));
     }
 
     private void Cancel() => MudDialog.Cancel();
@@ -51,9 +61,7 @@
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        if (file != null)
-        {
-            _course.Image = file.Name; // for now just the filename
-        }
+        if (file is not null)
+            _vm.File = file;
     }
 }

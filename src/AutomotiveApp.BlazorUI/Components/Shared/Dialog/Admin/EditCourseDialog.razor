@@ -1,82 +1,111 @@
-﻿<MudDialog Class="m-2">
-    <DialogContent>
-        <MudForm @ref="_form">
-            <MudSelect T="CarCategory" @bind-Value="_course.Category" Label="Category" Required="true" Class="mb-2">
-                @foreach (var cat in Enum.GetValues<CarCategory>())
-                {
-                    <MudSelectItem Value="cat">@cat</MudSelectItem>
-                }
-            </MudSelect>
+﻿@using AutomotiveApp.BlazorUI.Models.Admin
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@inject ICourseCategoryService CategorySvc
 
-            <MudTextField @bind-Value="_course.Name" Label="Course Name" Required="true" Class="mb-2" />
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form">
 
-            <MudItem Class="my-3">
-                <MudText Typo="Typo.body2" Class="mb-1">Course Image</MudText>
-                <InputFile OnChange="OnFileSelected" />
-                @if (!string.IsNullOrEmpty(_course.Image))
-                {
-                    <MudText Typo="Typo.body2" Class="mt-1">Current: @_course.Image</MudText>
-                }
-            </MudItem>
+      <MudSelect T="Guid"
+                 @bind-Value="_vm.CategoryId"
+                 Label="Category"
+                 Placeholder="-- Select Category --"
+                 Required="true"
+                 Class="mb-2"
+                 ToStringFunc="@(g => Categories != null && Categories.TryGetValue(g, out var n) ? n : string.Empty)"
+                 @key="Categories">
+        <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Category --</MudSelectItem>
 
-            <MudNumericField @bind-Value="_course.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
-            <MudDatePicker @bind-Date="_course.Schedule" Label="Schedule" Class="mb-2" />
-            <MudSelect T="Status"
-                       Label="Status"
-                       @bind-Value="_course.Status"
-                       Required="true">
-                <MudSelectItem Value="Status.Active">Active</MudSelectItem>
-                <MudSelectItem Value="Status.Inactive">Inactive</MudSelectItem>
-            </MudSelect>
-        </MudForm>
-    </DialogContent>
+        @foreach (var kv in Categories)
+        {
+          <MudSelectItem Value="@kv.Key">@kv.Value</MudSelectItem>
+        }
+      </MudSelect>
 
-    <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
-    </DialogActions>
+      <MudTextField @bind-Value="_vm.Name" Label="Course Name" Required="true" Class="mb-2" />
+      <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
+      <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
+
+      <MudItem Class="my-3">
+        <MudText Typo="Typo.body2" Class="mb-1">Course Image</MudText>
+        <InputFile OnChange="OnFileSelected" />
+        @if (!string.IsNullOrWhiteSpace(_vm.Image))
+        {
+          <MudText Typo="Typo.body2" class="mt-1">Current: @_vm.Image</MudText>
+        }
+      </MudItem>
+    </MudForm>
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+  </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public CourseViewModel? Item { get; set; }
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public CourseViewModel? Item { get; set; }
+  [Parameter] public Dictionary<Guid, string> Categories { get; set; } = new();
 
-    private CourseViewModel _course = new();
-    private MudForm _form = default!;
+  private CourseViewModel _vm = new();
+  private MudForm _form = default!;
 
-    protected override void OnInitialized()
+  protected override void OnInitialized()
+  {
+    if (Item is not null)
     {
-        if (Item != null)
-        {
-            _course = new CourseViewModel
-            {
-                Category = Item.Category,
-                Name = Item.Name,
-                Image = Item.Image,
-                Price = Item.Price,
-                Status = Item.Status,
-                Schedule = Item.Schedule
-            };
-        }
+      _vm = new CourseViewModel
+      {
+        ID         = Item.ID,
+        CourseId   = Item.CourseId,
+        Name       = Item.Name,
+        Description= Item.Description,
+        Price      = Item.Price,
+        CategoryId = Item.CategoryId,
+        Category   = Item.Category,
+        Image      = Item.Image
+      };
+    }
+    else
+    {
+      _vm.CategoryId = Guid.Empty;
+    }
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    // muat Kategori jika belum ada
+    if (Categories is null || Categories.Count == 0)
+    {
+      var rows = await CategorySvc.GetAllAsync();
+      Categories = rows
+        .OrderBy(x => x.Name)
+        .ToDictionary(x => x.Id, x => x.Name);
     }
 
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (_form.IsValid)
-        {
-            MudDialog.Close(DialogResult.Ok(_course));
-        }
-    }
+    // set CategoryId di VM sesuai Item (jika ada dan valid)
+    if (Item is not null && Categories.ContainsKey(Item.CategoryId))
+      _vm.CategoryId = Item.CategoryId;
+    else if (_vm.CategoryId != Guid.Empty && !Categories.ContainsKey(_vm.CategoryId))
+      _vm.CategoryId = Guid.Empty;
 
-    private void Cancel() => MudDialog.Cancel();
+    StateHasChanged();
+  }
 
-    private void OnFileSelected(InputFileChangeEventArgs e)
-    {
-        var file = e.File;
-        if (file != null)
-        {
-            _course.Image = file.Name; // only storing filename
-        }
-    }
+  private async Task Save()
+  {
+    await _form.Validate();
+    if (_form.IsValid)
+      MudDialog.Close(DialogResult.Ok(_vm));
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+
+  private void OnFileSelected(InputFileChangeEventArgs e)
+  {
+    var file = e.File;
+    if (file is not null) _vm.File = file;
+  }
 }

@@ -30,7 +30,7 @@
         <MudSpacer />
     </MudHidden>
     <MudNavMenu Class="mb-3">
-        <MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+        <MudNavLink OnClick="LogoutViaProxyAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
     </MudNavMenu>
 </MudDrawer>
 
@@ -45,8 +45,8 @@
     private const string ADMIN_INVOICE_PAGE = "/admin/invoice";
 
     void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-
-    private async Task LogoutAsync()
+    
+    private async Task LogoutViaProxyAsync()
     {
         try
         {
