@@ -1,16 +1,17 @@
 ﻿@using AutomotiveApp.BlazorUI.Models.Admin
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
 
 <MudDialog Class="m-2">
     <DialogContent>
         <MudForm @ref="_form">
 
             <MudSelect T="Guid" 
-                @bind-Value="_vm.CategoryId" 
-                Label="Category" 
-                Placeholder="-- Select Category --"
-                Required="true" 
-                Class="mb-2">
+                       @bind-Value="_vm.CategoryId" 
+                       Label="Category" 
+                       Placeholder="-- Select Category --"
+                       Required="true" 
+                       Class="mb-2">
 
                 <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Category --</MudSelectItem>
 
@@ -24,11 +25,35 @@
             <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
             <MudTextField @bind-Value="_vm.Price" Label="Price" Required="true" Class="mb-2" />
 
-            <MudDatePicker @bind-Date="_vm.Schedule" Label="Date" Required="true" Class="mb-2" />
-            <MudNumericField T="uint" @bind-Value="_vm.Capacity" Label="Capacity" Required="true" Min="1" Class="mb-2" />
+            <MudItem Class="my-2">
+                <MudText Typo="Typo.body2" Class="mb-1">Sessions:</MudText>
+                <MudTable Items="_vm.Sessions" Hover="true" Dense="true" Class="mb-2">
+                    <HeaderContent>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Capacity</MudTh>
+                        <MudTh class="text-right">Action</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" />
+                        </MudTd>
+                        <MudTd>
+                            <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
+                        </MudTd>
+                        <MudTd Class="text-right">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=>RemoveSession(context))" Title="Remove" />
+                        </MudTd>
+                    </RowTemplate>
+                    <ToolBarContent>
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddSession">
+                            Add Session
+                        </MudButton>
+                    </ToolBarContent>
+                </MudTable>
+            </MudItem>
 
-            <MudItem Class="my-3" >
-                <MudText Typo="Typo.body2" Class="mb-1">Course Image:</MudText>
+            <MudItem Class="my-2">
+                <MudText Typo="Typo.body2" Class="mb-1">Image:</MudText>
                 <InputFile OnChange="OnFileSelected" />
             </MudItem>
 
@@ -42,12 +67,14 @@
 </MudDialog>
 
 @code {
+
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public Dictionary<Guid, string> Categories { get; set; } = new();
 
     private CourseViewModel _vm = new()
     {
-        CategoryId = Guid.Empty
+        CategoryId = Guid.Empty,
+        Sessions = new()  
     };
 
     private MudForm _form = default!;
@@ -55,8 +82,44 @@
     private async Task Save()
     {
         await _form.Validate();
-        if (_form.IsValid)
-            MudDialog.Close(DialogResult.Ok(_vm));
+        if (!_form.IsValid) return;
+
+        if ((_vm.Sessions == null || _vm.Sessions.Count == 0) 
+            && _vm.Schedule is DateTime d 
+            && _vm.Capacity > 0)
+        {
+            _vm.Sessions = new()
+            {
+                new CourseSessionVM
+                {
+                    Id = null,
+                    Date = d,
+                    Capacity = _vm.Capacity
+                }
+            };
+        }
+
+        _vm.Sessions = (_vm.Sessions ?? new())
+            .Where(s => s.Date.HasValue && s.Capacity > 0)
+            .ToList();
+
+        MudDialog.Close(DialogResult.Ok(_vm));
+    }
+
+    private void AddSession()
+    {
+        _vm.Sessions ??= new();
+        _vm.Sessions.Add(new CourseSessionVM
+        {
+            Id = null,
+            Date = DateTime.UtcNow.Date, 
+            Capacity = 1
+        });
+    }
+
+    private void RemoveSession(CourseSessionVM s)
+    {
+        _vm.Sessions?.Remove(s);
     }
 
     private void Cancel() => MudDialog.Cancel();
@@ -67,4 +130,5 @@
         if (file is not null)
             _vm.File = file;
     }
+
 }

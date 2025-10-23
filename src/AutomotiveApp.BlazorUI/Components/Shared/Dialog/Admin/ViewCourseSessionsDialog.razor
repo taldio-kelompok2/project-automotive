@@ -1,0 +1,35 @@
+@using AutomotiveApp.Shared.Dtos.Courses
+@using AutomotiveApp.BlazorUI.Models.Admin
+
+<MudDialog Class="p-2">
+  <DialogContent>
+    <MudText Typo="Typo.subtitle1">Name&nbsp;&nbsp;&nbsp;&nbsp;@Course?.Name</MudText>
+    <MudText Typo="Typo.subtitle1">Description&nbsp;&nbsp;@Course?.Description</MudText>
+    <MudText Typo="Typo.subtitle1">Price&nbsp;&nbsp;&nbsp;@((Course?.Price ?? 0m))</MudText>
+
+    @if (Sessions is { Count: >0 })
+    {
+        @foreach (var s in Sessions.OrderBy(x => x.Date))
+        {
+            <MudText Typo="Typo.subtitle1">
+                @($"Date {s.Date:dd-MM-yy} Capacity {s.Capacity}")
+            </MudText>
+        }
+    }
+    else
+    {
+        <MudText Typo="Typo.subtitle1">No sessions</MudText>
+    }
+  </DialogContent>
+
+  <DialogActions>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close">Close</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public CourseViewModel? Course { get; set; }
+  [Parameter] public List<CourseSessionQueryDto> Sessions { get; set; } = new();
+  private void Close() => MudDialog.Close();
+}

@@ -8,6 +8,7 @@
 @using AutomotiveApp.Shared.Dtos.Courses
 @using AutomotiveApp.BlazorUI.Models.Admin
 @inject ISnackbar Snackbar
+@using System.Globalization
 
 @layout AdminLayout
 
@@ -16,7 +17,7 @@
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Course Management</MudText>
     <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCourseDialog"  Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
-    <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdited" />
+    <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdited" OnDetails="OnCourseDetails"  />
 </MudPaper>
 
 @code {
@@ -57,22 +58,18 @@
         },
         new ColumnDefinition<CourseViewModel>
         {
-            Header = "Date",
-            CellTemplate = x => @x.Schedule?.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("en-US")) ?? "-",
-            IsSearchable = false
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Capacity",
-            CellTemplate = x => x.Capacity.ToString(),
-            IsSearchable = false
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
             Header = "Image",
             CellTemplate = x => x.Image,
             IsImageColumn = true,
             IsSearchable = false
+        },
+        new ColumnDefinition<CourseViewModel>
+        {
+            Header = "Detail",
+            CellTemplate = _ => "Detail",
+            IsSearchable = false,
+            IsActionColumn = true,
+            ShowDetails = true,
         },
         new ColumnDefinition<CourseViewModel>
         {
@@ -83,6 +80,7 @@
             ShowEdit = true
         }
     };
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -200,18 +198,25 @@
                 return;
             }
 
-            // Save to CourseSession
-            if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
+            // save to CourseSession
+            if (vm.Sessions is { Count: > 0 })
             {
-                var okId = await CourseSessionSvc.CreateAsync(new()
+                foreach (var s in vm.Sessions)
                 {
-                    Date = date,
-                    Capacity = cap,
-                    CourseId = id.Value
-                });
+                    // hanya buat baris valid
+                    if (s.Capacity > 0)
+                    {
+                        var okId = await CourseSessionSvc.CreateAsync(new()
+                        {
+                            Date = s.Date.Value, 
+                            Capacity = s.Capacity,
+                            CourseId = id.Value
+                        });
 
-                if (okId is null)
-                    Snackbar.Add("Course Saved, But Create Session Failed", Severity.Warning);
+                        if (okId is null)
+                            Snackbar.Add($"Session {s.Date:dd MMM yyyy} failed to create", Severity.Warning);
+                    }
+                }
             }
 
             await ReloadList();
@@ -244,59 +249,70 @@
             }
 
             // update CourseSession sesuai jadwal & kapasitas
-            if (vm.Schedule is DateTime date && vm.Capacity is uint cap && cap > 0)
+            var currentRes = await CourseSessionSvc.GetAllAsync();
+            var current = (currentRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
+                            .Where(s => s.CourseId == vm.CourseId)
+                            .ToList();
+            var currentById = current.ToDictionary(x => x.Id, x => x);
+
+            // Id yang datang dari dialog (yang existing)
+            var incoming = vm.Sessions;
+            var incomingExistingIds = incoming.Where(x => x.Id.HasValue)
+                                            .Select(x => x.Id!.Value)
+                                            .ToHashSet();
+
+            // 1) DELETE: semua current yang tidak ada lagi di incoming
+            foreach (var c in current)
             {
-                var sessRes = await CourseSessionSvc.GetAllAsync();
-                var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
-                                .Where(s => s.CourseId == vm.CourseId)
-                                .ToList();
-
-                var existing = PickEditableSession(sessions);
-
-                if (existing is null)
+                if (!incomingExistingIds.Contains(c.Id))
                 {
-                    // belum ada session => buat baru
-                    var createdId = await CourseSessionSvc.CreateAsync(new()
-                    {
-                        Date = date,
-                        Capacity = cap,
-                        CourseId = vm.CourseId
-                    });
+                    var deleted = await CourseSessionSvc.DeleteAsync(c.Id);
+                    if (!deleted)
+                        Snackbar.Add($"Failed to delete session {c.Date:dd MMM yyyy}", Severity.Warning);
+                }
+            }
 
-                    if (createdId is null)
-                        Snackbar.Add("Course updated, but creating session failed", Severity.Warning);
+            // 2) UPSERT:
+            foreach (var s in incoming)
+            {
+                if (s.Id is null)
+                {
+                    // CREATE baru
+                    if (s.Capacity > 0)
+                    {
+                        var createdId = await CourseSessionSvc.CreateAsync(new()
+                        {
+                            Date = s.Date.Value,
+                            Capacity = s.Capacity,
+                            CourseId = vm.CourseId
+                        });
+
+                        if (createdId is null)
+                            Snackbar.Add($"Failed to create session {s.Date:dd MMM yyyy}", Severity.Warning);
+                    }
                 }
                 else
                 {
-                    // sudah ada session, hanya update jika ada perubahan
-                    var currentCap = existing.Capacity;
-                    var needUpdate = existing.Date != date || currentCap != cap;
-
-                    if (needUpdate)
+                    // UPDATE jika berubah
+                    var old = currentById[s.Id.Value];
+                    var oldCap = old.Capacity;
+                    if (old.Date != s.Date || oldCap != s.Capacity)
                     {
-                        //  UpdateAsync(Guid id, CourseSessionUpdateDto dto)
                         var updated = await CourseSessionSvc.UpdateAsync(
-                            existing.Id,
+                            s.Id.Value,
                             new()
                             {
-                                Date = date,
-                                Capacity = cap,
+                                Date = s.Date.Value,
+                                Capacity = s.Capacity,
                                 CourseId = vm.CourseId
                             });
 
-                        // var updated = await CourseSessionSvc.UpdateAsync(new()
-                        // {
-                        //     Id = existing.Id,
-                        //     Date = date,
-                        //     Capacity = cap,
-                        //     CourseId = vm.CourseId
-                        // });
-
                         if (!updated)
-                            Snackbar.Add("Course updated, but updating session failed", Severity.Warning);
+                            Snackbar.Add($"Failed to update session {s.Date:dd MMM yyyy}", Severity.Warning);
                     }
                 }
             }
+
 
             // refresh data + gambar 
             var row = courses.FirstOrDefault(c => c.CourseId == vm.CourseId);
@@ -340,6 +356,29 @@
             .OrderByDescending(s => s.Date)
             .FirstOrDefault();
     }
+
+    private async Task OnCourseDetails(CourseViewModel course)
+    {
+        var sessRes = await CourseSessionSvc.GetAllAsync();
+        var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
+                        .Where(s => s.CourseId == course.CourseId)
+                        .OrderBy(s => s.Date)
+                        .ToList();
+
+        var parameters = new DialogParameters
+        {
+            { "Course", course },
+            { "Sessions", sessions }
+        };
+
+        await DialogService.ShowAsync<ViewCourseSessionsDialog>(
+            $"Sessions — {course.Name}", parameters);
+    }
+
+    
+
+    
+    
 
 
 
