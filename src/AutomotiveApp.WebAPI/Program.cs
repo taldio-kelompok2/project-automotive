@@ -258,7 +258,7 @@ using (var scope = app.Services.CreateScope())
     var db = services.GetRequiredService<AppDbContext>();
     var userManager = services.GetRequiredService<UserManager<User>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    await MasterSeeder.SeedAsync(db, userManager, roleManager, false);
+    await MasterSeeder.SeedAsync(db, userManager, roleManager, true);
 }
 
 app.Run();

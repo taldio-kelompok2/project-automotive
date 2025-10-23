@@ -36,16 +36,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("transactions")]
-        public async Task<ActionResult<ApiResponse<List<DashboardUserDto>>>> GetDashboardTransactionsPaged(
-            [FromQuery] int Page = 1,
-            [FromQuery] int PageSize = 6,
-            CancellationToken ct = default)
+        public async Task<ActionResult<ApiResponse<List<DashboardUserDto>>>> GetDashboardTransactions(CancellationToken ct = default)
         {
             var response = new ApiResponse<List<DashboardUserDto>>();
 
             try
             {
-                var query = new GetDashboardTransactionsPaged(Page, PageSize);
+                var query = new GetAllDashboardTransactions();
 
                 var result = await _mediator.Send(query, ct);
                 response.Success = true;
@@ -62,5 +59,33 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 return StatusCode(500, response);
             }
         }
+
+        //[HttpGet("transactions")]
+        //public async Task<ActionResult<ApiResponse<List<DashboardUserDto>>>> GetDashboardTransactionsPaged(
+        //    [FromQuery] int Page = 1,
+        //    [FromQuery] int PageSize = 6,
+        //    CancellationToken ct = default)
+        //{
+        //    var response = new ApiResponse<List<DashboardUserDto>>();
+
+        //    try
+        //    {
+        //        var query = new GetDashboardTransactionsPaged(Page, PageSize);
+
+        //        var result = await _mediator.Send(query, ct);
+        //        response.Success = true;
+        //        response.Data = result;
+        //        response.StatusCode = HttpStatusCode.OK;
+
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.StatusCode = HttpStatusCode.InternalServerError;
+        //        response.Errors = [ex.Message];
+        //        return StatusCode(500, response);
+        //    }
+        //}
     }
 }
