@@ -46,6 +46,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                 // Update user with new refresh token
                 user.RefreshToken = newRefreshToken;
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
+                user.LastLogin = DateTime.UtcNow;
                 await userManager.UpdateAsync(user);
 
                 return new AuthResponseDto
