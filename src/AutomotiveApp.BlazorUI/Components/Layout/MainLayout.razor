@@ -1,38 +1,36 @@
 ﻿@using AutomotiveApp.BlazorUI.Models.Auth.Context
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@implements IDisposable
 @inject NavigationManager Nav
 @inject IRentalCartService Cart
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserContextService UserContext
+
+@inject IAuthService AuthService
+
 @inherits LayoutComponentBase
+<CascadingAuthenticationState>
+    <MudLayout>
+        <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
+        <MudPopoverProvider />
+        <MudDialogProvider @rendermode="InteractiveServer" />
+        <MudSnackbarProvider />
 
-<MudLayout>
-    <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
-    <MudPopoverProvider />
-    <MudDialogProvider @rendermode="InteractiveServer" />
-    <MudSnackbarProvider />
+        <AuthorizeView>
+            <Authorized>
+                <UserNavbar />
+            </Authorized>
+            <NotAuthorized>
+                <GuestNavbar />
+            </NotAuthorized>
+        </AuthorizeView>
 
-    <CascadingValue Value="_userContext">
-        @if (_hideNavbar)
-        {
-            <BlankNavbar />
-        }
-        else
-        {
-            <AuthorizeView>
-                <Authorized>
-                    <UserNavbar />
-                </Authorized>
-                <NotAuthorized>
-                    <GuestNavbar />
-                </NotAuthorized>
-            </AuthorizeView>
-        }
-
-        <MudMainContent Class="p-0">
+        <MudMainContent>
             @Body
         </MudMainContent>
-    </CascadingValue>
-</MudLayout>
+    </MudLayout>
+</CascadingAuthenticationState>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -42,47 +40,68 @@
 
 @code {
     private readonly MudTheme _theme = new AppTheme();
+    private Timer? _refreshTimer;
+
     private bool _isDarkMode = false;
-    private UserContext _userContext = new();
     private bool _hideNavbar = false;
 
-    private readonly string[] _noNavbarPages = 
-    {
-        "/email-confirmed",
-        "/success-purchase"
-    };
+    [CascadingParameter]
+    private RouteData? CurrentRoute { get; set; }
 
+    private readonly string[] _noNavbarPages =
+    {
+"/email-confirmed",
+"/success-purchase"
+};
+
+    private readonly string[] _protectedPages = new[]
+    {
+"/checkout",
+"/profile",
+"/my-class"
+};
 
     protected override async Task OnInitializedAsync()
     {
-        // Track route changes
-        Nav.LocationChanged += (_, __) => UpdateNavbarVisibility();
+        @* Nav.LocationChanged += async (_, __) =>
+        {
+            await CheckProtectedPage();
+            UpdateNavbarVisibility();
 
-        // Initial navbar visibility
-        UpdateNavbarVisibility();
+        }; *@
+
 
         // Listen for authentication state changes
         AuthStateProvider.AuthenticationStateChanged += async (task) =>
         {
             var state = await task;
-            _userContext = _userContext.Update(state.User);
             StateHasChanged();
         };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
+            return;
+
+        await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+        await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // Initial checks
+        await CheckProtectedPage();
+        UpdateNavbarVisibility();
+
+        _refreshTimer = new Timer(async _ =>
         {
-            // refresh token
-            await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            _userContext = _userContext.Update(user);
-
-            StateHasChanged();
-        }
+            await InvokeAsync(async () =>
+    {
+            try
+            {
+                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+            }
+            catch { /* Ignore errors */ }
+        });
+        }, null, TimeSpan.FromMinutes(0.5), TimeSpan.FromMinutes(0.5));
     }
 
     private void UpdateNavbarVisibility()
@@ -90,5 +109,31 @@
         var currentUri = Nav.Uri.ToLower();
         _hideNavbar = _noNavbarPages.Any(page => currentUri.Contains(page));
         StateHasChanged();
+    }
+
+    private async Task CheckProtectedPage()
+    {
+        var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
+
+        if (_protectedPages.Any(p => uri.StartsWith(p.TrimStart('/'))))
+        {
+            var hasUserContextAuth = UserContext.Current.IsAuthenticated;
+
+            // Redirect only if NO access token found
+            if (!hasUserContextAuth)
+            {
+                Console.WriteLine("🚫 No access token, redirecting to login");
+                Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
+            }
+            else
+            {
+                Console.WriteLine("✅ Access token found, allowing access");
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
     }
 }

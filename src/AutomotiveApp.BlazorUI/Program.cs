@@ -10,26 +10,23 @@ using AutomotiveApp.BlazorUI.Services.Invoices;
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using AutomotiveApp.BlazorUI.Models.Auth.Context;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Auth
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/login";
-        options.AccessDeniedPath = "/access-denied";
-    });
-
+builder.Services.AddAuthorizationCore();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
 .AddInteractiveServerComponents();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddAuthorizationCore();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CircuitHandler, BlazorScopeCircuitHandler>();
+builder.Services.AddScoped<UserContextService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IRentalCartService, RentalCartService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -48,11 +45,6 @@ builder.Services.AddHttpClient("ServerAPI", client =>
     UseCookies = true,
     CookieContainer = new CookieContainer()
 }).AddHttpMessageHandler<AuthMessageHandler>();
-
-builder.Services.AddHttpClient("BareServer", c =>
-{
-    c.BaseAddress = new Uri("https://localhost:5001");
-});
 
 //Mud blazor implementation
 builder.Services.AddMudServices(config =>
@@ -85,8 +77,6 @@ builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
 
 var app = builder.Build();
 
-builder.Services.AddAuthorization();
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -95,7 +85,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 var cultureInfo = new CultureInfo("id-ID");
@@ -157,7 +146,7 @@ app.MapPost("/auth/proxy-refresh-token", async (HttpContext context, IHttpClient
 {
     var backend = httpFactory.CreateClient("ServerAPI");
 
-    var req = new HttpRequestMessage(HttpMethod.Post, "api/auth/refresh-token");
+    var req = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
 
     // Forward cookies from browser to backend
     var cookieHeader = string.Join("; ", context.Request.Cookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));

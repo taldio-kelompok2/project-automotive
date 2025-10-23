@@ -26,6 +26,11 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             _authStateProvider = authStateProvider;
         }
 
+        public async Task CheckAuthAsync()
+        {
+            await _httpClient.GetAsync("/api/auth/check");
+        }
+
         public async Task<bool> LoginViaProxyAsync(string email, string password)
         {
             var payload = new { Email = email, Password = password };

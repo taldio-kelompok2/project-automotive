@@ -60,12 +60,11 @@
 
     private async Task LoadProfileAsync()
     {
-        // ambil token disini karena gabisa dri local storage saat prerender
-        var token = await LocalStorage.GetItemAsStringAsync("authToken");
 
         try
         {
             _loading = true;
+            await Task.Delay(100);
             StateHasChanged();
 
             _user = await AuthService.GetCurrentUserAsync();
