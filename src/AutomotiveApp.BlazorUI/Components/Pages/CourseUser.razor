@@ -3,7 +3,6 @@
 @inject ICourseBookingService BookingService
 @inject NavigationManager Nav
 
-@attribute [Authorize]
 @rendermode InteractiveServer
 
 @* TODO: rename file? *@
@@ -50,14 +49,15 @@
     private int pageCount => (int)Math.Ceiling((double)cars.Count() / pageSize);
     private ApiResponse<IEnumerable<CourseBookingQueryDto>> bookedSessions = new();
     private List<CarViewModel> cars = new List<CarViewModel>();
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Task.Delay(100);
-        @* cars = CarViewModel.InitDummyData(); *@
-        @* pageData = cars.Skip((_selectedPage - 1) * pageSize).Take(pageSize).ToList(); *@
-
-        bookedSessions = await BookingService.GetUserBooking();
+        if (firstRender)
+        {
+            // ini wajib
+            await Task.Delay(100);
+            bookedSessions = await BookingService.GetUserBooking();
+            StateHasChanged();
+        }
     }
 
     private async Task OnPageChange(int newPage)

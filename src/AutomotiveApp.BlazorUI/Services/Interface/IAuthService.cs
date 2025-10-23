@@ -5,6 +5,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
 {
     public interface IAuthService
     {
+        Task CheckAuthAsync();
         Task<bool> LoginViaProxyAsync(string email, string password);
         Task<AuthResponseDto?> RegisterAsync(RegisterRequestDto registerRequestDto);
         Task<bool> LogoutViaProxyAsync();

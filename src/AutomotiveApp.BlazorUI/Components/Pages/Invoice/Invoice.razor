@@ -132,7 +132,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        
         _loading = true;
+        await Task.Delay(100);
         try
         {
             // Get All Data Invoice

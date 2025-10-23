@@ -44,7 +44,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Cookies.Delete("RefreshToken", new CookieOptions { Path = "/" });
         }
 
-
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
@@ -84,9 +83,11 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var response = new ApiResponse<AuthResponseDto>();
 
             var refreshToken = Request.Cookies["RefreshToken"];
+
             if (string.IsNullOrEmpty(refreshToken))
             {
                 response.Success = false;
+                response.Data = new AuthResponseDto();
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = ["Refresh token is required"];
                 return BadRequest(response);
@@ -101,6 +102,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
 
             response.Success = result.Success;
+            response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
             return Ok(response);
@@ -128,6 +130,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             ClearCookies(Response);
 
             return Ok(response);
+        }
+
+        [HttpGet("check")]
+        [Authorize]
+        public IActionResult AuthCheck()
+        {
+            return Ok(new { status = "authenticated" });
         }
 
         [HttpPost("send-confirm-email")]

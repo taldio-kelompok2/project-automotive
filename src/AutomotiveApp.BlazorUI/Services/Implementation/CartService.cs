@@ -53,6 +53,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             var response = await _http.GetAsync($"{BaseEndpoint}/me", cts.Token);
 
+            var content = await response.Content.ReadAsStringAsync(ct);
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return new ApiResponse<CartReadDetailsDto>
+                {
+                    Success = false,
+                    StatusCode = response.StatusCode,
+                    Data = null,
+                    Errors = ["Server returned empty response"]
+                };
+            }
+
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<CartReadDetailsDto>>(cancellationToken: ct)
                 ?? new ApiResponse<CartReadDetailsDto>
                 {
@@ -61,6 +74,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                     Data = null,
                     Errors = ["Failed to parse server response."]
                 };
+
 
             return result;
 

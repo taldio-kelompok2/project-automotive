@@ -31,10 +31,11 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
         {
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
             var claims = await BuildClaimsAsync(user);
+            var claimList = claims.ToList();
 
             var descriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(claims),
+                Subject = new ClaimsIdentity(claimList),
                 Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
                 Issuer = _jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,
