@@ -51,6 +51,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             // Save refresh token
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
+            user.LastLogin = DateTime.UtcNow;
             await userManager.UpdateAsync(user);
 
             //_logger.LogInformation("Login successful for email: {Email}", request.Email);

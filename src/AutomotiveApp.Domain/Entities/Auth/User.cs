@@ -13,6 +13,7 @@ namespace AutomotiveApp.Domain.Entities.Auth
         public void UpdateStatus(bool status) => Status = status;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
+        public DateTime? LastLogin { get; set; }
 
         // Refresh token untuk JWT authentication
         public string? RefreshToken { get; set; }

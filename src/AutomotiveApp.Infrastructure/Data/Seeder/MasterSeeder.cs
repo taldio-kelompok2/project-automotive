@@ -1,5 +1,4 @@
 using AutomotiveApp.Domain.Entities.Auth;
-using AutomotiveApp.Domain.Entities.Courses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +10,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             AppDbContext db,
             UserManager<User> userManager,
             RoleManager<IdentityRole<Guid>> roleManager,
-            bool reapply = false
+            bool reapply = true
         )
         {
             if (reapply) await db.Database.EnsureDeletedAsync();

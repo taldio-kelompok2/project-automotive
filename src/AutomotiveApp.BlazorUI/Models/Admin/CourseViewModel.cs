@@ -4,6 +4,13 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace AutomotiveApp.BlazorUI.Models.Admin
 {
+    public class CourseSessionVM
+    {
+        public Guid? Id { get; set; }
+        public DateTime? Date { get; set; }  
+        public uint Capacity { get; set; }
+    }
+
     public class CourseViewModel
     {
         public int ID { get; set; }
@@ -18,5 +25,7 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
         public DateTime? Schedule { get; set; } = null;
         public uint Capacity { get; set; } = 0;
         public Status Status { get; set; }
+
+        public List<CourseSessionVM> Sessions { get; set; } = new();
     }
 }

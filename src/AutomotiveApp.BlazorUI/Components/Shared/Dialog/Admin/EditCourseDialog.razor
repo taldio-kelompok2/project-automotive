@@ -2,6 +2,8 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
 @inject ICourseCategoryService CategorySvc
+@using System.Globalization
+@inject ICourseSessionService CourseSessionSvc
 
 <MudDialog>
   <DialogContent>
@@ -27,8 +29,35 @@
       <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
       <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
 
-      <MudItem Class="my-3">
-        <MudText Typo="Typo.body2" Class="mb-1">Course Image</MudText>
+      <MudItem Class="my-2">
+        <MudText Typo="Typo.body2" Class="mb-1">Sessions:</MudText>
+        <MudTable Items="_vm.Sessions" Hover="true" Dense="true">
+          <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Capacity</MudTh>
+            <MudTh class="text-right">Action</MudTh>
+          </HeaderContent>
+          <RowTemplate>
+            <MudTd>
+              <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" />
+            </MudTd>
+            <MudTd>
+              <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
+            </MudTd>
+            <MudTd Class="text-right">
+              <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=>RemoveSession(context))" Title="Remove" />
+            </MudTd>
+          </RowTemplate>
+          <ToolBarContent>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddSession">
+              Add Session
+            </MudButton>
+          </ToolBarContent>
+        </MudTable>
+      </MudItem>
+
+      <MudItem Class="my-2">
+        <MudText Typo="Typo.body2" Class="mb-1">Image:</MudText>
         <InputFile OnChange="OnFileSelected" />
         @if (!string.IsNullOrWhiteSpace(_vm.Image))
         {
@@ -52,26 +81,71 @@
   private CourseViewModel _vm = new();
   private MudForm _form = default!;
 
-  protected override void OnInitialized()
+  protected override async Task OnParametersSetAsync()
   {
-    if (Item is not null)
-    {
-      _vm = new CourseViewModel
+      if (Item is not null)
       {
-        ID         = Item.ID,
-        CourseId   = Item.CourseId,
-        Name       = Item.Name,
-        Description= Item.Description,
-        Price      = Item.Price,
-        CategoryId = Item.CategoryId,
-        Category   = Item.Category,
-        Image      = Item.Image
-      };
-    }
-    else
-    {
-      _vm.CategoryId = Guid.Empty;
-    }
+          _vm = new CourseViewModel
+          {
+              ID          = Item.ID,
+              CourseId    = Item.CourseId,
+              Name        = Item.Name,
+              Description = Item.Description,
+              Price       = Item.Price,
+              CategoryId  = Item.CategoryId,
+              Category    = Item.Category,
+              Image       = Item.Image
+          };
+
+          // semua session course yg dipilih
+          var sessRes = await CourseSessionSvc.GetAllAsync();
+          var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
+                          .Where(s => s.CourseId == Item.CourseId)
+                          .OrderBy(s => s.Date)
+                          .ToList();
+
+          _vm.Sessions = sessions
+              .Select(s => new CourseSessionVM
+              {
+                  Id       = s.Id,
+                  Date     = s.Date,          
+                  Capacity = s.Capacity 
+              })
+              .ToList();
+      }
+      else
+      {
+          _vm = new CourseViewModel();
+          _vm.CategoryId = Guid.Empty;
+          _vm.Sessions = new(); 
+      }
+  }
+
+  private void AddSession()
+  {
+      _vm.Sessions.Add(new CourseSessionVM
+      {
+          Id = null,
+          Date = DateTime.UtcNow.Date, 
+          Capacity = 1
+      });
+  }
+
+  private void RemoveSession(CourseSessionVM s)
+  {
+      _vm.Sessions.Remove(s);
+  }
+
+  private async Task Save()
+  {
+      await _form.Validate();
+      if (!_form.IsValid) return;
+
+      // tidak boleh tanggal duplikat
+      // var dup = _vm.Sessions.GroupBy(x => x.Date.Date).FirstOrDefault(g => g.Count() > 1);
+      // if (dup is not null) { /* Snackbar… */ return; }
+
+      MudDialog.Close(DialogResult.Ok(_vm));
   }
 
   protected override async Task OnInitializedAsync()
@@ -85,20 +159,13 @@
         .ToDictionary(x => x.Id, x => x.Name);
     }
 
-    // set CategoryId di VM sesuai Item (jika ada dan valid)
+    // set categoryId di vm sesuai item 
     if (Item is not null && Categories.ContainsKey(Item.CategoryId))
       _vm.CategoryId = Item.CategoryId;
     else if (_vm.CategoryId != Guid.Empty && !Categories.ContainsKey(_vm.CategoryId))
       _vm.CategoryId = Guid.Empty;
 
     StateHasChanged();
-  }
-
-  private async Task Save()
-  {
-    await _form.Validate();
-    if (_form.IsValid)
-      MudDialog.Close(DialogResult.Ok(_vm));
   }
 
   private void Cancel() => MudDialog.Cancel();

@@ -33,6 +33,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddTransient<AuthMessageHandler>();
 
@@ -74,6 +75,7 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<ICourseBookingService, CourseBookingService>();
 builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
+builder.Services.AddScoped<ICourseSessionService, CourseSessionService>();
 
 var app = builder.Build();
 
@@ -91,7 +93,7 @@ var cultureInfo = new CultureInfo("id-ID");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 

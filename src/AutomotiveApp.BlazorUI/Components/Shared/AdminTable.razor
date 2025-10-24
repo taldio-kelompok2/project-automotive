@@ -149,12 +149,6 @@
             return;
 
         var result = await dialog.Result;
-        
-        @* if (!result.Canceled)
-        {
-            var castedResult = (TItem)result.Data!;
-            await OnEdit.InvokeAsync(castedResult);
-        } *@
 
         if (result is not { Canceled: false, Data: not null })
             return;

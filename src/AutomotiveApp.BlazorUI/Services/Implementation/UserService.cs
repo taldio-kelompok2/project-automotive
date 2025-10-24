@@ -1,11 +1,9 @@
 ﻿using AutomotiveApp.BlazorUI.Services.Interface;
-using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
 
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
