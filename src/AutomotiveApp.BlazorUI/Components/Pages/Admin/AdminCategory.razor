@@ -23,6 +23,8 @@
 @code {
     private List<CategoryViewModel> categories = new();
 
+    private static string Norm(string? s) => (s ?? "").Trim().ToUpperInvariant();
+
     @* private List<CategoryViewModel> categories = new()
     {
         new CategoryViewModel { Name = "Beginner", Status = Status.Active },
@@ -142,6 +144,14 @@
         return $"{api}/images/CourseCategory/{v}";
     }
 
+    private bool CategoryNameExists(string name, Guid? excludeId = null)
+    {
+        var key = Norm(name);
+        return categories.Any(x =>
+            Norm(x.Name) == key &&
+            (excludeId == null || x.CategoryId != excludeId.Value));
+    }
+
     private async Task ReloadList()
     {
         var rows = await CategorySvc.GetAllAsync();
@@ -168,6 +178,13 @@
 
         if (result is not { Canceled: false, Data: CategoryViewModel vm })
             return;
+        
+        // cek duplikasi name
+        if (CategoryNameExists(vm.Name))
+        {
+            Snackbar.Add($"Category '{vm.Name}' already exists.", Severity.Error);
+            return;
+        }
 
         try
         {
@@ -204,6 +221,13 @@
 
     private async Task OnCategoryEdited(CategoryViewModel vm)
     {
+        // cek duplikasi name
+        if (CategoryNameExists(vm.Name, vm.CategoryId))
+        {
+            Snackbar.Add($"Category '{vm.Name}' already exists.", Severity.Error);
+            return;
+        }
+
         try
         {
             var ok = await CategorySvc.UpdateMultipartAsync(
