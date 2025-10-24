@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
-    public class RegisterHandler(UserManager<User> userManager, IMapper mapper, ITokenService tokenService, IJwtSettings jwtSettings)
+    public class RegisterHandler(UserManager<User> userManager, IMapper mapper, ITokenService tokenService, IJwtSettings jwtSettings, IEmailService emailService)
         : IRequestHandler<RegisterCommand, AuthResponseDto>
     {
         public async Task<AuthResponseDto> Handle(RegisterCommand req, CancellationToken ct)
@@ -35,20 +35,18 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                 };
             }
 
-            // Assign default role "Buyer"
             await userManager.AddToRoleAsync(user, "Buyer");
-
-            // Add default claims
             await userManager.AddClaimAsync(user, new System.Security.Claims.Claim("can_view_profile", "true"));
 
-            // Generate JWT tokens
             var accessToken = await tokenService.GenerateAccessTokenAsync(user);
             var refreshToken = tokenService.GenerateRefreshToken();
 
-            // Save refresh token ke database
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
             await userManager.UpdateAsync(user);
+
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            await emailService.SendConfirmationEmailAsync(user.Email!, user.Id.ToString(), token);
 
             return new AuthResponseDto
             {
