@@ -3,5 +3,5 @@ using MediatR;
 
 namespace AutomotiveApp.Application.Features.Users.Queries
 {
-    public record GetAllDashboardTransactions() : IRequest<List<DashboardUserDto>>;
+    public record GetAllDashboardTransactions() : IRequest<List<DashboardTransactionDto>>;
 }
