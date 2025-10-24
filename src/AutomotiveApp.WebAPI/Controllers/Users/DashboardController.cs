@@ -36,9 +36,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("transactions")]
-        public async Task<ActionResult<ApiResponse<List<DashboardUserDto>>>> GetDashboardTransactions(CancellationToken ct = default)
+        public async Task<ActionResult<ApiResponse<List<DashboardTransactionDto>>>> GetDashboardTransactions(CancellationToken ct = default)
         {
-            var response = new ApiResponse<List<DashboardUserDto>>();
+            var response = new ApiResponse<List<DashboardTransactionDto>>();
 
             try
             {

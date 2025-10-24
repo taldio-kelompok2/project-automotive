@@ -18,16 +18,12 @@ namespace AutomotiveApp.Application.Features.Users.Queries
             var activeUsers = await userManager.Users
                 .CountAsync(u => u.LastLogin >= activeThreshold, cancellationToken);
 
-            var totalPayments = await invoiceRepository.CountAsync();
-            var totalCourses = await courseRepo.CountAsync();
             var totalRevenue = await invoiceRepository.GetTotalRevenue();
 
             return new DashboardDto
             {
                 TotalUsers = totalUsers,
                 ActiveUsers = activeUsers,
-                TotalPayments = totalPayments,
-                TotalCourses = totalCourses,
                 TotalRevenue = totalRevenue
             };
         }

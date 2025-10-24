@@ -7,7 +7,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
     public interface IDashboardService
     {
         Task<DashboardDto> GetOverview();
-        Task<List<DashboardUserDto>> GetDashboardTransactions();
+        Task<List<DashboardTransactionDto>> GetDashboardTransactions();
 
     }
 }

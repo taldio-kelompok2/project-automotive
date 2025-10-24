@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 namespace AutomotiveApp.Application.Features.Users.Queries
 {
     public class GetDashboardTransactionsPagedHandler(IInvoiceRepository invoiceRepository, IOrderItemRepository orderItemRepository) 
-        : IRequestHandler<GetDashboardTransactionsPaged, List<DashboardUserDto>>
+        : IRequestHandler<GetDashboardTransactionsPaged, List<DashboardTransactionDto>>
     {
-        public async Task<List<DashboardUserDto>> Handle(GetDashboardTransactionsPaged request, CancellationToken cancellationToken)
+        public async Task<List<DashboardTransactionDto>> Handle(GetDashboardTransactionsPaged request, CancellationToken cancellationToken)
         {
             var paged = await invoiceRepository.GetAllPagedAsync(
                 modifier: i => i
@@ -20,13 +20,12 @@ namespace AutomotiveApp.Application.Features.Users.Queries
                 itemTaken: request.PageSize);
             var invoices = paged.Items;
 
-            var result = new List<DashboardUserDto>();
+            var result = new List<DashboardTransactionDto>();
 
             foreach (var inv in invoices)
             {
-                result.Add(new DashboardUserDto
+                result.Add(new DashboardTransactionDto
                 {
-                    UserId = inv.Order.UserId,
                     Email = inv.Order.User.Email,
                     UserName = inv.Order.User.UserName,
                     CourseCount = await orderItemRepository.CountAsync(predicate: oi => oi.OrderId == inv.OrderId),

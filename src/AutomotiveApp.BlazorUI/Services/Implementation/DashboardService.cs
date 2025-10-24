@@ -9,16 +9,12 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
     public class DashboardService : IDashboardService
     {
         private readonly HttpClient _httpClient;
-        private readonly AuthenticationStateProvider _authStateProvider;
-        public DashboardService(
-            HttpClient httpClient,
-            AuthenticationStateProvider authStateProvider)
+        public DashboardService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _authStateProvider = authStateProvider;
         }
 
-        public async Task<List<DashboardUserDto>> GetDashboardTransactions()
+        public async Task<List<DashboardTransactionDto>> GetDashboardTransactions()
         {
             try
             {
@@ -26,7 +22,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<DashboardUserDto>>>();
+                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<DashboardTransactionDto>>>();
                     return apiResponse?.Data;
                 }
                 else
