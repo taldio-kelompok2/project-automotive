@@ -4,6 +4,7 @@
 @inject ICourseCategoryService CategorySvc
 @using System.Globalization
 @inject ICourseSessionService CourseSessionSvc
+@inject ISnackbar Snackbar
 
 <MudDialog>
   <DialogContent>
@@ -39,7 +40,15 @@
           </HeaderContent>
           <RowTemplate>
             <MudTd>
-              <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" />
+              @* <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" /> *@
+              <MudDatePicker T="DateTime?"
+               Date="@(context.Date)"
+               DateChanged="d => OnDateChanged(context, d)"
+               Culture="@(new CultureInfo("en-US"))"
+               DateFormat="dd MMM yyyy"
+               MinDate="@DateTime.Today"
+               Disabled="@IsPastLocked(context)" />
+
             </MudTd>
             <MudTd>
               <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
@@ -77,6 +86,7 @@
   [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public CourseViewModel? Item { get; set; }
   [Parameter] public Dictionary<Guid, string> Categories { get; set; } = new();
+  private static readonly CultureInfo enUS = new("en-US");
 
   private CourseViewModel _vm = new();
   private MudForm _form = default!;
@@ -121,32 +131,94 @@
       }
   }
 
+
+  private bool IsPastLocked(CourseSessionVM row)
+      => row.Id != null && row.Date.HasValue && row.Date.Value.Date < DateTime.Today;
+
+
+   // not backdate dan duplikat tanggal
+  private void OnDateChanged(CourseSessionVM row, DateTime? newDate)
+  {
+      if (IsPastLocked(row))
+      {
+          // session lama tidak boleh ubah tanggal
+          Snackbar.Add($"Past sessions cannot be rescheduled: {row.Date!.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+          return;
+      }
+
+      if (newDate.HasValue && newDate.Value.Date < DateTime.Today)
+      {
+          Snackbar.Add($"You cannot select past dates: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+          return;
+      }
+
+      if (newDate.HasValue && _vm.Sessions?.Any(s =>
+              !ReferenceEquals(s, row) &&
+              s.Date.HasValue &&
+              s.Date.Value.Date == newDate.Value.Date) == true)
+      {
+          Snackbar.Add($"Duplicate session date is not allowed: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+          return;
+      }
+
+      row.Date = newDate;
+  }
+
+
   private void AddSession()
   {
       _vm.Sessions.Add(new CourseSessionVM
       {
           Id = null,
-          Date = DateTime.UtcNow.Date, 
+          Date = null, 
           Capacity = 1
       });
   }
+
 
   private void RemoveSession(CourseSessionVM s)
   {
       _vm.Sessions.Remove(s);
   }
 
+
   private async Task Save()
   {
       await _form.Validate();
       if (!_form.IsValid) return;
 
-      // tidak boleh tanggal duplikat
-      // var dup = _vm.Sessions.GroupBy(x => x.Date.Date).FirstOrDefault(g => g.Count() > 1);
-      // if (dup is not null) { /* Snackbar… */ return; }
+      _vm.Sessions = (_vm.Sessions ?? new())
+          .Where(s => s.Date.HasValue && s.Capacity > 0)
+          .ToList();
+
+      // cek backdate
+      var past = _vm.Sessions
+          .Where(s => s.Date!.Value.Date < DateTime.Today)
+          .Select(s => s.Date!.Value.ToString("dd MMM yyyy", enUS))
+          .ToList();
+
+      if (past.Count > 0)
+      {
+          Snackbar.Add($"You cannot select past dates: {string.Join(", ", past)}", Severity.Error);
+          return;
+      }
+
+      // cek duplikat
+      var dupes = _vm.Sessions
+          .GroupBy(s => s.Date!.Value.Date)
+          .Where(g => g.Count() > 1)
+          .Select(g => g.Key.ToString("dd MMM yyyy", enUS))
+          .ToList();
+
+      if (dupes.Count > 0)
+      {
+          Snackbar.Add($"Duplicate session dates are not allowed: {string.Join(", ", dupes)}", Severity.Error);
+          return;
+      }
 
       MudDialog.Close(DialogResult.Ok(_vm));
   }
+
 
   protected override async Task OnInitializedAsync()
   {
@@ -168,11 +240,14 @@
     StateHasChanged();
   }
 
+
   private void Cancel() => MudDialog.Cancel();
+
 
   private void OnFileSelected(InputFileChangeEventArgs e)
   {
     var file = e.File;
     if (file is not null) _vm.File = file;
   }
+
 }

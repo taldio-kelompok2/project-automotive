@@ -343,12 +343,12 @@
                 row.Schedule = first?.Date;
                 row.Capacity = (uint)(first?.Capacity ?? 0);
 
-                var enUS = new CultureInfo("en-US");
+                var enUS = new CultureInfo("en-US");       
                 row.Session = orderedSessions.Count == 0
                     ? "-"
                     : string.Join(Environment.NewLine,
                         orderedSessions.Select((it, i) =>
-                            $"{i + 1}) {it.Date!.Value.ToLocalTime():dddd, dd MMM yyyy} - Capacity {it.Capacity}"
+                            $"{i + 1}) {it.Date!.Value.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
                         ));
 
                 if (vm.File is not null)
