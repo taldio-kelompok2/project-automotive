@@ -11,26 +11,50 @@
 
 @inherits LayoutComponentBase
 <CascadingAuthenticationState>
-    <MudLayout>
-        <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
-        <MudPopoverProvider />
-        <MudDialogProvider @rendermode="InteractiveServer" />
-        <MudSnackbarProvider />
-        @if (!_hideNavbar)
-        {
-            <AuthorizeView>
-                <Authorized>
-                <UserNavbar />
-            </Authorized>
-            <NotAuthorized>
-                <GuestNavbar />
-                </NotAuthorized>
-            </AuthorizeView>
-        }
-        <MudMainContent>
-            @Body
-        </MudMainContent>
-    </MudLayout>
+    @if (_isAdminSection)
+    {
+        <!-- Admin Layout -->
+        <MudLayout Style="background-color: var(--mud-palette-surface); min-height: 100vh;" Class="pb-3">
+            <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
+            <MudPopoverProvider />
+            <MudDialogProvider @rendermode="InteractiveServer" />
+            <MudSnackbarProvider />
+
+            <AdminNavBar />
+
+            <MudMainContent Class="p-0">
+                <div style="padding-top: 55px;">
+                    @Body
+                </div>
+            </MudMainContent>
+        </MudLayout>
+    }
+    else
+    {
+        <!-- Regular Layout -->
+        <MudLayout>
+            <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
+            <MudPopoverProvider />
+            <MudDialogProvider @rendermode="InteractiveServer" />
+            <MudSnackbarProvider />
+
+            @if (!_hideNavbar)
+            {
+                <AuthorizeView>
+                    <Authorized>
+                        <UserNavbar />
+                    </Authorized>
+                    <NotAuthorized>
+                        <GuestNavbar />
+                    </NotAuthorized>
+                </AuthorizeView>
+            }
+
+            <MudMainContent>
+                @Body
+            </MudMainContent>
+        </MudLayout>
+    }
 </CascadingAuthenticationState>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -45,6 +69,7 @@
 
     private bool _isDarkMode = false;
     private bool _hideNavbar = false;
+    private bool _isAdminSection = false;
 
     [CascadingParameter]
     private RouteData? CurrentRoute { get; set; }
@@ -66,8 +91,8 @@
     {
         Nav.LocationChanged += async (_, __) =>
         {
-            UpdateNavbarVisibility();
             await CheckProtectedPage();
+            UpdateNavbarVisibility();
         };
 
 
@@ -95,25 +120,44 @@
         {
             await InvokeAsync(async () =>
     {
-            try
-            {
-                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-            }
-            catch { /* Ignore errors */ }
-        });
+        try
+        {
+            await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+        }
+        catch { /* Ignore errors */ }
+    });
         }, null, TimeSpan.FromMinutes(0.5), TimeSpan.FromMinutes(0.5));
     }
 
     private void UpdateNavbarVisibility()
     {
-        var currentUri = Nav.Uri.ToLower();
-        _hideNavbar = _noNavbarPages.Any(page => currentUri.Contains(page));
+        var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
+        _hideNavbar = _noNavbarPages.Any(p => uri.Contains(p));
+
         StateHasChanged();
     }
 
     private async Task CheckProtectedPage()
     {
         var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
+        _isAdminSection = uri.StartsWith("admin");
+
+        if (_isAdminSection)
+        {
+            if (!UserContext.Current.IsAuthenticated)
+            {
+                Console.WriteLine("🚫 No access token, redirecting to login");
+                Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
+                return;
+            }
+
+            if (UserContext.Current.Role != "Admin")
+            {
+                Console.WriteLine("🚫 Non-admin tried accessing admin route, redirecting");
+                Nav.NavigateTo("/profile", forceLoad: true); // nanti ganti ke 404
+                return;
+            }
+        }
 
         if (_protectedPages.Any(p => uri.StartsWith(p.TrimStart('/'))))
         {
@@ -124,6 +168,7 @@
             {
                 Console.WriteLine("🚫 No access token, redirecting to login");
                 Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
+                return;
             }
             else
             {
