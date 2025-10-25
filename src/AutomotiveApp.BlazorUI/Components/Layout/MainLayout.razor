@@ -76,24 +76,27 @@
 
     private readonly string[] _noNavbarPages =
     {
-        "/email-confirmed",
-        "/success-purchase"
-    };
+"/email-confirmed",
+"/success-purchase"
+};
 
     private readonly string[] _protectedPages = new[]
     {
-        "/checkout",
-        "/profile",
-        "/my-class"
-    };
+"/checkout",
+"/profile",
+"/my-class"
+};
 
     protected override async Task OnInitializedAsync()
     {
         Nav.LocationChanged += async (_, __) =>
         {
-            await CheckProtectedPage();
+            CheckProtectedPage();
             UpdateNavbarVisibility();
         };
+
+        CheckProtectedPage();
+        UpdateNavbarVisibility();
 
 
         // Listen for authentication state changes
@@ -112,20 +115,16 @@
         await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
         await AuthStateProvider.GetAuthenticationStateAsync();
 
-        // Initial checks
-        await CheckProtectedPage();
-        UpdateNavbarVisibility();
-
         _refreshTimer = new Timer(async _ =>
         {
             await InvokeAsync(async () =>
     {
-        try
-        {
-            await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-        }
-        catch { /* Ignore errors */ }
-    });
+            try
+            {
+                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+            }
+            catch { /* Ignore errors */ }
+        });
         }, null, TimeSpan.FromMinutes(0.5), TimeSpan.FromMinutes(0.5));
     }
 
@@ -137,7 +136,7 @@
         StateHasChanged();
     }
 
-    private async Task CheckProtectedPage()
+    private void CheckProtectedPage()
     {
         var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
         _isAdminSection = uri.StartsWith("admin");
@@ -154,21 +153,17 @@
             if (UserContext.Current.Role != "Admin")
             {
                 Console.WriteLine("🚫 Non-admin tried accessing admin route, redirecting");
-                Nav.NavigateTo("/profile", forceLoad: true); // nanti ganti ke 404
+                Nav.NavigateTo("/profile", forceLoad: true);
                 return;
             }
         }
 
         if (_protectedPages.Any(p => uri.StartsWith(p.TrimStart('/'))))
         {
-            var hasUserContextAuth = UserContext.Current.IsAuthenticated;
-
-            // Redirect only if NO access token found
-            if (!hasUserContextAuth)
+            if (!UserContext.Current.IsAuthenticated)
             {
                 Console.WriteLine("🚫 No access token, redirecting to login");
                 Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
-                return;
             }
             else
             {
@@ -176,6 +171,7 @@
             }
         }
     }
+
 
     public void Dispose()
     {
