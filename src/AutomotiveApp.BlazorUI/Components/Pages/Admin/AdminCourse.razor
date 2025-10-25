@@ -63,21 +63,22 @@
             IsImageColumn = true,
             IsSearchable = false
         },
-        new ColumnDefinition<CourseViewModel>
+        @* new ColumnDefinition<CourseViewModel>
         {
             Header = "Detail",
             CellTemplate = _ => "Detail",
             IsSearchable = false,
             IsActionColumn = true,
             ShowDetails = true,
-        },
+        }, *@
         new ColumnDefinition<CourseViewModel>
         {
             Header = "Action",
-            CellTemplate = _ => "Edit",
+            @* CellTemplate = _ => "Edit", *@
             IsSearchable = false,
             IsActionColumn = true,
-            ShowEdit = true
+            ShowEdit = true,
+            ShowDetails = true,
         }
     };
 
