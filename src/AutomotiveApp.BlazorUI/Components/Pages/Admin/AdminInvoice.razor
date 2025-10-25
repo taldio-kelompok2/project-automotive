@@ -37,6 +37,7 @@
         string InvoiceCode, 
         DateTime CreatedAt, 
         long TotalPrice, 
+        string? PaymentMethod,
         List<InvoiceItemDto> Items
     );
     private record InvoiceItemDto(
@@ -55,13 +56,12 @@
         public required string InvoiceNumber { get; set; }
         public required string Date { get; set; }
         public required string TotalPrice { get; set; }
+        public string PaymentMethod { get; set; } = "-";
         public string Courses { get; set; } = "-";
     }
 
     private readonly CultureInfo _indo = new("id-ID");
-
     private List<Invoice> invoices = new();
-
     List<ColumnDefinition<Invoice>> invoiceColumns = new()
     {
         new ColumnDefinition<Invoice>
@@ -104,6 +104,7 @@
                 InvoiceNumber   = x.InvoiceCode,                              
                 Date            = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),    
                 TotalPrice      = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
+                PaymentMethod = "-",
                 Courses         = "-"
             })
             .ToList();
@@ -134,6 +135,11 @@
             {
                 inv.Courses = "-";
             }
+
+            // payment method dari API
+            inv.PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod)
+                ? "-"
+                : dto.PaymentMethod;
         }
     }
 
