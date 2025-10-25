@@ -20,6 +20,10 @@
     <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdited" OnDetails="OnCourseDetails"  />
 </MudPaper>
 
+<style>
+  .mud-dialog-content td:nth-child(2) { white-space: pre-line; }
+</style>
+
 @code {
     private List<CourseViewModel> courses = new();
     private readonly Dictionary<Guid, string> _catMap = new();
@@ -103,37 +107,40 @@
         var sessRes = await CourseSessionSvc.GetAllAsync();
         var allSessions = sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>();
 
-        // mapping CourseId 
-        var now = DateTime.UtcNow;
-        var chosenSession = allSessions
+        // sessions per course
+        var sessionsByCourse = allSessions
             .GroupBy(s => s.CourseId)
-            .Select(g =>
-            {
-                var upcoming = g.Where(s => s.Date >= now)
-                                .OrderBy(s => s.Date)
-                                .FirstOrDefault();
-                var picked = upcoming ?? g.OrderByDescending(s => s.Date).FirstOrDefault();
-                return new
-                {
-                    CourseId = g.Key,
-                    Date = picked?.Date,
-                    Capacity = picked?.Capacity
-                };
-            })
-            .ToDictionary(x => x.CourseId, x => (x.Date, x.Capacity));
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(s => s.Date).ToList()
+            );
 
-        // mapping ke VM
+        var idID = new CultureInfo("id-ID");
+
+        // mapping ke VM + buat dialog view
         courses = rows
             .OrderByDescending(x => x.CreatedAt)
             .Select((x, idx) =>
             {
+                // ringkasan jadwal 
                 DateTime? sched = null;
                 uint cap = 0;
 
-                if (chosenSession.TryGetValue(x.Id, out var s))
+                // view dialog sessions
+                string sessionsText = "-";
+                if (sessionsByCourse.TryGetValue(x.Id, out var list) && list.Count > 0)
                 {
-                    sched = s.Date;
-                    cap = s.Capacity ?? 0u;
+                    var enUS = new CultureInfo("en-US");
+                    sessionsText = string.Join(Environment.NewLine,
+                        list.Select((it, i) =>
+                            $"{i + 1}) {it.Date.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
+                        )
+                    );
+
+                    // pick 1 utk ringkasan di tabel utama 
+                    var first = list[0];
+                    sched = first.Date;
+                    cap = first.Capacity;
                 }
 
                 return new CourseViewModel
@@ -146,14 +153,16 @@
                     CategoryId  = x.CategoryId,
                     Category    = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
                     Image       = ResolveImageUrl(x.ImageUrl),
-                    Schedule    = sched,        
-                    Capacity    = cap
+                    Schedule    = sched,
+                    Capacity    = cap,
+                    Session     = sessionsText
                 };
             })
             .ToList();
 
         StateHasChanged();
     }
+
 
     private string ResolveImageUrl(string? value)
     {
@@ -262,7 +271,7 @@
                                             .Select(x => x.Id!.Value)
                                             .ToHashSet();
 
-            // 1) DELETE: semua current yang tidak ada lagi di incoming
+            // delete
             foreach (var c in current)
             {
                 if (!incomingExistingIds.Contains(c.Id))
@@ -273,12 +282,12 @@
                 }
             }
 
-            // 2) UPSERT:
+            // upsert
             foreach (var s in incoming)
             {
                 if (s.Id is null)
                 {
-                    // CREATE baru
+                    // create 
                     if (s.Capacity > 0)
                     {
                         var createdId = await CourseSessionSvc.CreateAsync(new()
@@ -294,7 +303,7 @@
                 }
                 else
                 {
-                    // UPDATE jika berubah
+                    // upodate 
                     var old = currentById[s.Id.Value];
                     var oldCap = old.Capacity;
                     if (old.Date != s.Date || oldCap != s.Capacity)
@@ -315,7 +324,7 @@
             }
 
 
-            // refresh data + gambar 
+            // refresh data + gambar
             var row = courses.FirstOrDefault(c => c.CourseId == vm.CourseId);
             if (row is not null)
             {
@@ -324,8 +333,23 @@
                 row.Price       = vm.Price;
                 row.CategoryId  = vm.CategoryId;
                 row.Category    = _catMap.TryGetValue(vm.CategoryId, out var catName) ? catName : row.Category;
-                row.Schedule    = vm.Schedule;
-                row.Capacity    = vm.Capacity;
+
+                var orderedSessions = (vm.Sessions ?? new())
+                    .Where(s => s.Date.HasValue && s.Capacity > 0)
+                    .OrderBy(s => s.Date)
+                    .ToList();
+
+                var first = orderedSessions.FirstOrDefault();
+                row.Schedule = first?.Date;
+                row.Capacity = (uint)(first?.Capacity ?? 0);
+
+                var enUS = new CultureInfo("en-US");
+                row.Session = orderedSessions.Count == 0
+                    ? "-"
+                    : string.Join(Environment.NewLine,
+                        orderedSessions.Select((it, i) =>
+                            $"{i + 1}) {it.Date!.Value.ToLocalTime():dddd, dd MMM yyyy} - Capacity {it.Capacity}"
+                        ));
 
                 if (vm.File is not null)
                 {
@@ -335,7 +359,8 @@
                 }
             }
 
-            StateHasChanged();
+            courses = courses.ToList();
+            await InvokeAsync(StateHasChanged);
             Snackbar.Add("Course updated successfully", Severity.Success);
         }
         catch (Exception ex)
@@ -343,6 +368,7 @@
             Snackbar.Add($"Course update failed: {ex.Message}", Severity.Error);
         }
     }
+
 
     private static CourseSessionQueryDto? PickEditableSession(IEnumerable<CourseSessionQueryDto> sessions)
     {

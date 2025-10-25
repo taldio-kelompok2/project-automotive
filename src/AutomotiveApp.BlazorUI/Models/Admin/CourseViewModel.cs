@@ -3,6 +3,7 @@ using AutomotiveApp.Shared.Enums;
 using Microsoft.AspNetCore.Components.Forms;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace AutomotiveApp.BlazorUI.Models.Admin
 {
@@ -21,15 +22,20 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
         internal Guid CourseId { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public int Price { get; set; } = 0;
+        internal int Price { get; set; } = 0;
+        public string CoursePrice => string.Format(new CultureInfo("id-ID"), "IDR {0:N0}", Price);
         internal Guid CategoryId { get; set; }
         public string Category { get; set; } = "-";
         internal string Image { get; set; } = "";
         internal IBrowserFile? File { get; set; }
-        public DateTime? Schedule { get; set; } = null;
-        public uint Capacity { get; set; } = 0;
+        internal DateTime? Schedule { get; set; } = null;
+        internal uint Capacity { get; set; } = 0;
         internal Status Status { get; set; }
 
+        // for edit / add sessions
         internal List<CourseSessionVM> Sessions { get; set; } = new();
+
+        // for dialog view
+        public string Session { get; set; } = "-";
     }
 }
