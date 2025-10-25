@@ -16,16 +16,17 @@
         <MudPopoverProvider />
         <MudDialogProvider @rendermode="InteractiveServer" />
         <MudSnackbarProvider />
-
-        <AuthorizeView>
-            <Authorized>
+        @if (!_hideNavbar)
+        {
+            <AuthorizeView>
+                <Authorized>
                 <UserNavbar />
             </Authorized>
             <NotAuthorized>
                 <GuestNavbar />
-            </NotAuthorized>
-        </AuthorizeView>
-
+                </NotAuthorized>
+            </AuthorizeView>
+        }
         <MudMainContent>
             @Body
         </MudMainContent>
@@ -50,25 +51,24 @@
 
     private readonly string[] _noNavbarPages =
     {
-"/email-confirmed",
-"/success-purchase"
-};
+        "/email-confirmed",
+        "/success-purchase"
+    };
 
     private readonly string[] _protectedPages = new[]
     {
-"/checkout",
-"/profile",
-"/my-class"
-};
+        "/checkout",
+        "/profile",
+        "/my-class"
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        @* Nav.LocationChanged += async (_, __) =>
+        Nav.LocationChanged += async (_, __) =>
         {
-            await CheckProtectedPage();
             UpdateNavbarVisibility();
-
-        }; *@
+            await CheckProtectedPage();
+        };
 
 
         // Listen for authentication state changes

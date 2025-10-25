@@ -26,7 +26,7 @@
         </div>
 
         <AppBaseButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-            Disabled="@(!IsFormFilled())" Width="ButtonWidth.Medium" Class="ml-auto">
+            Disabled="@(!IsFormFilled() || _isLoading)" Width="ButtonWidth.Medium" Class="ml-auto">
             @if (_isLoading)
             {
                 <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Indeterminate="true" />
@@ -49,18 +49,13 @@
 </EditForm>
 
 @code {
+
     [Parameter] public string? ReturnUrl { get; set; }
     private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
     private const string HOME_PAGE = "/";
     private const string REGISTER_PAGE = "/register";
     private LoginViewModel _loginModel = new LoginViewModel();
     private bool _isLoading = false;
-
-    // private RenderFragment LoginDialogContent =>
-    // @<div>
-    // <MudText Typo="Typo.body2">Welcome back, @_loginModel.Email</MudText>
-    // </div>;
-
 
     private bool IsFormFilled()
     {
@@ -84,12 +79,17 @@
             ["Content"] = (RenderFragment)(builder =>
             {
                 builder.OpenElement(0, "div");
-                builder.AddContent(1, $"Welcome back, {_loginModel.Email}!");
+                builder.AddAttribute(1, "style", "overflow: visible; max-height: none; padding: 0.3rem");
+                builder.AddContent(2, $"Welcome back, {_loginModel.Email}!");
                 builder.CloseElement();
             })
         };
 
-        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var options = new DialogOptions 
+        {
+            CloseOnEscapeKey = true,
+            BackdropClick = true
+        };
         await DialogService.ShowAsync<AuthResultDialog>("Success", parameters, options);
     }
 
@@ -101,7 +101,8 @@
             ["Content"] = (RenderFragment)(builder =>
             {
                 builder.OpenElement(0, "div");
-                builder.AddContent(1, message);
+                builder.AddAttribute(1, "style", "overflow: visible; max-height: none; padding: 0.3rem");
+                builder.AddContent(2, message);
                 builder.CloseElement();
             })
         };
@@ -109,42 +110,6 @@
         var options = new DialogOptions { CloseOnEscapeKey = true };
         await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
     }
-
-    @* private async Task OnValidSubmit()
-    {
-        _isLoading = true;
-
-        try
-        {
-            var request = new LoginRequestDto
-            {
-                Email = _loginModel.Email,
-                Password = _loginModel.Password
-            };
-
-            var result = await AuthService.LoginAsync(request);
-
-            if (result != null)
-            {
-                await ShowSuccessDialogAsync();
-
-                await Task.Delay(2000);
-                Nav.NavigateTo(HOME_PAGE, forceLoad: true);
-            }
-            else
-            {
-                await ShowErrorDialogAsync("Invalid email or password. Please try again.");
-            }
-        }
-        catch (Exception ex)
-        {
-            await ShowErrorDialogAsync($"Login failed: {ex.Message}");
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    } *@
 
     private async Task OnValidSubmit()
     {
@@ -157,8 +122,8 @@
             if (success)
             {
                 await ShowSuccessDialogAsync();
+                await Task.Delay(2000);
                 var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-                Console.WriteLine(redirect);
                 Nav.NavigateTo(redirect, forceLoad: true);
                 // reload so SignalR picks up cookies
             }

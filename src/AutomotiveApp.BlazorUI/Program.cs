@@ -1,17 +1,16 @@
 using AutomotiveApp.BlazorUI.Components;
+using AutomotiveApp.BlazorUI.Models.Auth.Context;
 using AutomotiveApp.BlazorUI.Services.Implementation;
 using AutomotiveApp.BlazorUI.Services.Interface;
+using AutomotiveApp.BlazorUI.Services.Invoices;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor;
 using MudBlazor.Services;
 using System.Globalization;
-using AutomotiveApp.BlazorUI.Services.Invoices;
 using System.Net;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using AutomotiveApp.BlazorUI.Models.Auth.Context;
-using Microsoft.AspNetCore.Components.Server.Circuits;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,14 +86,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseAuthorization();
 
 var cultureInfo = new CultureInfo("id-ID");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 //app.UseHttpsRedirection();
-
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();

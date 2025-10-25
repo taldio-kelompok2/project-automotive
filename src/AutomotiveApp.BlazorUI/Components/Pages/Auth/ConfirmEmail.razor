@@ -42,7 +42,6 @@
 
             if (success)
             {
-                _message = "✅ Your email has been successfully confirmed!";
                 await Task.Delay(2000);
                 Nav.NavigateTo("/email-confirmed", forceLoad: true);
             }

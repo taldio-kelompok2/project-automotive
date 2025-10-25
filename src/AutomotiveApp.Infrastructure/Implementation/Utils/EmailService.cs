@@ -83,7 +83,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
 
         private string GenerateStyledEmail(string title, string message, string buttonText, string link)
         {
-            const string logoUrl = "https://i.ibb.co.com/NnFpf1Zr/27b4c045de3c5777298487dcd1e1a033fcf47569.png";
+            const string logoUrl = "https://drive.google.com/uc?export=view&id=1djgOACWkl0fVz8IEdqxqq0VgCUlm3pET";
 
             return $"""
                 <!DOCTYPE html>

@@ -8,14 +8,17 @@ using AutomotiveApp.Shared.Response;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UserController(IMediator _mediator) : BaseApiController(_mediator)
     {
         [HttpGet("me")]
+        [Authorize(Roles = "Admin, Buyer")]
         public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetCurrentUser()
         {
             var response = new ApiResponse<UserProfileDto>();
@@ -65,6 +68,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<bool>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
         {
             var response = new ApiResponse<bool>();
@@ -80,6 +84,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("paged")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<PaginatedResult<UserQueryDto>>>> GetPagedUsers(
                     [FromQuery] int page = 1,
                     [FromQuery] int itemTaken = 10,
@@ -98,6 +103,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<UserQueryDto>>>> GetAllUsers()
         {
             var response = new ApiResponse<IEnumerable<UserQueryDto>>();
@@ -113,6 +119,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpGet("{userId:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetUserById(Guid userId)
         {
             var response = new ApiResponse<UserProfileDto>();
@@ -129,6 +136,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 
 
         [HttpPut("{userId:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(
             Guid userId,
             [FromBody] UserUpdateRequestDto userUpdateDto)
@@ -146,6 +154,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpDelete("{userId:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(Guid userId)
         {
             var response = new ApiResponse<bool>();

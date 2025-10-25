@@ -34,16 +34,26 @@
 
     private async Task LoadUsersAsync()
     {
-        var rows = await UserService.GetAllUsers();
-        users = rows.Select(x => new UserViewModel
+        try
         {
-            Id = x.Id,
-            Name = x.UserName,
-            Email = x.Email,
-            PhoneNumber = x.PhoneNumber,
-            Role = RoleMapper(x.Roles),
-            Status = x.Status ? Status.Active : Status.Inactive
-        }).ToList();
+            var rows = await UserService.GetAllUsers();
+            if (rows != null)
+            {
+                users = rows.Select(x => new UserViewModel
+                {
+                    Id = x.Id,
+                    Name = x.UserName,
+                    Email = x.Email,
+                    PhoneNumber = x.PhoneNumber,
+                    Role = RoleMapper(x.Roles),
+                    Status = x.Status ? Status.Active : Status.Inactive
+                }).ToList();
+            }
+        }
+        catch
+        {
+            
+        }
     }
 
     // string list to enum
