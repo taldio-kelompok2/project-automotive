@@ -84,7 +84,13 @@
         },
         new ColumnDefinition<Invoice>
         {
-            Header = "Details",
+            Header = "Payment Method",
+            CellTemplate = invoice => invoice.PaymentMethod,
+            IsSearchable = false
+        },
+        new ColumnDefinition<Invoice>
+        {
+            Header = "Action",
             CellTemplate = invoice => "Details",
             IsSearchable = false,
             IsActionColumn = true,
@@ -104,11 +110,12 @@
                 InvoiceNumber   = x.InvoiceCode,                              
                 Date            = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),    
                 TotalPrice      = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
-                PaymentMethod = "-",
+                PaymentMethod   = "-",
                 Courses         = "-"
             })
             .ToList();
         
+        // get detail invoice
         var detailTasks = invoices.ToDictionary(
             inv => inv.Id,
             inv => Http.GetFromJsonAsync<InvoiceDetailsDto>($"api/Invoices/{inv.Id}/details")
