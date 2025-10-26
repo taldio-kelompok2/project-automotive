@@ -448,7 +448,7 @@ Setelah SonarQube jalan:
 **Selamat! Anda sekarang bisa jalankan SonarQube dengan Docker! 🎉**
 
 
-=========================================================================================================
+=======================================================================================================
 
 
 # 🔑 Cara Mendapatkan Token SonarQube (100% Gratis!)
