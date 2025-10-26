@@ -29,7 +29,7 @@ appsettings.Development.json
 src/.DS_Store
 
 #Local Storage 
-/src/AutomotiveApp.WebAPI/Storage/Images/*.sonarqube/
+/src/AutomotiveApp.WebAPI/Storage/Images/
 
-# .gitignore
-.sonarqube/.sonarqube/
+# SonarQube cache
+.sonarqube/
