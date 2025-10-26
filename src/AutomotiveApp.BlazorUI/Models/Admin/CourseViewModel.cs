@@ -1,6 +1,9 @@
 ﻿using AutomotiveApp.BlazorUI.Enums;
 using AutomotiveApp.Shared.Enums;
 using Microsoft.AspNetCore.Components.Forms;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace AutomotiveApp.BlazorUI.Models.Admin
 {
@@ -13,19 +16,26 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
 
     public class CourseViewModel
     {
-        public int ID { get; set; }
-        public Guid CourseId { get; set; }
+        [Browsable(false)]
+        [Display(AutoGenerateField = false)]
+        internal int ID { get; set; }
+        internal Guid CourseId { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public int Price { get; set; } = 0;
-        public Guid CategoryId { get; set; }
+        internal int Price { get; set; } = 0;
+        public string CoursePrice => string.Format(new CultureInfo("id-ID"), "IDR {0:N0}", Price);
+        internal Guid CategoryId { get; set; }
         public string Category { get; set; } = "-";
-        public string Image { get; set; } = "";
-        public IBrowserFile? File { get; set; }
-        public DateTime? Schedule { get; set; } = null;
-        public uint Capacity { get; set; } = 0;
-        public Status Status { get; set; }
+        internal string Image { get; set; } = "";
+        internal IBrowserFile? File { get; set; }
+        internal DateTime? Schedule { get; set; } = null;
+        internal uint Capacity { get; set; } = 0;
+        internal Status Status { get; set; }
 
-        public List<CourseSessionVM> Sessions { get; set; } = new();
+        // for edit / add sessions
+        internal List<CourseSessionVM> Sessions { get; set; } = new();
+
+        // for dialog view
+        public string Session { get; set; } = "-";
     }
 }

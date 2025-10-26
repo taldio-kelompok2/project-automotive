@@ -37,8 +37,11 @@
                     </MudStack>
                 </MudItem>
                 <MudItem xs="12" md="6" Class="d-flex justify-end align-end">
-                    <MudText Typo="Typo.subtitle1" Class="mr-2"><b>Total Price</b></MudText>
-                    <MudText Typo="Typo.subtitle1"><b>@FormatIdr(TotalPrice)</b></MudText>
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" class="mr-2"><b>Payment Method : @PaymentMethodDisplay </b></MudText>
+                        <MudText Typo="Typo.subtitle1" Class="mr-2"><b>Total Price : @FormatIdr(TotalPrice)</b></MudText>
+                        @* <MudText Typo="Typo.subtitle1"><b>@FormatIdr(TotalPrice)</b></MudText> *@
+                    </MudStack>
                 </MudItem>
             </MudGrid>
 
@@ -114,7 +117,8 @@
 @code {
     private readonly CultureInfo Indo = new("id-ID");
     private string HeaderStyle => "background-color:#790b0a; height:55px; text-align:center; vertical-align:middle;";
-
+    private string PaymentMethodDisplay = "-";
+    
     private List<BreadcrumbItem> Crumbs => new()
     {
         new BreadcrumbItem("Home", href: "/"),
@@ -122,19 +126,12 @@
         new BreadcrumbItem("Details Invoice", href: null, disabled: true),
     };
 
-    private string   InvoiceNo   = "";
+    private string InvoiceNo = "";
     private DateTime InvoiceDate = DateTime.Now;
-    private long     TotalPrice;
+    private long TotalPrice;
     private List<InvoiceItem> Items = new();
-
     private bool   _loading;
     private string? _error;
-
-    // DTO 
-    private record InvoiceDetailsDto(Guid Id, string InvoiceCode, DateTime CreatedAt, long TotalPrice, List<InvoiceItemDto> Items);
-    private record InvoiceItemDto(string CourseName, string Type, DateTime Schedule, decimal Price);
-
-    // Lookup Id From Invoice Code "OTO000XX"
     private record InvoiceLite(Guid Id, long TotalPrice, int InvoiceNumber, string InvoiceCode, Guid OrderId, DateTime CreatedAt);
 
     protected override async Task OnInitializedAsync()
@@ -145,7 +142,7 @@
             var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
             var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
-            // 1) Prefer ID kalau dikirim (future-proof)
+            // prefer id kalau dikirim (future-proof)
             if (query.TryGetValue("id", out var idStr) && Guid.TryParse(idStr, out var id))
             {
                 var details = await GetJsonOrError<InvoiceDetailsDto>($"api/Invoices/{id}/details");
@@ -154,18 +151,18 @@
                 return;
             }
 
-            // 2) Kalau yang dikirim adalah code: no=OTO00001
+            // kalau yang dikirim adalah code: no=OTO00001
             if (query.TryGetValue("no", out var no) && !string.IsNullOrWhiteSpace(no))
             {
-                // Ambil list invoice, cari yang InvoiceCode(no) -> dapat Id
+                // get list invoice, cari yang InvoiceCode(no) 
                 var invoices = await GetJsonOrError<List<InvoiceLite>>("api/Invoices");
                 if (invoices is null) { _error = "Cannot load invoices."; return; }
 
-                // Samakan format, kalau InvoiceCode kamu di server sudah diisi "OTO00001"
+                // format, kalau InvoiceCode kamu di server sudah diisi 
                 var inv = invoices.FirstOrDefault(x => string.Equals(x.InvoiceCode, no.ToString(), StringComparison.OrdinalIgnoreCase));
                 if (inv is null) { _error = $"Invoice '{no}' not found."; return; }
 
-                // Panggil endpoint by-id (yang sudah OK)
+                // endpoint by-id 
                 var details = await GetJsonOrError<InvoiceDetailsDto>($"api/Invoices/{inv.Id}/details");
                 if (details is null) return;
                 BindToUi(details);
@@ -183,6 +180,10 @@
         InvoiceNo   = details.InvoiceCode;
         InvoiceDate = details.CreatedAt;
         TotalPrice  = details.TotalPrice;
+
+        PaymentMethodDisplay = string.IsNullOrWhiteSpace(details.PaymentMethod)
+        ? "-"
+        : details.PaymentMethod;
 
         Items = details.Items.Select((x, idx) => new InvoiceItem
         {

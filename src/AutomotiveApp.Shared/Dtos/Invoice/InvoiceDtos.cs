@@ -37,6 +37,7 @@ namespace AutomotiveApp.Application.Invoices
         public string InvoiceCode { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public long TotalPrice { get; set; }
+        public string? PaymentMethod { get; set; }
         public List<InvoiceItemDto> Items { get; set; } = new();
     }
 
