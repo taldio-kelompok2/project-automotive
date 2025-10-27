@@ -51,42 +51,6 @@
     </DialogActions>
 </MudDialog>
 
-@* @code {
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
-    [Parameter] public EventCallback<TransactionViewModel> OnSubmit { get; set; }
-    
-    private List<TransactionViewModel> transactions = new();
-    private TransactionViewModel? SelectedTransaction;
-
-    protected override void OnInitialized()
-    {
-        transactions = TransactionViewModel.InitDummyData();
-        Cart.OnLoadingChanged += StateHasChanged;
-
-        base.OnInitialized();
-    }
-
-    public void Dispose()
-    {
-        Cart.OnLoadingChanged -= StateHasChanged;
-    }
-
-    private async Task HandleOnSubmit()
-    {
-        if (SelectedTransaction == null)
-        {
-            Snackbar.Add("Please select a payment method.", Severity.Warning);
-            return;
-        }
-
-        await OnSubmit.InvokeAsync(SelectedTransaction);
-        MudDialog.Close(DialogResult.Ok(SelectedTransaction));
-    }
-    
-    private void Cancel() => MudDialog.Cancel();
-} *@
-
-
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public EventCallback<TransactionViewModel> OnSubmit { get; set; }

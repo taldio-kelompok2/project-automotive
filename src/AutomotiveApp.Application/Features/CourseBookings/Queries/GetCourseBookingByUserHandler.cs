@@ -22,6 +22,9 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
 
             Expression<Func<CourseBooking, bool>> predicate = cb => cb.UserId == request.UserId;
 
+            if (request.CourseId != null)
+                predicate = cb => cb.UserId == request.UserId && cb.Session.CourseId == request.CourseId;
+
             var items = await Uow.CourseBookingRepo.FindAsync(predicate, modifier, ct);
 
             var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items).ToList();

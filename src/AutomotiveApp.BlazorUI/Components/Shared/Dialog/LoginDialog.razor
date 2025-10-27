@@ -1,25 +1,24 @@
 <MudDialog>
     <TitleContent>
-        <MudText Class="text-center" Typo="Typo.h6" Color="Color.Dark">
+        <MudText Class="text-center" Typo="Typo.h5" Color="Color.Dark">
             Login Required
         </MudText>
     </TitleContent>
 
     <DialogContent>
-        <MudText Class="text-center mt-2" Typo="Typo.body1">
+        <MudText Class="text-center mt-2" Typo="Typo.body2">
             You need to log in to continue. Would you like to go to the login page?
         </MudText>
     </DialogContent>
 
     <DialogActions>
         <div Class="d-flex justify-center gap-2 mt-3">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToLogin">
-                Go to Login
-            </MudButton>
-
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">
                 Cancel
-            </MudButton>
+            </AppBaseButton>
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToLogin">
+                Login
+            </AppBaseButton>
         </div>
     </DialogActions>
 </MudDialog>

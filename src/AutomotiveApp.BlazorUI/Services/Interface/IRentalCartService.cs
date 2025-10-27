@@ -20,7 +20,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
         void ToggleSelectAll(bool value);
         Task<ApiResponse<CartItemReadDto>> AddItem(Guid sessionid);
         Task<bool> RemoveSelectedItemsAsync();
-        Task<bool> RemoveItemAsync(RentalCartItemViewModel cartItem);
+        Task<bool> RemoveItemAsync(Guid sessionId);
         Task ClearAllAsync();
         Task FinalizeInstantPaymentAsync(Guid SessionId, Guid PaymentId);
         Task FinalizePaymentAsync(Guid PaymentId);

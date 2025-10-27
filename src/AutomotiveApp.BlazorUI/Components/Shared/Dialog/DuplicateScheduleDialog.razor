@@ -1,0 +1,51 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Class="text-center" Typo="Typo.body1" Color="Color.Dark">
+            You have already booked a similar schedule
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        @if (ExistingBookings?.Any() == true)
+        {
+            <MudPaper Class="p-2" Elevation="0">
+                @foreach (var booking in ExistingBookings)
+                {
+                    <MudStack Spacing="1" Class="py-1">
+                        <MudText Typo="Typo.body1" Color="Color.Primary">@booking.Key</MudText>
+                        <MudText Typo="Typo.body2">
+                            @booking.Value.ToString("dddd, dd MMM yyyy")
+                        </MudText>
+                    </MudStack>
+                    <MudDivider />
+                }
+            </MudPaper>
+
+        }
+
+    </DialogContent>
+
+    <DialogActions>
+        <div Class="d-flex justify-center gap-2 mt-3">
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">
+                Cancel</AppBaseButton>
+            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">
+                Continue</AppBaseButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Dictionary<string, DateTime> ExistingBookings { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

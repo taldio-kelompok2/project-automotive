@@ -12,12 +12,12 @@ namespace AutomotiveApp.BlazorUI.Models.Auth.Context
         {
             var oldContext = Current;
             Current = Current.Update(accessToken);
-            _logger.LogInformation("UserContext updated. Old: {@OldContext}, New: {@NewContext}", oldContext.AccessToken, Current.AccessToken);
+            _logger.LogInformation("UserContext updated");
         }
 
         public void Clear()
         {
-            _logger.LogInformation("UserContext cleared. Previous: {@OldContext}", Current.AccessToken);
+            _logger.LogInformation("UserContext cleared");
 
             Current = UserContext.Guest;
         }

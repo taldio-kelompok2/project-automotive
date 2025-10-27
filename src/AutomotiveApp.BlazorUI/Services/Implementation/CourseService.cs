@@ -83,21 +83,33 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         public async Task<ApiResponse<IEnumerable<CourseQueryDto>>> GetAllAsync(CancellationToken ct = default)
         {
             return await _http.GetFromJsonAsync<ApiResponse<IEnumerable<CourseQueryDto>>>($"{BaseEndpoint}", ct)
-                   ?? new ApiResponse<IEnumerable<CourseQueryDto>> { Success = false, Data = Array.Empty<CourseQueryDto>() };
+                ?? new ApiResponse<IEnumerable<CourseQueryDto>> { Success = false, Data = Array.Empty<CourseQueryDto>() };
         }
 
         public async Task<ApiResponse<CourseQueryDetailDto>> GetById(Guid id, CancellationToken ct = default)
         {
-            return await _http.GetFromJsonAsync<ApiResponse<CourseQueryDetailDto>>($"{BaseEndpoint}/{id}", ct)
-                   ?? new ApiResponse<CourseQueryDetailDto> { Success = false, Data = null };
+            var response = await _http.GetAsync($"{BaseEndpoint}/{id}", ct);
+
+            if (!response.IsSuccessStatusCode)
+                return new ApiResponse<CourseQueryDetailDto>
+                {
+                    Success = false,
+                    Data = null,
+                    Errors = new[] { $"Request failed: {response.StatusCode}" }
+                };
+
+            var data = await response.Content.ReadFromJsonAsync<ApiResponse<CourseQueryDetailDto>>(cancellationToken: ct);
+
+            return data ?? new ApiResponse<CourseQueryDetailDto> { Success = false, Data = null };
+            ;
         }
 
         public async Task<ApiResponse<PaginatedResult<CourseQueryDto>>> GetPaged(
             int Page = 1, int ItemTaken = 6, bool isRandom = false, CancellationToken ct = default)
         {
             return await _http.GetFromJsonAsync<ApiResponse<PaginatedResult<CourseQueryDto>>>(
-                       $"{BaseEndpoint}/paged?page={Page}&itemTaken={ItemTaken}&isRandom={isRandom}", ct)
-                   ?? new ApiResponse<PaginatedResult<CourseQueryDto>> { Success = false, Data = null };
+                    $"{BaseEndpoint}/paged?page={Page}&itemTaken={ItemTaken}&isRandom={isRandom}", ct)
+                ?? new ApiResponse<PaginatedResult<CourseQueryDto>> { Success = false, Data = null };
         }
     }
 }
