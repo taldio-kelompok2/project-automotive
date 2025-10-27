@@ -9,7 +9,6 @@ using System.Globalization;
 using AutomotiveApp.BlazorUI.Services.Invoices;
 using System.Net;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using AutomotiveApp.BlazorUI.Models.Auth.Context;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 
@@ -83,8 +82,11 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+}
+else
+{
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseAuthorization();

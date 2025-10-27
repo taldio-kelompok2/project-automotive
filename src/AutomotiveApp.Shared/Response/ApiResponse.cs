@@ -1,5 +1,4 @@
 using System.Net;
-using AutomotiveApp.Shared.Enums;
 
 namespace AutomotiveApp.Shared.Response
 {

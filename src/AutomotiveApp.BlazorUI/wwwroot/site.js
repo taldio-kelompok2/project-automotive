@@ -29,6 +29,9 @@ window.refreshViaFetch = async (url, body) => {
         headers: { "Content-Type": "application/json" },
         body
     });
+
+    await new Promise(r => setTimeout(r, 150));
+    
     return await res.text();
 }
 

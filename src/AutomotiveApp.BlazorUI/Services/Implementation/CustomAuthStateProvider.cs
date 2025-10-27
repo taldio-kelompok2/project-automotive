@@ -76,13 +76,16 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
                 var response = JsonSerializer.Deserialize<ApiResponse<AuthResponseDto>>(result);
                 if (response?.Data?.Success ?? false)
                 {
-                    _logger.LogInformation("Refresh successful. Updating authentication state with {token}.", response.Data.AccessToken);
+                    _logger.LogInformation(
+                        "Refresh successful at {RefreshTime}. Updating authentication state with token (Expires: {ExpiryTime}).",
+                        DateTime.Now,
+                        _userContextService.Current.ExpiresAtUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Unknown");
                     NotifyUserAuthentication(response.Data.AccessToken);
                     return true;
                 }
                 else
                 {
-                    _logger.LogInformation("Refresh failed.");
+                    _logger.LogInformation("Refresh failed. message: {message}", response?.Data?.Message);
                     return false;
                 }
             }

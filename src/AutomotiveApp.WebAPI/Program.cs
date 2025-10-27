@@ -106,8 +106,6 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 .AddDefaultTokenProviders()
 .AddSignInManager<SignInManager<User>>();
 
-// Authentication
-// builder.Services.AddScoped<IJwtSettings, JwtSettings>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -134,6 +132,20 @@ builder.Services.AddAuthentication(options =>
             OnAuthenticationFailed = context =>
             {
                 Console.WriteLine($"JWT failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    context.Token = authHeader.Substring("Bearer ".Length);
+                }
+                else if (context.Request.Cookies.TryGetValue("AuthToken", out var token))
+                {
+                    context.Token = token;
+                }
+
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>

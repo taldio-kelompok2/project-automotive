@@ -6,7 +6,6 @@
 @inject IRentalCartService Cart
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserContextService UserContext
-
 @inject IAuthService AuthService
 
 @inherits LayoutComponentBase
@@ -40,7 +39,6 @@
 
 @code {
     private readonly MudTheme _theme = new AppTheme();
-    private Timer? _refreshTimer;
 
     private bool _isDarkMode = false;
     private bool _hideNavbar = false;
@@ -51,7 +49,8 @@
     private readonly string[] _noNavbarPages =
     {
 "/email-confirmed",
-"/success-purchase"
+"/success-purchase",
+"/notfound"
 };
 
     private readonly string[] _protectedPages = new[]
@@ -63,20 +62,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        @* Nav.LocationChanged += async (_, __) =>
-        {
-            await CheckProtectedPage();
-            UpdateNavbarVisibility();
+        // Get initial state
+        @* var authState = await AuthStateProvider.GetAuthenticationStateAsync(); *@
 
-        }; *@
+        // Subscribe to changes
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
+        StateHasChanged();
+    }
 
-        // Listen for authentication state changes
-        AuthStateProvider.AuthenticationStateChanged += async (task) =>
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        try
         {
             var state = await task;
             StateHasChanged();
-        };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in auth state change: {ex.Message}");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -84,24 +89,15 @@
         if (!firstRender)
             return;
 
-        await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-        await AuthStateProvider.GetAuthenticationStateAsync();
+        var success = await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+        if (!success)
+            await AuthStateProvider.GetAuthenticationStateAsync();
 
         // Initial checks
         await CheckProtectedPage();
         UpdateNavbarVisibility();
 
-        _refreshTimer = new Timer(async _ =>
-        {
-            await InvokeAsync(async () =>
-    {
-            try
-            {
-                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-            }
-            catch { /* Ignore errors */ }
-        });
-        }, null, TimeSpan.FromMinutes(0.5), TimeSpan.FromMinutes(0.5));
+        await StartRefreshTimer();
     }
 
     private void UpdateNavbarVisibility()
@@ -132,8 +128,39 @@
         }
     }
 
+    private async Task StartRefreshTimer()
+    {
+        while (true)
+        {
+            var delay = CalculateHalfExpiryTime();
+            await Task.Delay(delay);
+
+            try
+            {
+                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+            }
+            catch { /* Ignore errors */ }
+        }
+    }
+    private TimeSpan CalculateHalfExpiryTime()
+    {
+        if (UserContext.Current.ExpiresAtUtc == null)
+            return TimeSpan.FromMinutes(5);
+
+        var now = DateTime.UtcNow;
+        var expiry = UserContext.Current.ExpiresAtUtc.Value;
+
+        if (now >= expiry)
+            return TimeSpan.Zero;
+
+        var totalDuration = expiry - now;
+        var halfDuration = TimeSpan.FromMinutes(totalDuration.TotalMinutes / 2);
+
+        return halfDuration;
+    }
+
     public void Dispose()
     {
-        _refreshTimer?.Dispose();
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

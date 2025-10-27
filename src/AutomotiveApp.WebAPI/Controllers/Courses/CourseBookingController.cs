@@ -54,11 +54,13 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpGet("me")]
-        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCurrentUser()
+        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCurrentUser([FromQuery] Guid? courseId
+        , [FromServices] IValidator<GetCourseBookingByUser> validator)
         {
             var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
-            var query = new GetCourseBookingByUser(userId);
+            var query = new GetCourseBookingByUser(userId, courseId);
             var response = new ApiResponse<IEnumerable<CourseBookingQueryDto>>();
+            await validator.ValidateAndThrowAsync(query);
 
             var result = await Mediator.Send(query);
 

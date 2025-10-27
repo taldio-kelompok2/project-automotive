@@ -98,7 +98,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             {
                 var errors = response.Errors is not null ? string.Join(", ", response.Errors) : "Unknown error";
                 _logger.LogError("Failed to add item. Errors: {Errors}", errors);
-                throw new InvalidOperationException(errors);
             }
 
             SelectedAll = false;
@@ -119,7 +118,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             {
                 foreach (var item in selectedItems)
                 {
-                    TotalPrice -= item.Item.Course.Price;
                     RentalCartItems.Remove(item);
                     _logger.LogInformation("Removed {CourseName} from cart.", item.Item.Course.Name);
                 }
@@ -158,25 +156,30 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             OnCartChanged?.Invoke();
         }
 
-        public async Task<bool> RemoveItemAsync(RentalCartItemViewModel cartItem)
+        public async Task<bool> RemoveItemAsync(Guid itemId)
         {
-            if (cartItem is null) throw new ArgumentNullException(nameof(cartItem));
+            var cartItem = RentalCartItems.FirstOrDefault(item => item.Item.SessionId == itemId);
+            if (cartItem == null)
+            {
+                _logger.LogWarning("Attempted to remove non-existent cart item with ID {ItemId}", itemId);
+                return false;
+            }
 
+            var courseName = cartItem.Item.Course.Name;
             var response = await _cartService.BatchDeleteItemsAsync([cartItem.Item.Id]);
 
             if (response.Success && response.Data != null)
             {
-                if (cartItem.Selected) TotalPrice -= cartItem.Item.Course.Price;
                 RentalCartItems.Remove(cartItem);
-                _logger.LogInformation("Removed single item {CourseName} from cart.", cartItem.Item.Course.Name);
+                _logger.LogInformation("Successfully removed course '{CourseName}' from cart", courseName);
 
                 OnCartChanged?.Invoke();
                 return true;
             }
 
-            var errors = response.Errors is not null ? string.Join(", ", response.Errors) : "Unknown error";
-            _logger.LogError("Failed to remove item {CourseName}. Errors: {Errors}", cartItem.Item.Course.Name, errors);
-            throw new InvalidOperationException(errors);
+            var errors = response.Errors != null ? string.Join(", ", response.Errors) : "Unknown error";
+            _logger.LogError("Failed to remove course '{CourseName}' from cart. Errors: {Errors}", courseName, errors);
+            return false;
         }
 
 

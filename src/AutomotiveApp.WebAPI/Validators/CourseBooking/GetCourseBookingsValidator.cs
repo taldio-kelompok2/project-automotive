@@ -1,5 +1,4 @@
 using AutomotiveApp.Application.Features.CourseBookings.Queries;
-using AutomotiveApp.Application.Features.CourseSessions.Queries;
 using AutomotiveApp.Application.Interfaces;
 using FluentValidation;
 

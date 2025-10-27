@@ -1,5 +1,6 @@
 @page "/invoice"
 @using System.Globalization
+@using AutomotiveApp.BlazorUI.Helper
 @using MudBlazor
 @using AutomotiveApp.BlazorUI.Components.Shared.Buttons
 @using AutomotiveApp.BlazorUI.Enums.Button
@@ -132,39 +133,48 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
-        _loading = true;
-        await Task.Delay(100);
         try
         {
-            // Get All Data Invoice
-            var invoices = await Http.GetFromJsonAsync<List<InvoiceLite>>("api/Invoices") ?? new();
-
-            // Get All Data OrderItem & Sum / OrderId
-            var orderItems = await Http.GetFromJsonAsync<List<OrderItemLite>>("api/OrderItems") ?? new();
-            var itemCountByOrder = orderItems
-                .GroupBy(i => i.OrderId)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            // Map Ke View Model & Data Isian 
-            Invoices = invoices
-                .OrderByDescending(x => x.CreatedAt)
-                .Select((x, idx) => new InvoiceItem
+            await RetryHelper.ExecuteWithRetryAsync(
+                action: async () =>
                 {
-                    No = idx + 1,
-                    InvoiceNo = x.InvoiceCode,
-                    Date = x.CreatedAt,
-                    TotalCourse = itemCountByOrder.TryGetValue(x.OrderId, out var c) ? c : (int?)null,
-                    TotalPrice = x.TotalPrice,
-                    OrderId = x.OrderId
-                })
-                .ToList();
+                    // Get All Data Invoice
+                    var invoices = await Http.GetFromJsonAsync<List<InvoiceLite>>("api/Invoices") ?? new();
+
+                    // Get All Data OrderItem & Sum / OrderId
+                    var orderItems = await Http.GetFromJsonAsync<List<OrderItemLite>>("api/OrderItems") ?? new();
+                    var itemCountByOrder = orderItems
+                        .GroupBy(i => i.OrderId)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    // Map Ke View Model & Data Isian 
+                    Invoices = invoices
+                        .OrderByDescending(x => x.CreatedAt)
+                        .Select((x, idx) => new InvoiceItem
+                        {
+                            No = idx + 1,
+                            InvoiceNo = x.InvoiceCode,
+                            Date = x.CreatedAt,
+                            TotalCourse = itemCountByOrder.TryGetValue(x.OrderId, out var c) ? c : (int?)null,
+                            TotalPrice = x.TotalPrice,
+                            OrderId = x.OrderId
+                        })
+                        .ToList();
+                },
+                onLoadingChanged: (loading) =>
+                {
+                    _loading = loading;
+                    StateHasChanged();
+                },
+                maxAttempts: 5,
+                delayMs: 100
+            );
         }
-        finally
-        {
-            _loading = false;
-        }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to load invoices: {ex.Message}");
     }
+}
 
     private string FormatIdr(long value)
         => string.Format(new CultureInfo("id-ID"), "IDR {0:N0}", value);
