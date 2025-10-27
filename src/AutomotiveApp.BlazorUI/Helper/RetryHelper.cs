@@ -22,7 +22,7 @@ namespace AutomotiveApp.BlazorUI.Helper
                     catch
                     {
                         if (i == maxAttempts - 1)
-                            return;
+                            break;
 
                         await Task.Delay(delayMs);
                     }

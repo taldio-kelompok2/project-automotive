@@ -23,7 +23,7 @@
                     </MudText>
                 </div>
             }
-            else
+            else if (bookedSessions.Success)
             {
                 @if (bookedSessions.Data?.Any() ?? false)
                 {
@@ -58,26 +58,33 @@
     [CascadingParameter]
     public UserContext UserContext { get; set; } = default!;
     private int _selectedPage = 1;
-    private bool _isLoading { get; set; }
+    private bool _isLoading { get; set; } = true;
     private int pageSize = 5;
     private int pageCount => (int)Math.Ceiling((double)cars.Count() / pageSize);
     private ApiResponse<IEnumerable<CourseBookingQueryDto>> bookedSessions = new();
     private List<CarViewModel> cars = new List<CarViewModel>();
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine($"🔄 Starting - _isLoading: {_isLoading}");
+
         await RetryHelper.ExecuteWithRetryAsync(
         action: async () =>
         {
+            Console.WriteLine($"🔄 Attempting API call...");
             bookedSessions = await BookingService.GetUserBooking();
+            Console.WriteLine($"✅ API call completed - Data: {bookedSessions.Data?.Count() ?? 0} items");
         },
         onLoadingChanged: (loading) =>
         {
+            Console.WriteLine($"🔄 Loading changed to: {loading}");
             _isLoading = loading;
             StateHasChanged();
         },
         maxAttempts: 5,
         delayMs: 100
         );
+
+        Console.WriteLine($"🏁 Completed - _isLoading: {_isLoading}, Data: {bookedSessions.Data?.Count() ?? 0} items");
     }
 
     private async Task OnPageChange(int newPage)
