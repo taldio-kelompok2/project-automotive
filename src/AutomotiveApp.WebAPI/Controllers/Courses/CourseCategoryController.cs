@@ -13,14 +13,18 @@ using AutomotiveApp.WebAPI.Dto.Courses;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace AutomotiveApp.WebAPI.Controllers.Courses
 {
     [ApiController]
     [Route("api/[controller]")]
 
-    public class CourseCategoryController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage) : BaseApiController(mediator)
+    public class CourseCategoryController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage, ILogger<CourseCategoryController> logger) : BaseApiController(mediator)
     {
+        // Logger
+        private readonly ILogger<CourseCategoryController> _logger = logger;
+        
         // Helper Tambahan HeroImage
         private string? ResolveHeroUrl(Guid id)
         {
@@ -39,8 +43,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseCategoryQueryDto>>> GetCourseCategories()
         {
-            var response = new ApiResponse<IEnumerable<CourseCategoryQueryDto>>();
+            _logger.LogInformation("GET /api/coursecategory - fetching categories");
 
+            var response = new ApiResponse<IEnumerable<CourseCategoryQueryDto>>();
             var query = new GetCourseCategories();
             var result = await Mediator.Send(query);
 
@@ -52,12 +57,16 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
+            _logger.LogInformation("GET /api/coursecategory - returned {Count} items", result?.Count() ?? 0);
+
             return Ok(response);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CourseCategoryQueryDto>> GetCourseCategoryById([FromRoute] Guid id, [FromServices] IValidator<GetCourseCategoryById> validator)
         {
+            _logger.LogInformation("GET /api/coursecategory/{Id} - start", id);
+
             var query = new GetCourseCategoryById(id);
             var response = new ApiResponse<CourseCategoryQueryDto>();
             await validator.ValidateAndThrowAsync(query);
@@ -70,6 +79,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
+
+            _logger.LogInformation("GET /api/coursecategory/{Id} - ok", id);
 
             return Ok(response);
         }
@@ -101,6 +112,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [FromForm] CourseCategoryCreateRequest request,
         [FromServices] IValidator<CourseCategoryCreateRequest> validator)
         {
+            _logger.LogInformation("POST /api/coursecategory - creating {Name}", request?.Name);
+
             var response = new ApiResponse<CourseCategoryQueryDto>();
             await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
@@ -127,10 +140,15 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
+
+                _logger.LogInformation("POST /api/coursecategory - created category {CategoryId}", result.Id);
+                
                 return Ok(response);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "POST /api/coursecategory failed for {Name}", request?.Name);
+
                 if (imageFileName != null)
                 {
                     await ImageStorage.DeleteFileAsync<CourseCategory>(imageFileName);
