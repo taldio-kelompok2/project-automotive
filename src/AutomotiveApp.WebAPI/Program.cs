@@ -338,10 +338,10 @@ app.MapHealthChecksUI(options =>
 
 // app.Run();
 
-// Seeding With Serilog
+// Seeding With Logging
 try
 {
-    // ---- Seeding ----
+    // Seeding
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<AppDbContext>();
