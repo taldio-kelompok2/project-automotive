@@ -104,8 +104,7 @@
 
     @if (isCategoryLoading)
     {
-        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true"
-                             Class="d-flex mx-auto my-8" />
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" Class="d-flex mx-auto my-8" />
     }
     else if (categories.Data?.Items.Any() ?? false)
     {
@@ -117,8 +116,8 @@
                     <MudLink Href="@($"/course-category/{c.Id}")" Style="text-decoration:none;color:inherit;">
                         <div class="category-card hover-pointer">
                             <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Spacing="1">
-                                <MudImage Src="@ResolveCatImage(c.ImageUrl)"
-                                          Class="rounded-lg" ObjectFit="ObjectFit.Fill" Width="100" Height="100" />
+                                <MudImage Src="@ResolveCatImage(c.ImageUrl)" Class="rounded-lg" ObjectFit="ObjectFit.Fill"
+                                    Width="100" Height="100" />
                                 <MudText Typo="Typo.body1">@c.Name</MudText>
                             </MudStack>
                         </div>
@@ -130,10 +129,8 @@
         @if (categories.Data.TotalCount > CategoryPageSize)
         {
             <div class="d-flex justify-center mt-6">
-                <MudPagination Count="@categoryTotalPages"
-                               Selected="@categoryPage"
-                               SelectedChanged="@OnCategoryPageChanged"
-                               BoundaryCount="3" />
+                <MudPagination Count="@categoryTotalPages" Selected="@categoryPage" SelectedChanged="@OnCategoryPageChanged"
+                    BoundaryCount="3" />
             </div>
         }
     }

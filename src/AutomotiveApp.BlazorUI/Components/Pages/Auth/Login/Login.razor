@@ -26,7 +26,7 @@
         </div>
 
         <AppBaseButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-            Disabled="@(!IsFormFilled())" Width="ButtonWidth.Medium" Class="ml-auto">
+            Disabled="@(!IsFormFilled() || _isLoading)" Width="ButtonWidth.Medium" Class="ml-auto">
             @if (_isLoading)
             {
                 <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Indeterminate="true" />
@@ -78,6 +78,7 @@
 
     private async Task ShowSuccessDialogAsync()
     {
+        var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
         var parameters = new DialogParameters
         {
             ["Title"] = "Login Successful",
@@ -86,7 +87,7 @@
                 builder.OpenElement(0, "div");
                 builder.AddContent(1, $"Welcome back, {_loginModel.Email}!");
                 builder.CloseElement();
-            })
+            }),
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true };
@@ -158,9 +159,7 @@
             {
                 await ShowSuccessDialogAsync();
                 var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-                Console.WriteLine(redirect);
                 Nav.NavigateTo(redirect, forceLoad: true);
-                // reload so SignalR picks up cookies
             }
             else
             {

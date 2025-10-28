@@ -12,7 +12,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
         Guid Id { get; set; }
         bool IsLoading { get; }
         bool SelectedAll { get; set; }
-        int TotalPrice { get; set; }
+        int TotalPrice { get; }
         bool IsCartEmpty { get; }
         event Action? OnCartChanged;
         event Action? OnLoadingChanged;

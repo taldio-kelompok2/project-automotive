@@ -18,12 +18,19 @@
             @foreach (var trans in transactions)
             {
                 <MudListItem Value="@trans">
-                    <MudStack @key="trans.Id" Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+                    <MudStack @key="trans.Id" Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                         <MudImage Src="@trans.Image" Width="80" Height="40" />
                         <MudText Style="font-size: 1.125rem; font-weight:500; font-family: Poppins;" Color="Color.Dark">
-                            @* @trans.Category.ToString() *@
                             @trans.Name
                         </MudText>
+                        @if (SelectedTransaction == trans)
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Primary" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <div style="width: 24px; height: 24px;"></div>
+                        }
                     </MudStack>
                 </MudListItem>
             }
