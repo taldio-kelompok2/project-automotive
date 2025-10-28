@@ -1,14 +1,16 @@
-﻿using System.Net;
-using AutomotiveApp.Application.Features.Users.Commands;
+﻿using AutomotiveApp.Application.Features.Users.Commands;
 using AutomotiveApp.Application.Features.Users.Queries;
+using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Security.Claims;
 
 namespace AutomotiveApp.WebAPI.Controllers.User
 {
@@ -26,7 +28,6 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             try
             {
                 var accessToken = ExtractAccessTokenFromHeader();
-                Console.WriteLine($"[getcurruser] token: {accessToken}");
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     response.Success = false;
@@ -67,10 +68,57 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
         }
 
+        [HttpPut("me")]
+        [Authorize(Roles = "Admin, Buyer")]
+        public async Task<ActionResult<UserProfileUpdateDto>> UpdateCurrentUserProfile(
+           [FromBody] UserProfileUpdateDto userProfileUpdateDto,
+            [FromServices] IValidator<UserProfileUpdateDto> validator)
+        {
+            var response = new ApiResponse<UserProfileUpdateDto>();
+
+            var accessToken = ExtractAccessTokenFromHeader();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = ["Access token is required"];
+                return BadRequest(response);
+            }
+
+            var stringUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(stringUserId))
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = ["Invalid JWT"];
+                return BadRequest(response);
+            }
+            var userId = Guid.Parse(stringUserId);
+
+            userProfileUpdateDto.CurrentUserId = userId;
+
+            var validation = await validator.ValidateAsync(userProfileUpdateDto);
+            if (!validation.IsValid)
+                return HandleValidationFailure<UserProfileUpdateDto>(validation);
+
+            var query = new UpdateUserProfile(userProfileUpdateDto);
+            var result = await _mediator.Send(query);
+
+            response.Success = true;
+            response.Data = userProfileUpdateDto;
+
+            return Ok(response);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<bool>>> CreateUser([FromBody] UserCreateRequestDto userCreateDto)
+        public async Task<ActionResult<UserCreateRequestDto>> CreateUser(
+            [FromBody] UserCreateRequestDto userCreateDto,
+            [FromServices] IValidator<UserCreateRequestDto> validator)
         {
+            var validation = await validator.ValidateAsync(userCreateDto);
+            if (!validation.IsValid) 
+                return HandleValidationFailure<UserCreateRequestDto>(validation);
             var response = new ApiResponse<bool>();
 
             var command = new CreateUser(userCreateDto);

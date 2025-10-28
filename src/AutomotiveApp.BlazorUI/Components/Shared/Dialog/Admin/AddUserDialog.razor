@@ -1,6 +1,8 @@
-﻿<MudDialog>
+﻿@inject ISnackbar Snackbar
+
+<MudDialog>
   <DialogContent>
-    <MudForm @ref="_form">
+    <MudForm @ref="_form" Model="@_user" >
       <MudTextField T="string"
                     Label="Name"
                           @bind-Value="_user.Name"

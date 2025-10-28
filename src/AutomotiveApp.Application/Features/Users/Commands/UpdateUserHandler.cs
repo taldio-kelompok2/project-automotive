@@ -17,9 +17,12 @@ namespace AutomotiveApp.Application.Features.Users.Commands
 
             mapper.Map(req.UserUpdateDto, existingUser);
             
-            var res = await userManager.UpdateAsync(existingUser);
-            if (!res.Succeeded)
-                throw new InvalidOperationException($"User update failed: {res.Errors.Select(e => e.Description)}");
+            var result = await userManager.UpdateAsync(existingUser);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException(errors);
+            }
 
             var currRole = await userManager.GetRolesAsync(existingUser);
             if (req.UserUpdateDto.Role != currRole.FirstOrDefault() && currRole.FirstOrDefault() != null)

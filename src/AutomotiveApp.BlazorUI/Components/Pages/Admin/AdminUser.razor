@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject IUserService UserService
+@inject ISnackbar Snackbar
 
 @* @layout AdminLayout *@
 
@@ -78,9 +79,6 @@
 
     private async Task OnUserEdit(UserViewModel user)
     {
-        var loadingDialog = await DialogService.ShowAsync<LoadingDialog>("Updating user...");
-        await Task.Delay(1000);
-
         try
         {
             var updatedUser = new UserUpdateRequestDto
@@ -92,13 +90,18 @@
                 Status = StatusMapper(user.Status),
             };
 
-            var success = await UserService.UpdateUser(user.Id, updatedUser);
-            if (success)
+            var res = await UserService.UpdateUser(user.Id, updatedUser);
+            if (res.Success)
+            {
+                Snackbar.Add("User updated Successfully", Severity.Success);
                 await LoadUsersAsync();
+            }
         }
-        finally
+        catch (Exception ex)
         {
-            loadingDialog.Close();
+            Console.WriteLine($"update user: {ex.Message}");
+
+            Snackbar.Add($"User update failed: {ex.Message}", Severity.Error);
         }
     }
 
@@ -109,8 +112,6 @@
 
         if (!result.Canceled && result.Data is UserViewModel user)
         {
-            var loadingDialog = await DialogService.ShowAsync<LoadingDialog>("Adding user...");
-            await Task.Delay(1000);
 
             try
             {
@@ -124,13 +125,18 @@
                     Status = StatusMapper(user.Status),
                 };
 
-                var success = await UserService.CreateUser(input);
-                if (success)
+                var res = await UserService.CreateUser(input);
+                if (res.Success)
+                {
                     await LoadUsersAsync();
+                    Snackbar.Add("User added Successfully", Severity.Success);
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                loadingDialog.Close();
+                Console.WriteLine($"add user: {ex.Message}");
+
+                Snackbar.Add($"User add failed: {ex.Message}", Severity.Error);
             }
         }
     }

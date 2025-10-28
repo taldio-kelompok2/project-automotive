@@ -11,16 +11,10 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
     public class UserService : IUserService
     {
         private readonly HttpClient _httpClient;
-        private readonly ILocalStorageService _localStorage;
-        private readonly AuthenticationStateProvider _authStateProvider;
         public UserService(
-            HttpClient httpClient,
-            ILocalStorageService localStorage,
-            AuthenticationStateProvider authStateProvider)
+            HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _localStorage = localStorage;
-            _authStateProvider = authStateProvider;
         }
 
         public async Task<IEnumerable<UserQueryDto>> GetAllUsers()
@@ -51,13 +45,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         {
             try
             {
-                //// Get token from local storage
-                //var token = await _localStorage.GetItemAsync<string>("authToken");
-                //if (!string.IsNullOrEmpty(token))
-                //{
-                //    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                //}
-
                 var url = $"api/user/paged?page={page}&itemTaken={itemTaken}";
 
                 if (!string.IsNullOrWhiteSpace(search))
@@ -87,45 +74,31 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             }
         }
 
-        public async Task<bool> CreateUser(UserCreateRequestDto userCreateDto)
+        public async Task<ApiResponse<bool>> CreateUser(UserCreateRequestDto userCreateDto)
         {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync("api/user", userCreateDto);
+            var response = await _httpClient.PostAsJsonAsync("api/user", userCreateDto);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-                    return apiResponse.Success;
-                }
-                return false;
-            }
-            catch (Exception ex)
+            if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
             {
-                Console.WriteLine($"[UserService] Create user exception: {ex.Message}");
-                return false;
+                var message = apiResponse?.Errors?.FirstOrDefault() ?? "Internal error";
+                Console.WriteLine($"create user: {message}");
+                throw new Exception(message);
             }
+            return apiResponse;
         }
 
-        public async Task<bool> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto)
+        public async Task<ApiResponse<bool>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto)
         {
-            try
-            {
-                var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}", userUpdateDto);
+            var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}", userUpdateDto);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-                    return apiResponse.Success;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
+            if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
             {
-                Console.WriteLine($"[UserService] Update user exception: {ex.Message}");
-                return false;
+                var message = apiResponse?.Errors?.FirstOrDefault() ?? "Internal error";
+                throw new Exception(message);
             }
+            return apiResponse;
         }
 
         public async Task<bool> DeleteUser(Guid userId)

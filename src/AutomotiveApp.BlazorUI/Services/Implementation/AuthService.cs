@@ -1,4 +1,5 @@
 ﻿using AutomotiveApp.BlazorUI.Services.Interface;
+using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Response;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
@@ -109,6 +111,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             {
                 return null;
             }
+        }
+
+        public async Task<ApiResponse<UserProfileUpdateDto>> UpdateProfileAsync(UserProfileUpdateDto request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/user/me", request);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<UserProfileUpdateDto>>();
+
+            if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
+            {
+                var message = apiResponse?.Errors?.FirstOrDefault() ?? "Internal error";
+                throw new Exception(message);
+            }
+            return apiResponse;
         }
 
         // Forgot/Reset/Confirm Email methods remain unchanged
