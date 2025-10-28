@@ -1,10 +1,10 @@
-using System.Net;
 using AutomotiveApp.BlazorUI.Models.Cart;
 using AutomotiveApp.BlazorUI.Services.Interface;
-using AutomotiveApp.Domain.Entities.Courses.Cart;
 using AutomotiveApp.Shared.Dtos.CartItems;
 using AutomotiveApp.Shared.Response;
-using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Http.Features;
+using MudBlazor;
+
 namespace AutomotiveApp.BlazorUI.Services.Implementation
 {
     public class RentalCartService : IRentalCartService
@@ -16,8 +16,24 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         public List<RentalCartItemViewModel> RentalCartItems { get; set; } = [];
         public bool IsLoading { get; set; } = false;
         public bool IsCartEmpty => RentalCartItems.Count == 0;
-        public bool SelectedAll { get; set; } = false;
-        public int TotalPrice { get; set; } = 0;
+        public bool SelectedAll
+        {
+            get => RentalCartItems?.All(c => c.Selected) ?? false;
+            set
+            {
+                // When SelectedAll is set, update all individual items
+                if (RentalCartItems != null)
+                {
+                    foreach (var item in RentalCartItems)
+                    {
+                        item.Selected = value;
+                    }
+                }
+                // Notify subscribers that the cart changed
+                OnCartChanged?.Invoke();
+            }
+        }
+        public int TotalPrice => CalculateTotalPrice(); // Now calculated dynamically
         public event Action? OnCartChanged;
         public event Action? OnLoadingChanged;
 
@@ -40,8 +56,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             if (cart.Success && cart.Data != null)
             {
                 Id = cart.Data.Id;
+                var previousSelections = RentalCartItems
+                    .Where(item => item.Selected)
+                    .Select(item => item.Item.SessionId)
+                    .ToHashSet() ?? new HashSet<Guid>();
+
                 RentalCartItems.Clear();
-                RentalCartItems.AddRange(cart.Data.Items.Select(item => new RentalCartItemViewModel { Item = item, Selected = false }));
+                var newItems = cart.Data.Items.Select(item => new RentalCartItemViewModel
+                {
+                    Item = item,
+                    Selected = previousSelections.Contains(item.SessionId)
+                }).ToList();
+
+                RentalCartItems.AddRange(newItems);
                 _logger.LogInformation("Cart items count: {Count}", cart.Data.Items.Count);
             }
             else
@@ -52,31 +79,14 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             }
         }
 
-        // WIP for guest Cart later
-        public async Task GetGuestCartData()
-        {
-            //clear all rental items
-            RentalCartItems.Clear();
-
-            //check cookies first if there are available cart Id
-
-            //generate a new Guid
-            Id = Guid.NewGuid();
-        }
-
-        // WIP for guest Cart later
-        public async Task AddItemToGuest()
-        {
-
-        }
-
         public void ToggleSelectAll(bool value)
         {
             SelectedAll = value;
             RentalCartItems.ForEach(cartItem => cartItem.Selected = value);
-            TotalPrice = RentalCartItems.Where(c => c.Selected).Sum(c => c.Item.Course.Price);
             _logger.LogInformation("All rental are selected: {SelectedAll}", SelectedAll);
+            OnCartChanged?.Invoke(); // Notify that cart changed to update TotalPrice
         }
+
         public async Task<ApiResponse<CartItemReadDto>> AddItem(Guid sessionid)
         {
             _logger.LogInformation("Attempting to add (SessionId: {SessionId}) to cart (CartId: {CartId})...",
@@ -100,12 +110,10 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 _logger.LogError("Failed to add item. Errors: {Errors}", errors);
             }
 
-            SelectedAll = false;
             OnCartChanged?.Invoke();
 
             return response;
         }
-
         public async Task<bool> RemoveSelectedItemsAsync()
         {
             var selectedItems = RentalCartItems.Where(c => c.Selected).ToList();
@@ -143,7 +151,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             if (response.Success && response.Data != null)
             {
                 RentalCartItems.Clear();
-                TotalPrice = 0;
                 _logger.LogInformation("All items removed from cart successfully.");
             }
             else
@@ -182,7 +189,6 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             return false;
         }
 
-
         public async Task FinalizeInstantPaymentAsync(Guid sessionId, Guid transactionId)
         {
             _logger.LogInformation("Starting instant payment for SessionId: {SessionId}, TransactionId: {TransactionId}", sessionId, transactionId);
@@ -194,6 +200,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
                 if (result.Success)
                 {
+
                     _logger.LogInformation("Instant payment completed successfully for SessionId: {SessionId}, TransactionId: {TransactionId}", sessionId, transactionId);
                 }
                 else
@@ -219,34 +226,34 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             if (Id == Guid.Empty)
                 await GetUserCartData();
 
+
             if (IsCartEmpty)
             {
                 _logger.LogWarning("Attempted to finalize payment, but the cart is empty.");
                 throw new InvalidOperationException("Cannot finalize order: the cart is empty.");
             }
 
-            var selectedCars = RentalCartItems.Where(x => x.Selected).ToList();
+            var selectedItems = RentalCartItems.Where(x => x.Selected).ToList();
 
-            if (selectedCars.Count == 0)
+            if (selectedItems.Count == 0)
             {
                 _logger.LogWarning("Attempted to finalize payment, but no cars are selected.");
                 throw new InvalidOperationException("Cannot finalize order: no cars selected.");
             }
 
 
-            _logger.LogInformation("Starting payment for {ItemCount} items. Total: {TotalPrice}", selectedCars.Count, TotalPrice);
+            _logger.LogInformation("Starting payment for {ItemCount} items. Total: {TotalPrice}", selectedItems.Count, TotalPrice);
             SetLoading(true);
 
             try
             {
-                await _transactionService.CheckoutCartAsync(Id, PaymentId, [.. RentalCartItems.Select(c => c.Item.Id)]);
-                // await RemoveSelectedItemsAsync();
+                await _transactionService.CheckoutCartAsync(Id, PaymentId, [.. selectedItems.Select(c => c.Item.Id)]);
 
                 _logger.LogInformation("Payment completed successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Payment failed for {ItemCount} items. Total: {TotalPrice}", selectedCars.Count, TotalPrice);
+                _logger.LogError(ex, "Payment failed for {ItemCount} items. Total: {TotalPrice}", selectedItems.Count, TotalPrice);
                 throw;
             }
             finally
@@ -259,6 +266,13 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
         {
             IsLoading = value;
             OnLoadingChanged?.Invoke();
+        }
+
+        private int CalculateTotalPrice()
+        {
+            return RentalCartItems
+                .Where(c => c.Selected)
+                .Sum(c => c.Item.Course.Price);
         }
     }
 }

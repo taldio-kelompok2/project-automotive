@@ -2,6 +2,8 @@
 @inject NavigationManager Nav
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
+@inject UserContextService UserContext
+@inject ICourseBookingService CourseBookingService
 
 @page "/checkout"
 @using AutomotiveApp.BlazorUI.Helper
@@ -15,8 +17,7 @@
         <!-- large screen header -->
         <div class="checkout-header fluid d-none d-md-flex">
             <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                <MudCheckBox @bind-Value="Cart.SelectedAll" T="bool"
-                    @bind-Value:after="() => Cart.ToggleSelectAll(Cart.SelectedAll)" Disabled="@Cart.IsCartEmpty" />
+                <MudCheckBox @bind-Value="Cart.SelectedAll" T="bool" Disabled="@Cart.IsCartEmpty" />
                 <MudText Typo="Typo.h6">Pilih Semua</MudText>
             </MudStack>
             <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Short" @onclick="DeleteAll">
@@ -26,8 +27,7 @@
         <!-- small-medium screen header -->
         <div class="checkout-header fluid d-flex d-md-none">
             <MudStack Row=true Spacing="1" AlignItems="AlignItems.Center">
-                <MudCheckBox Size="Size.Small" @bind-Value="Cart.SelectedAll" T="bool"
-                    @bind-Value:after="() => Cart.ToggleSelectAll(Cart.SelectedAll)" Disabled="@Cart.IsCartEmpty" />
+                <MudCheckBox @bind-Value="Cart.SelectedAll" T="bool" Disabled="@Cart.IsCartEmpty" />
                 <MudText Typo="Typo.body2">Pilih Semua</MudText>
             </MudStack>
             <AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="ButtonWidth.Short" @onclick="DeleteAll">
@@ -40,8 +40,7 @@
             {
                 <div class="rental-cart-group fluid " @key="cart.Item.Id">
                     <MudStack Spacing="4" Row=true AlignItems="AlignItems.Center">
-                        <MudCheckBox @bind-Value="@cart.Selected" T="bool"
-                            @bind-Value:after="() => OnItemSelectionChanged(cart)" />
+                        <MudCheckBox @bind-Value="cart.Selected" T="bool" Disabled="@Cart.IsCartEmpty" />
                         <!-- large Image -->
                         <MudImage Src="@cart.Item.Course.ImageUrl" Class="d-none d-md-block" Width="200" Height="200"
                             ObjectFit="ObjectFit.Contain" />
@@ -163,13 +162,16 @@
 </section>
 
 @code {
-
+    private List<CourseBookingQueryDto> _userSessions = new();
     private const string HOME_PAGE = "/";
-    private bool _isLoading = true;
+    private bool _isLoading { get; set; } = true;
     private async void RemoveItem(RentalCartItemViewModel item)
     {
         if (!await Cart.RemoveItemAsync(item.Item.SessionId))
+        {
             Snackbar.Add("Failed to delete item on the cart", Severity.Error);
+            StateHasChanged();
+        }
         else
             Snackbar.Add($"items succesfully removed", Severity.Info);
     }
@@ -180,33 +182,75 @@
         Snackbar.Add($"Cart is Cleared", Severity.Info);
     }
 
-    private void OnItemSelectionChanged(RentalCartItemViewModel cart)
+    private async Task<bool?> OpenDuplicateDialogAsync(Dictionary<string, DateTime> bookings, Dictionary<string, DateTime>
+    carts)
     {
-        if (cart.Selected)
-            Cart.TotalPrice += cart.Item.Course.Price;
-        else
-            Cart.TotalPrice -= cart.Item.Course.Price;
+        var parameters = new DialogParameters
+{
+{ "ExistingBookings", bookings },
+{ "ExistingCartBookings", carts }
+};
 
-        Cart.SelectedAll = Cart.RentalCartItems.All(c => c.Selected);
+        var options = new DialogOptions
+        {
+            CloseButton = false,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        };
+
+        var dialog = await Dialog.ShowAsync<DuplicateScheduleDialog>("", parameters, options);
+        var result = await dialog.Result;
+
+        if (result!.Canceled) return false;
+        if (!result.Canceled && result.Data is bool continueWithTransaction && continueWithTransaction)
+            return await OpenTransactionDialogAsync();
+
+        return false;
     }
 
     private async Task PaymentHandler()
     {
         try
         {
-            if (!await OpenDialogAsync())
+            var cartDuplicates = Cart.RentalCartItems
+            .Where(c => c.Selected)
+            .GroupBy(cart => cart.Item.Schedule.Date)
+            .Where(group => group.Count() >= 2)
+            .SelectMany(group => group)
+            .GroupBy(x => x.Item.Course.Name)
+            .Select(g => g.First())
+            .ToDictionary(
+            x => x.Item.Course.Name,
+            x => x.Item.Schedule.Date
+            );
+
+            var SessionDuplicates = Cart.RentalCartItems
+            .Where(cart =>
+            cart.Selected &&
+            _userSessions.Any(user => user.Session.Date.Date == cart.Item.Schedule.Date.Date))
+            .ToDictionary(x => x.Item.Course.Name, x => x.Item.Schedule.Date);
+            bool success;
+
+            if (cartDuplicates.Any() || SessionDuplicates.Any())
             {
-                Snackbar.Add("Payment successful, Redirecting in 2 second", Severity.Success,
+                success = await OpenDuplicateDialogAsync(SessionDuplicates, cartDuplicates) ?? false;
+            }
+            else
+                success = await OpenTransactionDialogAsync();
+
+            if (success)
+            {
+                Snackbar.Add("Payment successful, Redirecting now..", Severity.Success,
                 config =>
                 {
-                    config.VisibleStateDuration = 2000;
+                    config.VisibleStateDuration = 1000;
                 });
-                await Task.Delay(2000);
+                await Task.Delay(500);
                 Nav.NavigateTo("/success-purchase");
             }
             else
             {
-                Snackbar.Add("Payment Not Successful", Severity.Warning);
+                @* Snackbar.Add("Payment Not Successful", Severity.Warning); *@
             }
         }
         catch (Exception ex)
@@ -215,7 +259,7 @@
         }
     }
 
-    private async Task<bool> OpenDialogAsync()
+    private async Task<bool> OpenTransactionDialogAsync()
     {
         var parameters = new DialogParameters
         {
@@ -227,40 +271,47 @@
         var dialogRef = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters, options);
         var transactionResult = await dialogRef.Result;
 
-        return transactionResult?.Canceled! ?? true;
+        return !transactionResult?.Canceled! ?? false;
     }
 
     private async Task HandleDialogSubmit(TransactionViewModel transaction)
     {
-        try
-        {
-            await Cart.FinalizePaymentAsync(transaction.Id);
-        }
-        catch
-        {
-
-        }
+        await Cart.FinalizePaymentAsync(transaction.Id);
 
     }
-
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await RetryHelper.ExecuteWithRetryAsync(
-            action: () => Cart.GetUserCartData(),
-            onLoadingChanged: (loading) =>
+            await LoadCartDataAsync();
+
+            if (UserContext.Current.IsAuthenticated)
             {
-                _isLoading = loading;
-                StateHasChanged();
-            },
-            maxAttempts: 5,
-            delayMs: 100
-            );
+                await LoadBookingDataAsync();
+            }
+            StateHasChanged();
         }
     }
 
+    private async Task LoadCartDataAsync()
+    {
+        await RetryHelper.ExecuteWithRetryAsync(
+        action: () => Cart.GetUserCartData(),
+        onLoadingChanged: (loading) => _isLoading = loading,
+        maxAttempts: 5,
+        delayMs: 100
+        );
+    }
+
+    private async Task LoadBookingDataAsync()
+    {
+        var bookingResponse = await CourseBookingService.GetUserBooking();
+        if (bookingResponse.Success)
+        {
+            _userSessions = bookingResponse.Data?.ToList() ?? [];
+        }
+    }
 
     protected override void OnInitialized()
     {

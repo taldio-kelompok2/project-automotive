@@ -1,36 +1,81 @@
 <MudDialog>
     <TitleContent>
-        <MudText Class="text-center" Typo="Typo.body1" Color="Color.Dark">
-            You have already booked a similar schedule
+        <MudText Class="text-center" Typo="Typo.h5" Color="Color.Dark">
+            Schedule Conflicts Detected
         </MudText>
     </TitleContent>
 
     <DialogContent>
         @if (ExistingBookings?.Any() == true)
         {
-            <MudPaper Class="p-2" Elevation="0">
-                @foreach (var booking in ExistingBookings)
-                {
-                    <MudStack Spacing="1" Class="py-1">
-                        <MudText Typo="Typo.body1" Color="Color.Primary">@booking.Key</MudText>
-                        <MudText Typo="Typo.body2">
-                            @booking.Value.ToString("dddd, dd MMM yyyy")
-                        </MudText>
-                    </MudStack>
-                    <MudDivider />
-                }
+            <MudPaper Class="p-2 mb-2" Elevation="0">
+                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">Already Booked Sessions
+                </MudText>
+                <MudList T="string">
+                    @{
+                        var groupedByDate = ExistingBookings?
+                        .GroupBy(x => x.Value)
+                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, KeyValuePair<string, DateTime>>>();
+                    }
+
+                    @foreach (var dateGroup in groupedByDate)
+                    {
+                        <MudExpansionPanel
+                            Text="@($"{dateGroup.Key.ToString("dddd, dd MMM yyyy", new System.Globalization.CultureInfo("en-US"))} - {dateGroup.Count()} sessions")"
+                            Icon="@Icons.Material.Filled.ArrowDropDown">
+                            <MudList Dense="true">
+                                @foreach (var booking in dateGroup)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.Key</MudText>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        </MudExpansionPanel>
+                    }
+                </MudList>
             </MudPaper>
-
         }
+        @if (ExistingCartBookings?.Any() == true)
+        {
+            <MudPaper Class="p-2 mb-2" Elevation="0">
+                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">Duplicate Schedules in Cart
+                </MudText>
+                <MudList T="string">
+                    @{
+                        var cartGroupedByDate = ExistingCartBookings?
+                        .GroupBy(x => x.Value)
+                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, KeyValuePair<string, DateTime>>>();
+                    }
 
+                    @foreach (var dateGroup in cartGroupedByDate)
+                    {
+                        <MudExpansionPanel
+                            Text="@($"{dateGroup.Key.ToString("dddd, dd MMM yyyy", new System.Globalization.CultureInfo("en-US"))} - {dateGroup.Count()} sessions")"
+                            Icon="@Icons.Material.Filled.ArrowDropDown">
+                            <MudList Dense="true">
+                                @foreach (var booking in dateGroup)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.Key</MudText>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        </MudExpansionPanel>
+                    }
+                </MudList>
+            </MudPaper>
+        }
     </DialogContent>
 
     <DialogActions>
         <div Class="d-flex justify-center gap-2 mt-3">
             <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">
-                Cancel</AppBaseButton>
+                Cancel
+            </AppBaseButton>
             <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">
-                Continue</AppBaseButton>
+                Continue
+            </AppBaseButton>
         </div>
     </DialogActions>
 </MudDialog>
@@ -41,6 +86,9 @@
 
     [Parameter]
     public Dictionary<string, DateTime> ExistingBookings { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, DateTime>? ExistingCartBookings { get; set; } = new();
 
     private void Cancel() => MudDialog.Cancel();
 

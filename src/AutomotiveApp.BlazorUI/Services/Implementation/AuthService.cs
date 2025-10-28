@@ -68,8 +68,8 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (data == null || apiResponse?.Success != true)
                     return null;
 
-                var token = data.AccessToken;
-                ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
+                // var token = data.AccessToken;
+                // ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
 
                 return data;
             }

@@ -6,19 +6,20 @@
 
 <PageTitle>Email Confirmed</PageTitle>
 
-    <div class="confirmed-container">
-        <div class="confirmed-img">
-            <MudImage Src="@ConfirmedImage" Style="width:300px;"/>
-        </div>
-        <div class="confirmed-text-group">
-        <MudText Typo="Typo.h4" Color="Color.Primary">Email Confirmation Success</MudText>
-        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Style="font-size: 18px">Your email already! Please login first to access the web</MudText>
-        </div>
-        <AppBaseButton Variant="Variant.Filled" DropShadow=false Color="Color.Primary" @onclick="() => NavigateToLogin()" Width="ButtonWidth.Medium"
-                       style="padding: 1rem 2rem;">
-            <MudText Style="font-weight:600;">Login Here</MudText>
-        </AppBaseButton>
+<div class="confirmed-container">
+    <div class="confirmed-img">
+        <MudImage Src="@ConfirmedImage" Style="width:300px;" />
     </div>
+    <div class="confirmed-text-group">
+        <MudText Typo="Typo.h4" Color="Color.Primary">Email Confirmation Success</MudText>
+        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Style="font-size: 18px">Your email already! Please login
+            first to access the web</MudText>
+    </div>
+    <AppBaseButton Variant="Variant.Filled" DropShadow=false Color="Color.Primary" @onclick="() => NavigateToLogin()"
+        Width="ButtonWidth.Medium" style="padding: 1rem 2rem;">
+        <MudText Style="font-weight:600;">Login Here</MudText>
+    </AppBaseButton>
+</div>
 @code {
     private string ConfirmedImage = "/images/confirmed.svg";
 

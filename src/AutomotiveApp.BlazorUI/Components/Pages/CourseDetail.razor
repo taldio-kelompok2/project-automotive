@@ -61,7 +61,8 @@
                         RequiredError="Please select a session">
                         @foreach(var session in _sessions.OrderBy(s => s.Value)) {
                             <MudSelectItem T="Guid?" Value="@(session.Key)">
-                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
+                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy", new
+                                                        System.Globalization.CultureInfo("en-US"))</MudText>
                         </MudSelectItem>
                         }
                     </MudSelect>
@@ -77,7 +78,8 @@
                         RequiredError="Please select a session">
                         @foreach(var session in _sessions.OrderBy(s => s.Value)) {
                             <MudSelectItem T="Guid?" Value="@(session.Key)">
-                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
+                            <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy", new
+                                                        System.Globalization.CultureInfo("en-US"))</MudText>
                         </MudSelectItem>
                         }
                     </MudSelect>
@@ -230,7 +232,8 @@
     {
         var parameters = new DialogParameters
         {
-            { "ExistingBookings", bookings }
+            { "ExistingBookings", bookings },
+            { "ExistingCartBookings", new Dictionary<string, DateTime>() }
         };
 
         var options = new DialogOptions
@@ -290,15 +293,22 @@
             return;
         }
 
-        var duplicateBookings = _userSessions
-            .Where(u => u.Session == pickedDate.Date)
-            .ToDictionary(u => u.Course, u => u.Session);
-
+        var isBookingDuplicate = _userSessions
+            .Where(u => u.Session == pickedDate.Date);
         try
         {
             bool? success;
-            if (duplicateBookings.Any())
-                success = await OpenDuplicateDialogAsync(duplicateBookings);
+            if (isBookingDuplicate.Any()) {
+                var currentBooking = (chosenCar?.Data?.Sessions ?? new Dictionary<Guid, DateTime>())
+                .Where(s => s.Key == _selectedSessionId)
+                .ToDictionary(
+                    s => chosenCar?.Data?.Name ?? "Unknown Course",
+                    s => s.Value
+                );
+
+                success = await OpenDuplicateDialogAsync(currentBooking);
+
+            }
             else 
                 success = await OpenTransactionDialogAsync();
             

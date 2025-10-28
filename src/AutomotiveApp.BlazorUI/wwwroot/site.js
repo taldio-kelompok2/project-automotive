@@ -9,6 +9,10 @@ window.loginViaFetch = async (url, body) => {
         headers: { "Content-Type": "application/json" },
         body
     });
+    
+    const data = await res.json();
+    
+    if(!res.ok) return false;
     return res.ok;
 }
 
@@ -31,7 +35,6 @@ window.refreshViaFetch = async (url, body) => {
     });
 
     await new Promise(r => setTimeout(r, 150));
-    
     return await res.text();
 }
 
