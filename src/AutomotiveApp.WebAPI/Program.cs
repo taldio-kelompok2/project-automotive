@@ -97,6 +97,8 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.Lockout.AllowedForNewUsers = true;
 
     options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ "; // biar allow whitespace
     options.SignIn.RequireConfirmedEmail = false; // TODO: ganti jadi true nanti
 
     options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
@@ -106,6 +108,8 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 .AddDefaultTokenProviders()
 .AddSignInManager<SignInManager<User>>();
 
+// Authentication
+// builder.Services.AddScoped<IJwtSettings, JwtSettings>();
 
 builder.Services.AddAuthentication(options =>
 {

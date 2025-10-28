@@ -1,0 +1,62 @@
+﻿@using AutomotiveApp.Shared.Dtos.Auth
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1">
+            We’ve sent a confirmation link to <span style="font-weight: bold">@Email</span>.
+            Please confirm your email before logging in.
+        </MudText>
+        
+        <MudStack AlignItems="AlignItems.Center" Spacing="0">
+        <MudText Typo="Typo.body2" Class="mt-5">
+            Didn’t receive the email?
+        </MudText>
+
+        <AppBaseButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Disabled="@_isResending"
+                   OnClick="ResendEmailAsync"
+                   Class="mt-2 mb-3">
+            @if (_isResending)
+            {
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                <span>Sending email...</span>
+            }
+            else
+            {
+                <span>Resend Confirmation Email</span>
+            }
+        </AppBaseButton>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Inject] IAuthService AuthService { get; set; } = default!;
+    [Inject] IDialogService DialogService { get; set; } = default!;
+
+    [Parameter] public string Email { get; set; } = string.Empty;
+    private bool _isResending = false;
+
+    private async Task ResendEmailAsync()
+    {
+        _isResending = true;
+        try
+        {
+            var request = new SendConfirmEmailRequestDto { Email = Email };
+            var success = await AuthService.SendConfirmEmailAsync(request);
+            await DialogService.ShowMessageBox("Email Sent", success
+                ? $"A new confirmation email has been sent to {Email}."
+                : "Failed to resend confirmation email. Please try again later.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            _isResending = false;
+        }
+    }
+}

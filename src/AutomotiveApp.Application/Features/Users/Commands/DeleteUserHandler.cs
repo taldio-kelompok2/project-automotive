@@ -10,16 +10,16 @@ namespace AutomotiveApp.Application.Features.Users.Commands
     {
         public async Task<bool> Handle(DeleteUser req, CancellationToken ct)
         {
-            var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.Id && u.Status);
+            var user = await userManager.FindByIdAsync(req.Id.ToString());
             if (user == null)
                 throw new KeyNotFoundException($"User with Id: {req.Id} not found");
 
-            // soft delete
-            user.Status = false;
-
-            var res = await userManager.UpdateAsync(user);
-            if (!res.Succeeded)
-                throw new InvalidOperationException($"Soft delete user failed: {res.Errors.Select(e => e.Description)}");
+            var result = await userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException(errors);
+            }
             
             return true;
         }

@@ -1,7 +1,8 @@
 ﻿@page "/admin/dashboard"
 @rendermode InteractiveServer
 @inject IDashboardService DashboardService
-@layout AdminLayout
+
+@* @layout AdminLayout *@
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -106,21 +107,42 @@
 
     private async Task LoadDashboardAsync()
     {
-        var overview = await DashboardService.GetOverview();
-        TotalActiveUsers = overview.ActiveUsers;
-        TotalRevenue = string.Format(Indo, "{0:N0}", overview.TotalRevenue);
-        TotalMembers = overview.TotalUsers;
-
-        var rows = await DashboardService.GetDashboardTransactions();
-        Invoices = rows.Select(x => new DashboardTransactionModel
+        try
         {
-            UserName = x.UserName,
-            Email = x.Email,
-            InvoiceCode = x.InvoiceCode,
-            Date = x.CreatedAt,
-            TotalCourse = x.CourseCount,
-            TotalPrice = x.TotalPrice,
-            PaymentMethodName = x.PaymentMethodName,
-        }).ToList();
+            var overview = await DashboardService.GetOverview();
+
+            if (overview != null)
+            {
+                TotalActiveUsers = overview.ActiveUsers;
+                TotalRevenue = string.Format(Indo, "{0:N0}", overview.TotalRevenue);
+                TotalMembers = overview.TotalUsers;
+            }
+            else
+            {
+                TotalActiveUsers = 0;
+                TotalRevenue = "0";
+                TotalMembers = 0;
+            }
+
+            var rows = await DashboardService.GetDashboardTransactions();
+            Invoices = rows.Select(x => new DashboardTransactionModel
+                {
+                    UserName = x.UserName,
+                    Email = x.Email,
+                    InvoiceCode = x.InvoiceCode,
+                    Date = x.CreatedAt,
+                    TotalCourse = x.CourseCount,
+                    TotalPrice = x.TotalPrice,
+                    PaymentMethodName = x.PaymentMethodName,
+                }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Dashboard] Failed to load: {ex.Message}");
+            TotalActiveUsers = 0;
+            TotalRevenue = "0";
+            TotalMembers = 0;
+            Invoices = new List<DashboardTransactionModel>();
+        }
     }
 }

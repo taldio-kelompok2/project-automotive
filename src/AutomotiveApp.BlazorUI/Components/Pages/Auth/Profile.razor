@@ -1,6 +1,7 @@
 ﻿@page "/profile"
 @using AutomotiveApp.Shared.Dtos.User
 @inject IAuthService AuthService
+@inject ISnackbar Snackbar
 @inject NavigationManager Nav
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
@@ -14,7 +15,9 @@
     else if (_user == null)
     {
         <MudPaper Class="p-6 d-flex flex-column align-center text-center">
-            <MudText Typo="Typo.h6" Color="Color.Error" Class="pt-3 pb-2">⚠️ Failed to load profile information.</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Error" Class="pt-3 pb-2">
+                ⚠️ Failed to load profile information.
+            </MudText>
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadProfile" Class="mt-3 mb-3">
                 Retry
             </MudButton>
@@ -22,33 +25,93 @@
     }
     else
     {
-        <MudPaper Class="rounded-lg elevation-3">
-            <MudText Typo="Typo.h2" Color="Color.Primary" Class="p-5 pb-1">My Profile</MudText>
+        <MudPaper Class="rounded-lg elevation-3 p-5">
+            <div class="d-flex align-center pb-2">
+                <MudText Typo="Typo.h2" Color="Color.Primary">My Profile</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Text"
+                           StartIcon="@(_isEditing ? Icons.Material.Filled.Cancel : Icons.Material.Filled.Edit)"
+                           Color="Color.Primary"
+                           OnClick="ToggleEdit"
+                           Class="ms-3 justify-content-end">
+                    @_toggleText
+                </MudButton>
+            </div>
+            @if (_isEditing)
+            {
+                <MudForm @ref="_form" Model="_editUser" Class="mt-4">
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_editUser.UserName"
+                                          Label="Username"
+                                          Required="true"
+                                          For="@(() => _editUser.UserName)" />
+                        </MudItem>
 
-            <MudGrid Class="p-5">
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2">Username</MudText>
-                    <MudText Typo="Typo.body1">@_user.UserName</MudText>
-                </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_editUser.Email"
+                                          Label="Email"
+                                          Type="email"
+                                          Required="true"
+                                          For="@(() => _editUser.Email)" />
+                        </MudItem>
 
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2">Email</MudText>
-                    <MudText Typo="Typo.body1">@_user.Email</MudText>
-                </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_editUser.PhoneNumber"
+                                          Label="Phone Number"
+                                          HelperText="Optional"
+                                          For="@(() => _editUser.PhoneNumber)" />
+                        </MudItem>
+                    </MudGrid>
 
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2">Phone Number</MudText>
-                    <MudText Typo="Typo.body1">@(_user.PhoneNumber ?? "-")</MudText>
-                </MudItem>
-            </MudGrid>
+                    <div class="d-flex justify-end gap-3 mt-3">
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Secondary"
+                                   OnClick="ReloadProfile"
+                                   Disabled="_saving">
+                            Reset
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="SaveProfile"
+                                   Disabled="_saving">
+                            @_buttonText
+                        </MudButton>
+                    </div>
+                </MudForm>
+            }
+            else
+            {
+                <MudGrid Class="mt-2">
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle2">Username</MudText>
+                        <MudText Typo="Typo.body1">@_user.UserName</MudText>
+                    </MudItem>
 
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle2">Email</MudText>
+                        <MudText Typo="Typo.body1">@_user.Email</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle2">Phone Number</MudText>
+                        <MudText Typo="Typo.body1">@(_user.PhoneNumber ?? "-")</MudText>
+                    </MudItem>
+                </MudGrid>
+            }
         </MudPaper>
     }
 </MudContainer>
 
 @code {
     private UserProfileDto? _user;
+    private UserProfileUpdateDto _editUser = new();
+    private MudForm _form = default!;
     private bool _loading = true;
+    private bool _saving = false;
+    private bool _isEditing = false;
+    private string _buttonText = "Save Changes";
+    private string _toggleText => _isEditing ? "Cancel" : "Edit";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -60,19 +123,65 @@
 
     private async Task LoadProfileAsync()
     {
-
         try
         {
             _loading = true;
-            await Task.Delay(100);
             StateHasChanged();
 
             _user = await AuthService.GetCurrentUserAsync();
+            if (_user is not null)
+            {
+                _editUser = new UserProfileUpdateDto
+                {
+                    UserName = _user.UserName,
+                    Email = _user.Email,
+                    PhoneNumber = _user.PhoneNumber,
+                };
+            }
         }
         finally
         {
             _loading = false;
             StateHasChanged();
+        }
+    }
+
+    private void ToggleEdit()
+    {
+        _isEditing = !_isEditing;
+    }
+
+    private async Task SaveProfile()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _saving = true;
+        _buttonText = "Saving...";
+
+        try
+        {
+            var result = await AuthService.UpdateProfileAsync(_editUser);
+            if (result.Success)
+            {
+                Snackbar.Add("Profile updated successfully.", Severity.Success);
+                await LoadProfileAsync();
+                _isEditing = false;
+            }
+            else
+            {
+                Snackbar.Add(string.Join(", ", result.Errors ?? new[] { "Update failed." }), Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+            _buttonText = "Save Changes";
         }
     }
 

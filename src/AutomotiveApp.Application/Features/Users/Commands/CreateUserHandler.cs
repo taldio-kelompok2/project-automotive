@@ -15,7 +15,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             var existingUser = await userManager.FindByEmailAsync(req.UserCreateDto.Email);
             if (existingUser != null)
             {
-                throw new Exception($"error: user with email {req.UserCreateDto.Email} already exists");
+                throw new Exception($"User with email {req.UserCreateDto.Email} already exists");
             }
 
             User user = mapper.Map<User>(req.UserCreateDto);
@@ -24,7 +24,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
 
-                throw new Exception($"error: {errors}");
+                throw new Exception($"{errors}");
             }
 
             await userManager.AddToRoleAsync(user, req.UserCreateDto.Role);

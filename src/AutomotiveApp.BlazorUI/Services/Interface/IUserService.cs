@@ -1,14 +1,14 @@
-﻿using AutomotiveApp.Shared.Dtos.Auth;
-using AutomotiveApp.Shared.Dtos.User;
+﻿using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Models;
+using AutomotiveApp.Shared.Response;
 
 namespace AutomotiveApp.BlazorUI.Services.Interface
 {
     public interface IUserService
     {
         Task<PaginatedResult<UserQueryDto>> GetPagedUsers(int page, int itemTaken, string? search);
-        Task<bool> CreateUser(UserCreateRequestDto userCreateDto);
-        Task<bool> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto);
+        Task<ApiResponse<bool>> CreateUser(UserCreateRequestDto userCreateDto);
+        Task<ApiResponse<bool>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto);
 
         Task<IEnumerable<UserQueryDto>> GetAllUsers();
 

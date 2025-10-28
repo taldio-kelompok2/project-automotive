@@ -1,5 +1,6 @@
 ﻿using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.User;
+using AutomotiveApp.Shared.Response;
 
 namespace AutomotiveApp.BlazorUI.Services.Interface
 {
@@ -11,6 +12,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
         Task<bool> LogoutViaProxyAsync();
         Task<bool> RefreshAuthProxyAsync();
         Task<UserProfileDto?> GetCurrentUserAsync();
+        Task<ApiResponse<UserProfileUpdateDto>> UpdateProfileAsync(UserProfileUpdateDto request);
         Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto forgotPasswordRequestDto);
         Task<bool> ResetPasswordAsync(ResetPasswordRequestDto resetPasswordRequestDto);
         Task<bool> SendConfirmEmailAsync(SendConfirmEmailRequestDto sendConfirmEmailRequestDto);

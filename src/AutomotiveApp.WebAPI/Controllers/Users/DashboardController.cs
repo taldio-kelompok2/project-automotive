@@ -2,6 +2,7 @@
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Response;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -9,7 +10,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class DashboardController(IMediator _mediator) : BaseApiController(_mediator)
     {
         [HttpGet("overview")]
