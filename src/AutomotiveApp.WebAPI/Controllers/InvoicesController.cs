@@ -11,6 +11,7 @@ namespace AutomotiveApp.WebAPI.Controllers
     [Route("api/[controller]")]
     public class InvoicesController : ControllerBase
     {
+        
         private readonly IRepository<Invoice> _repo;
         private readonly AppDbContext _db;
 
@@ -196,14 +197,19 @@ namespace AutomotiveApp.WebAPI.Controllers
         }
 
         // GET: /api/invoices/{id}/details
+        // [HttpGet("{id:guid}/details")]
         [HttpGet("{id:guid}/details")]
         public async Task<ActionResult<InvoiceDetailsDto>> GetDetailsById(Guid id)
         {
+            // get invoice
             var inv = await _db.Invoices
                 .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == id);
-            if (inv is null) return NotFound();
 
+            if (inv is null)
+                return NotFound();
+
+            // get data item course semua di invoice (course yang dibeli)
             var items = await (
                 from oi  in _db.OrderItems.AsNoTracking()
                 join cs  in _db.CourseSessions.AsNoTracking()   on oi.SessionId  equals cs.Id
@@ -219,13 +225,29 @@ namespace AutomotiveApp.WebAPI.Controllers
                 }
             ).ToListAsync();
 
+            // payment method dari tb Orders = PaymentMethodId
+            var paymentMethodName = await (
+                from o  in _db.Orders.AsNoTracking()
+                join pm in _db.PaymentMethods.AsNoTracking()
+                    on o.PaymentMethodId equals pm.Id
+                where o.Id == inv.OrderId
+                select pm.Name
+            ).FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(paymentMethodName))
+                paymentMethodName = "-";
+
+            // parsing DTO ke frontend
             var dto = new InvoiceDetailsDto
             {
-                Id          = inv.Id,
-                InvoiceCode = inv.InvoiceCode,
-                CreatedAt   = inv.CreatedAt,
-                TotalPrice  = inv.TotalPrice > 0 ? inv.TotalPrice : (long)items.Sum(x => x.Price),
-                Items       = items
+                Id            = inv.Id,
+                InvoiceCode   = inv.InvoiceCode,
+                CreatedAt     = inv.CreatedAt,
+                TotalPrice    = inv.TotalPrice > 0
+                                    ? inv.TotalPrice
+                                    : (long)items.Sum(x => x.Price),
+                PaymentMethod = paymentMethodName,
+                Items         = items
             };
 
             return Ok(dto);

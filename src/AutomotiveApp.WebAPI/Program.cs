@@ -138,6 +138,20 @@ builder.Services.AddAuthentication(options =>
                 Console.WriteLine($"JWT failed: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
+            OnMessageReceived = context =>
+            {
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    context.Token = authHeader.Substring("Bearer ".Length);
+                }
+                else if (context.Request.Cookies.TryGetValue("AuthToken", out var token))
+                {
+                    context.Token = token;
+                }
+
+                return Task.CompletedTask;
+            },
             OnTokenValidated = context =>
             {
                 var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

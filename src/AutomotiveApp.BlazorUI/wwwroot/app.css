@@ -127,6 +127,14 @@ a {
     margin: 0;
 }
 
+.loading-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
 @media (max-width: 768px) {
     .responsive-table .mud-table .mud-table-row .mud-table-cell {
         justify-content: flex-start !important;

@@ -15,18 +15,18 @@ namespace AutomotiveApp.Application.Features.Auth.Command
         {
             try
             {
-                var user = await userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == req.RefreshToken, ct);
+                var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshToken == req.RefreshToken, ct);
 
                 if (user == null || !user.Status)
                 {
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Invalid refresh token"
+                        Message = "user with this token is not found"
                     };
                 }
 
-                if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                if (DateTime.UtcNow > user.RefreshTokenExpiryTime)
                 {
                     user.RefreshToken = null;
                     user.RefreshTokenExpiryTime = DateTime.UtcNow;

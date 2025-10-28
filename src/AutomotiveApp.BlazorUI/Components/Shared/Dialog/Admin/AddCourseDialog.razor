@@ -1,6 +1,7 @@
 ﻿@using AutomotiveApp.BlazorUI.Models.Admin
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Globalization
+@inject ISnackbar Snackbar
 
 <MudDialog Class="m-2">
     <DialogContent>
@@ -23,7 +24,7 @@
             
             <MudTextField @bind-Value="_vm.Name" Label="Course Name" Required="true" Class="mb-2" />
             <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
-            <MudTextField @bind-Value="_vm.Price" Label="Price" Required="true" Class="mb-2" />
+            <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="1" Step="1000" Class="mb-2" />
 
             <MudItem Class="my-2">
                 <MudText Typo="Typo.body2" Class="mb-1">Sessions:</MudText>
@@ -35,7 +36,7 @@
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>
-                            <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" />
+                            <MudDatePicker T="DateTime?" Date="@context.Date" DateChanged="d => OnDateChanged(context, d)" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" MinDate="@DateTime.Today" />
                         </MudTd>
                         <MudTd>
                             <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
@@ -79,6 +80,42 @@
 
     private MudForm _form = default!;
 
+
+    private void OnDateChanged(CourseSessionVM row, DateTime? newDate)
+    {
+        // not backdate 
+        if (newDate.HasValue && newDate.Value.Date < DateTime.Today)
+        {
+            Snackbar.Add($"You cannot select past dates: {newDate.Value:dd MMM yyyy}", Severity.Warning);
+            return; 
+        }
+
+        // cek duplikat 
+        if (newDate.HasValue && _vm.Sessions?.Any(s =>
+                !ReferenceEquals(s, row) &&
+                s.Date.HasValue &&
+                s.Date.Value.Date == newDate.Value.Date) == true)
+        {
+            Snackbar.Add($"Duplicate session date is not allowed: {newDate.Value:dd MMM yyyy}", Severity.Warning);
+            return; 
+        }
+
+        row.Date = newDate;
+    }
+
+
+    private void AddSession()
+    {
+        _vm.Sessions ??= new();
+        _vm.Sessions.Add(new CourseSessionVM
+        {
+            Id = null,
+            Date = null, 
+            Capacity = 1
+        });
+    }
+
+
     private async Task Save()
     {
         await _form.Validate();
@@ -90,12 +127,7 @@
         {
             _vm.Sessions = new()
             {
-                new CourseSessionVM
-                {
-                    Id = null,
-                    Date = d,
-                    Capacity = _vm.Capacity
-                }
+                new CourseSessionVM { Id = null, Date = d, Capacity = _vm.Capacity }
             };
         }
 
@@ -103,26 +135,32 @@
             .Where(s => s.Date.HasValue && s.Capacity > 0)
             .ToList();
 
+        // cek duplikat 
+        var dupes = _vm.Sessions
+            .Where(s => s.Date.HasValue)
+            .GroupBy(s => s.Date!.Value.Date)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key.ToString("dd MMM yyyy"))
+            .ToList();
+
+        if (dupes.Count > 0)
+        {
+            Snackbar.Add($"Duplicate session dates are not allowed: {string.Join(", ", dupes)}", Severity.Warning);
+            return; 
+        }
+
         MudDialog.Close(DialogResult.Ok(_vm));
     }
 
-    private void AddSession()
-    {
-        _vm.Sessions ??= new();
-        _vm.Sessions.Add(new CourseSessionVM
-        {
-            Id = null,
-            Date = DateTime.UtcNow.Date, 
-            Capacity = 1
-        });
-    }
 
     private void RemoveSession(CourseSessionVM s)
     {
         _vm.Sessions?.Remove(s);
     }
 
+
     private void Cancel() => MudDialog.Cancel();
+
 
     private void OnFileSelected(InputFileChangeEventArgs e)
     {

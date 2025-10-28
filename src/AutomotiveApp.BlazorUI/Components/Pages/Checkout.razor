@@ -4,6 +4,7 @@
 @inject ISnackbar Snackbar
 
 @page "/checkout"
+@using AutomotiveApp.BlazorUI.Helper
 
 @rendermode InteractiveServer
 @layout MainLayout
@@ -86,23 +87,43 @@
     else
     {
         <div class="empty-cart-container d-none d-md-flex">
-            <MudImage Src="Images/Cart/emptyCart.svg" Width="250" Height="250"></MudImage>
-            <MudText Typo="Typo.h4" Color="Color.Primary">Cart is empty..</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Start browsing to find your perfect rental
-            </MudText>
-            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
-                @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
-            </AppBaseButton>
+            @if (_isLoading)
+            {
+                <div class="loading-overlay">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-3">Loading your cart...</MudText>
+                </div>
+            }
+            else if (Cart.RentalCartItems?.Count == 0 && !_isLoading)
+            {
+                <MudImage Src="Images/Cart/emptyCart.svg" Width="250" Height="250"></MudImage>
+                <MudText Typo="Typo.h4" Color="Color.Primary">Cart is empty..</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Start browsing to find your perfect rental
+                </MudText>
+                <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
+                    @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
+                </AppBaseButton>
+            }
         </div>
 
         <div class="empty-cart-container d-flex d-md-none">
-            <MudImage Src="Images/Cart/emptyCart.svg" Width="150" Height="150"></MudImage>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Cart is empty..</MudText>
-            <MudText Typo="Typo.caption" Color="Color.Secondary">Start browsing to find your perfect rental
-            </MudText>
-            <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
-                @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
-            </AppBaseButton>
+            @if (_isLoading)
+            {
+                <div class="loading-overlay">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-3">Loading your cart...</MudText>
+                </div>
+            }
+            else if (Cart.RentalCartItems?.Count == 0 && !_isLoading)
+            {
+                <MudImage Src="Images/Cart/emptyCart.svg" Width="150" Height="150"></MudImage>
+                <MudText Typo="Typo.h5" Color="Color.Primary">Cart is empty..</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Start browsing to find your perfect rental
+                </MudText>
+                <AppBaseButton Width="ButtonWidth.Short" Variant="Variant.Outlined" Color="Color.Primary"
+                    @onclick="() => Nav.NavigateTo(HOME_PAGE)">Browse
+                </AppBaseButton>
+            }
         </div>
     }
 </section>
@@ -144,9 +165,10 @@
 @code {
 
     private const string HOME_PAGE = "/";
+    private bool _isLoading = true;
     private async void RemoveItem(RentalCartItemViewModel item)
     {
-        if (!await Cart.RemoveItemAsync(item))
+        if (!await Cart.RemoveItemAsync(item.Item.SessionId))
             Snackbar.Add("Failed to delete item on the cart", Severity.Error);
         else
             Snackbar.Add($"items succesfully removed", Severity.Info);
@@ -210,7 +232,15 @@
 
     private async Task HandleDialogSubmit(TransactionViewModel transaction)
     {
-        await Cart.FinalizePaymentAsync(transaction.Id);
+        try
+        {
+            await Cart.FinalizePaymentAsync(transaction.Id);
+        }
+        catch
+        {
+
+        }
+
     }
 
 
@@ -218,12 +248,19 @@
     {
         if (firstRender)
         {
-            // ini wajib
-            await Task.Delay(100);
-            await Cart.GetUserCartData();
-            StateHasChanged();
+            await RetryHelper.ExecuteWithRetryAsync(
+            action: () => Cart.GetUserCartData(),
+            onLoadingChanged: (loading) =>
+            {
+                _isLoading = loading;
+                StateHasChanged();
+            },
+            maxAttempts: 5,
+            delayMs: 100
+            );
         }
     }
+
 
     protected override void OnInitialized()
     {

@@ -20,7 +20,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 categories.Add(new PaymentMethod
                 {
                     Id = Guid.NewGuid(),
-                    // Name = c
+                    ImageFileName = $"{c.ToString().ToLower()}.svg",
                     Name = c.ToString(),
                     Status = true
                 });

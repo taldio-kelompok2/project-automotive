@@ -1,0 +1,29 @@
+@page "/{*path}"
+@inject NavigationManager Navigation
+
+<MudLayout>
+    <MudMainContent>
+        <div class="d-flex justify-center align-center flex-column">
+
+            <MudText Class="my-5" Typo="Typo.h3" Color="Color.Primary">
+                404 - Page is not Found
+            </MudText>
+            <MudImage Src="Images/404.svg" Alt="404 not Found" Elevation="0" Width="250" Height="250"
+                Class="rounded-lg" />
+            <MudText Class="my-4">
+                The page you are trying to find doesn't exist.
+            </MudText>
+            <AppBaseButton Width="ButtonWidth.Medium" Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoHome">
+                Go Home
+            </AppBaseButton>
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+
+
+@code {
+    [Parameter]
+    public string? Path { get; set; }
+    private void GoHome() => Navigation.NavigateTo("/");
+}

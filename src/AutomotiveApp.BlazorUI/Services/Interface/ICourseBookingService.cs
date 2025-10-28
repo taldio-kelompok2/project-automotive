@@ -5,6 +5,6 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
 {
     public interface ICourseBookingService
     {
-        Task<ApiResponse<IEnumerable<CourseBookingQueryDto>>> GetUserBooking(CancellationToken ct = default);
+        Task<ApiResponse<IEnumerable<CourseBookingQueryDto>>> GetUserBooking(Guid? CourseId = null, CancellationToken ct = default);
     }
 }

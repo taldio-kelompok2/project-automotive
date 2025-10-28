@@ -1,5 +1,6 @@
 @using AutomotiveApp.BlazorUI.Models.Auth.Context
 @using AutomotiveApp.BlazorUI.Services.Implementation
+@using AutomotiveApp.Domain.Entities.Auth
 @using AutomotiveApp.Domain.Entities.Courses
 @using AutomotiveApp.Shared.Dtos.Courses
 @using AutomotiveApp.Shared.Models
@@ -11,6 +12,7 @@
 @rendermode InteractiveServer
 @inject IRentalCartService Cart
 @inject ICourseService CourseService
+@inject ICourseBookingService CourseBookingService
 @inject ISnackbar Snackbar
 @inject UserContextService UserContext
 @inject NavigationManager Navigation
@@ -22,17 +24,20 @@
         Class="m-0  ms-lg-5 d-flex justify-content-center justify-content-lg-start"
         Style="align-self:center;">
         <!-- Mobile (xs, sm) -->
-        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-block d-md-none"
-            Style="width:100%; object-fit:cover; border:1px solid #BDBDBD;" />
+        <MudImage Src="@chosenCar.Data?.ImageUrl" 
+            Class="d-block d-md-none" 
+            Style="width:100%; object-fit:cover; border:1px solid #BDBDBD; flex-shrink:0;" />
 
-        <!-- Tablet (md only) -->
-        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-none d-md-block d-lg-none mt-3"
-            Style="width:95%; object-fit:cover; border:1px solid #BDBDBD;" />
+        <!-- Tablet -->
+        <MudImage Src="@chosenCar.Data?.ImageUrl" 
+                Class="d-none d-md-block d-lg-none" 
+                Style="width:95%; object-fit:cover; border:1px solid #BDBDBD; flex-shrink:0;" />
 
-        <!-- Desktop (lg and up) -->
-        <MudImage Src="@chosenCar.Data?.ImageUrl" Class="d-none d-md-block d-lg-block"
-            Style="width:90%; object-fit:cover; border:1px solid #BDBDBD;" />
-    </MudItem>
+        <!-- Desktop -->
+        <MudImage Src="@chosenCar.Data?.ImageUrl" 
+                Class="d-none d-lg-block" 
+                Style="width:90%; object-fit:cover; border:1px solid #BDBDBD; flex-shrink:0;" />
+            </MudItem>
 
     @* have to apply flex on both to work*@
     <MudItem xs="10" md="5" Class="pt-4 p-md-3 p-lg-0 pt-lg-0 d-flex justify-content-center justify-content-md-start"
@@ -44,15 +49,17 @@
             <MudText Typo="Typo.h4" Class="pt-3" Color="Color.Primary" Style="font-weight:600">IDR
                 @chosenCar.Data?.Price.ToString("N0")</MudText>
 
-            <!-- schedule dropdown -->
-            <MudForm @ref="ScheduleForm">
+            <!-- session dropdown -->
+            <MudForm @ref="SessionForm">
                 <MudHidden Breakpoint="Breakpoint.SmAndDown">
                     <MudSelect T="Guid?" Class="my-8 pb-8 pb-md-0 select-schedule" 
                         Variant="Variant.Outlined" IconSize="Size.Large"
-                        @bind-Value="_selectedSessionId" Required="true"
-                        Placeholder="Select schedule" Dense="true" FitContent="true"
-                        RequiredError="Please select a schedule">
-                        @foreach(var session in Sessions.OrderBy(s => s.Value)) {
+                        @bind-Value="_selectedSessionId" Required="true" 
+                        Disabled=@(!_sessions.Any()) 
+                        Placeholder="@(_sessions.Any() ? "Select session" : "No sessions available")" 
+                        Dense="true" FitContent="true"
+                        RequiredError="Please select a session">
+                        @foreach(var session in _sessions.OrderBy(s => s.Value)) {
                             <MudSelectItem T="Guid?" Value="@(session.Key)">
                             <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
                         </MudSelectItem>
@@ -64,9 +71,11 @@
                     <MudSelect T="Guid?" @bind-Value="_selectedSessionId" Required="true" 
                         Class="my-8 pb-8 pb-md-0 select-schedule" 
                         Variant="Variant.Outlined" IconSize="Size.Large"
-                        Placeholder="Select schedule" Dense="true" FitContent="true" FullWidth="true"
-                        RequiredError="Please select a schedule">
-                        @foreach(var session in Sessions.OrderBy(s => s.Value)) {
+                        Disabled=@(!_sessions.Any()) 
+                        Placeholder="@(_sessions.Any() ? "Select session" : "No sessions available")" 
+                        Dense="true" FitContent="true" FullWidth="true"
+                        RequiredError="Please select a session">
+                        @foreach(var session in _sessions.OrderBy(s => s.Value)) {
                             <MudSelectItem T="Guid?" Value="@(session.Key)">
                             <MudText Typo="Typo.body2">@session.Value.ToString("dddd, dd MMMM yyyy")</MudText>
                         </MudSelectItem>
@@ -143,10 +152,11 @@
     [Parameter]
     public string Name { get; set; } = null!;
     private Guid? _selectedSessionId;
-    private MudForm ScheduleForm = null!;
+    private MudForm SessionForm = null!; 
     private ApiResponse<PaginatedResult<CourseQueryDto>> cars = new ();
     private ApiResponse<CourseQueryDetailDto> chosenCar = new();
-    private Dictionary<Guid,DateTime> Sessions = []; 
+    private Dictionary<Guid, DateTime> _sessions = new();
+    private List<CourseBookingQueryDto> _userSessions = new();
 
     private RenderFragment SnackbarToCart =>
     @<MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
@@ -164,18 +174,30 @@
     {
         chosenCar = await CourseService.GetById(Id);
         if(chosenCar.Data == null) {
-            Navigation.NavigateTo("error");
+            Navigation.NavigateTo("/notFound");
             return;
         }
-        Sessions = chosenCar.Data.Sessions;
+
+        if(UserContext.Current.IsAuthenticated) {
+            var bookingResponse = await CourseBookingService.GetUserBooking();
+            if(bookingResponse.Success) {
+                var data = bookingResponse.Data ?? [];
+                _userSessions = data.ToList();
+            }
+        }
+
+        _sessions = chosenCar.Data.Sessions
+            .Where(s => !_userSessions.Any(cb => cb.SessionId == s.Key.ToString()))
+            .ToDictionary(s => s.Key, s => s.Value);
+
         cars = await CourseService.GetPaged(1, 6, true);
     }
 
     private async Task AddToCartHandler()
     {
-        await ScheduleForm.Validate();
+        await SessionForm.Validate();
 
-        if (!ScheduleForm.IsValid) return;
+        if (!SessionForm.IsValid) return;
 
         try
         {
@@ -186,6 +208,9 @@
         
             if(response.Success) 
                 Snackbar.Add(SnackbarToCart, Severity.Info);
+            
+            else
+                Snackbar.Add($"{response?.Errors?.First()}", Severity.Error);
         }
         catch 
         (Exception ex)
@@ -201,7 +226,32 @@
         var result = await dialog.Result;
     }
 
-    private async Task<bool> OpenTransactionDialogAsync()
+    private async Task<bool?> OpenDuplicateDialogAsync(Dictionary<string, DateTime> bookings)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ExistingBookings", bookings }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = false,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        };
+
+        var dialog = await Dialog.ShowAsync<DuplicateScheduleDialog>("", parameters, options);
+        var result = await dialog.Result;
+        
+        if(result!.Canceled) return null;
+        if (!result.Canceled && result.Data is bool continueWithTransaction && continueWithTransaction)
+            return await OpenTransactionDialogAsync();
+        
+        return false;
+    }
+
+
+    private async Task<bool?> OpenTransactionDialogAsync()
     {
         if (_selectedSessionId == null)
         {
@@ -214,16 +264,13 @@
         var dialog = await Dialog.ShowAsync<TransactionDialog>("Select Payment Method", parameters);
         var result = await dialog.Result;
 
-        if (result!.Canceled || result.Data is not TransactionViewModel transaction)
-        {
-            Snackbar.Add("Payment was canceled or invalid.", Severity.Warning);
-            return false;
-        }
-        
+        var transaction = result!.Data as TransactionViewModel;
         try
         {
+            if(result.Canceled) return null;
+            if(transaction == null) return false;
             await Cart.FinalizeInstantPaymentAsync(_selectedSessionId.Value, transaction.Id);
-            return true; // success
+            return true; 
         }
         catch (Exception ex)
         {
@@ -234,22 +281,37 @@
 
     private async Task InstantPaymentHandler()
     {
-        await ScheduleForm.Validate();
-        if (!ScheduleForm.IsValid) return;
+        await SessionForm.Validate(); 
+        if (!SessionForm.IsValid) return; 
+
+        if (!_sessions.TryGetValue(_selectedSessionId!.Value, out var pickedDate))
+        {
+            Snackbar.Add("Selected session is invalid.", Severity.Error);
+            return;
+        }
+
+        var duplicateBookings = _userSessions
+            .Where(u => u.Session == pickedDate.Date)
+            .ToDictionary(u => u.Course, u => u.Session);
 
         try
         {
-            var result = await OpenTransactionDialogAsync(); // true = payment success, false = failed/canceled
-
-            if (result)
+            bool? success;
+            if (duplicateBookings.Any())
+                success = await OpenDuplicateDialogAsync(duplicateBookings);
+            else 
+                success = await OpenTransactionDialogAsync();
+            
+            if (success == true)
             {
-                Snackbar.Add("Payment successful, Redirecting in 2 seconds", Severity.Success,
-                    config => config.VisibleStateDuration = 2000);
-
-                await Task.Delay(2000);
+                await Cart.GetUserCartData();
+                await Cart.RemoveItemAsync(_selectedSessionId!.Value);
+                await Task.Delay(500);
+                Snackbar.Add("Payment successful, Redirecting..", Severity.Success,
+                    config => config.VisibleStateDuration = 500);
                 Navigation.NavigateTo("/success-purchase");
             }
-            else
+            else if(success == false)
             {
                 Snackbar.Add("Payment was canceled or failed.", Severity.Warning);
             }
