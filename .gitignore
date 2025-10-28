@@ -33,3 +33,7 @@ src/.DS_Store
 
 # SonarQube cache
 .sonarqube/
+
+# Abaikan semua file logs dalam project AutomotiveApp.WebAPI
+/src/AutomotiveApp.WebAPI/logs/*
+!/src/AutomotiveApp.WebAPI/logs/.gitkeep
