@@ -6,11 +6,10 @@
 @using AutomotiveApp.BlazorUI.Services.Interface
 @using AutomotiveApp.Shared.Dtos.Auth
 
-<MudContainer MaxWidth="MaxWidth.ExtraSmall"
-              Class="d-flex flex-column align-center justify-center"
-              Style="min-height: 80vh;">
-    <MudProgressCircular Color="Color.Primary" Size="Size.Large"
-                         Class="mb-5" Style="@(_loading ? "" : "display:none;")" Indeterminate=true />
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="d-flex flex-column align-center justify-center"
+    Style="min-height: 80vh;">
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Class="mb-5" Style="@(_loading ? "" : "display:none;")"
+        Indeterminate=true />
 
     <MudText Typo="Typo.h5" Class="mb-2" Color="Color.Primary">Email Confirmation</MudText>
     <MudText Typo="Typo.body1" Class="mb-4 text-center">@_message</MudText>
@@ -28,7 +27,7 @@
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
         if (!query.TryGetValue("userId", out var userId) ||
-            !query.TryGetValue("token", out var token))
+        !query.TryGetValue("token", out var token))
         {
             _message = "❌ Invalid or malformed confirmation link.";
             _loading = false;

@@ -56,9 +56,12 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
 
-            if (result.Success) SetCookies(Response, result);
-
-            return Ok(response);
+            if (result.Success)
+            {
+                // SetCookies(Response, result);
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         [HttpPost("login")]
@@ -69,12 +72,15 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var command = new LoginCommand(loginRequestDto);
             var result = await Mediator.Send(command);
 
-            if (result.Success) SetCookies(Response, result);
-
             response.Success = result.Success;
             response.Data = result;
 
-            return Ok(response);
+            if (result.Success)
+            {
+                SetCookies(Response, result);
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         [HttpPost("refresh-token")]
@@ -105,7 +111,12 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
-            return Ok(response);
+            if (result.Success)
+            {
+                SetCookies(Response, result);
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         [HttpPost("logout")]
@@ -122,14 +133,17 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             }
 
             var command = new LogoutCommand(userId);
-            await Mediator.Send(command);
+            var result = await Mediator.Send(command);
 
             response.Success = true;
             response.Data = "Logout successful";
 
-            ClearCookies(Response);
-
-            return Ok(response);
+            if (result)
+            {
+                ClearCookies(Response);
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         [HttpGet("check")]
@@ -149,7 +163,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.Data = result;
 
-            return Ok(response);
+            if (result) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPost("confirm-email")]
@@ -164,7 +179,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.Data = result;
 
-            return Ok(response);
+            if (result) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPost("forgot-password")]
@@ -179,14 +195,15 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 response.Success = true;
                 response.Data = result;
 
-                return Ok(response);
+                if (result) return Ok(response);
+                return BadRequest(response);
             }
             catch (Exception ex) // temp: biar gak expose email yg ada
             {
                 Console.WriteLine($"forgot password error: {ex.Message}");
 
                 response.Success = true;
-                return Ok(response);
+                return BadRequest(response);
             }
         }
 
@@ -201,7 +218,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.Data = result;
 
-            return Ok(response);
+            if (result) return Ok(response);
+            return BadRequest(response);
         }
     }
 }
