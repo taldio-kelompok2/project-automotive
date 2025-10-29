@@ -53,16 +53,18 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var command = new RegisterCommand(registerRequestDto);
             var result = await Mediator.Send(command);
 
+            if (!result.Success)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = [result.Message];
+                response.Data = result;
+                return BadRequest(response);
+            }
             response.Success = true;
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
-
-            if (result.Success)
-            {
-                // SetCookies(Response, result);
-                return Ok(response);
-            }
-            return BadRequest(response);
+            return Created();
         }
 
         [HttpPost("login")]

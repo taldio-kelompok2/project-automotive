@@ -42,9 +42,6 @@
 </EditForm>
 
 @code {
-
-
-
     private const string LOGIN_PAGE = "/login";
     private bool _isLoading { get; set; }
     private RegisterViewModel _registerModel = new RegisterViewModel();
@@ -63,46 +60,6 @@
         return true;
     }
 
-    @* private async Task ShowSuccessDialogAsync(string email)
-    {
-        var parameters = new DialogParameters
-        {
-            ["Title"] = "Registration Successful",
-            ["Content"] = (RenderFragment)(builder =>
-            {
-                builder.OpenElement(0, "div");
-                builder.AddContent(1, $"We've sent a confirmation link to {email}. Please confirm your email before logging in.");
-                builder.AddMarkupContent(2, "<br /><br />");
-                builder.AddContent(3, "Didn't receive the email?");
-                builder.AddMarkupContent(4, "<br />");
-                builder.OpenElement(5, "button");
-                builder.AddAttribute(6, "class", "mud-button mud-button-filled mud-button-sm mud-button-primary mt-2 mb-1");
-                builder.AddAttribute(7, "onclick", EventCallback.Factory.Create(this, async () =>
-    {
-            }));
-                builder.AddContent(8, "Resend Confirmation Email");
-                builder.CloseElement();
-                builder.CloseElement();
-            })
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            BackdropClick = false
-        };
-        var dialog = await DialogService.ShowAsync<AuthResultDialog>("Success", parameters, options);
-
-        var result = await dialog.Result;
-
-        // Navigate to login after dialog is closed
-        if (!result!.Canceled)
-        {
-            Nav.NavigateTo(LOGIN_PAGE);
-        }
-
-    } *@
-
     private async Task ShowErrorDialogAsync(string message)
     {
         var parameters = new DialogParameters
@@ -111,7 +68,8 @@
             ["Content"] = (RenderFragment)(builder =>
             {
                 builder.OpenElement(0, "div");
-                builder.AddContent(1, message);
+                builder.AddAttribute(1, "style", "overflow: visible; max-height: none; padding: 0.3rem");
+                builder.AddContent(2, message);
                 builder.CloseElement();
             })
         };
@@ -124,28 +82,6 @@
         var dialog = await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
         await dialog.Result;
     }
-
-    @* private async Task ResendConfirmationEmailAsync(string email)
-    {
-        try
-        {
-            var request = new SendConfirmEmailRequestDto { Email = email };
-            var success = await AuthService.SendConfirmEmailAsync(request);
-
-            if (success)
-            {
-                await DialogService.ShowMessageBox("Email Sent", $"A new confirmation email has been sent to {email}.", "OK");
-            }
-            else
-            {
-                await DialogService.ShowMessageBox("Error", "Failed to resend confirmation email. Please try again later.", "OK");
-            }
-        }
-        catch (Exception ex)
-        {
-            await DialogService.ShowMessageBox("Error", $"Something went wrong: {ex.Message}", "OK");
-        }
-    } *@
 
     private async Task OnValidSubmit()
     {
@@ -164,13 +100,11 @@
 
             if (result != null && result.Success)
             {
-                @* await ShowSuccessDialogAsync(_registerModel.Email); *@
                 OnRegisterSuccess(_registerModel.Email);
-
             }
             else
             {
-                var errorMessage = result?.Message ?? "Invalid registration data. Please try again.";
+                var errorMessage = result.Message;
                 await ShowErrorDialogAsync(errorMessage);
             }
         }

@@ -73,31 +73,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             );
         }
 
-        public async Task<AuthResponseDto?> RegisterAsync(RegisterRequestDto request)
+        public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
         {
-            try
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponseDto>>();
+            var data = apiResponse.Data;
+
+            if (!apiResponse.Success)
             {
-                var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponseDto>>();
-                var data = apiResponse?.Data;
-
-                if (data == null || apiResponse?.Success != true)
-                    return null;
-
-                // var token = data.AccessToken;
-                // ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
-
-                return data;
+                data.Message = apiResponse.Errors.FirstOrDefault();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Register error: {ex}");
-                return null;
-            }
+
+            return data;
         }
 
         public async Task<bool> LogoutViaProxyAsync()

@@ -12,13 +12,23 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     {
         public async Task<AuthResponseDto> Handle(RegisterCommand req, CancellationToken ct)
         {
-            var existingUser = await userManager.FindByEmailAsync(req.RegisterRequestDto.Email);
-            if (existingUser != null)
+            var existingUsername = await userManager.FindByNameAsync(req.RegisterRequestDto.UserName);
+            if (existingUsername != null)
             {
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "User with this email already exists"
+                    Message = "Username is invalid"
+                };
+            }
+
+            var existingEmail = await userManager.FindByEmailAsync(req.RegisterRequestDto.Email);
+            if (existingEmail != null)
+            {
+                return new AuthResponseDto
+                {
+                    Success = false,
+                    Message = "Email is invalid"
                 };
             }
 
