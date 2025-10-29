@@ -25,11 +25,13 @@
             Icon="@Icons.Material.Filled.AccountBalanceWallet">Payment Method</MudNavLink>
         <MudNavLink OnClick="@(() => NavManager.NavigateTo(ADMIN_INVOICE_PAGE))" Icon="@Icons.Material.Filled.Article">
             Invoice</MudNavLink>
-    </MudNavMenu>
-    <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudSpacer />
-    </MudHidden>
-    <MudNavMenu Class="mb-3">
+        <MudDivider Style="border-bottom: 1px solid black;" Class="mt-2" />
+
+        @if (_drawerOpen)
+        {
+            <MudText Class="ps-5 pt-3 pb-2" Typo="Typo.subtitle1" Color="Color.Primary">Action Menu</MudText>
+        }
+        <MudNavLink OnClick="@(() => NavManager.NavigateTo(HOME_PAGE))" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
         <MudNavLink OnClick="LogoutViaProxyAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
     </MudNavMenu>
 </MudDrawer>
@@ -43,6 +45,7 @@
     private const string ADMIN_CATEGORY_PAGE = "/admin/category";
     private const string ADMIN_PAYMENT_PAGE = "/admin/payment-method";
     private const string ADMIN_INVOICE_PAGE = "/admin/invoice";
+    private const string HOME_PAGE = "/";
 
     void ToggleDrawer() => _drawerOpen = !_drawerOpen;
     
