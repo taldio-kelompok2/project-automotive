@@ -20,30 +20,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using AutomotiveApp.WebAPI.Middleware;
-using Serilog;
-using Serilog.Events;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using HealthChecks.UI.Client;
-using AutomotiveApp.WebAPI.HealthChecks;
-
-// Konfigurasi Serilog
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Serilog Baca & Konfigurasi Dari appsettings* (override konfigurasi di atas)
-builder.Host.UseSerilog((ctx, cfg) =>
-{
-    cfg.ReadFrom.Configuration(ctx.Configuration)
-       .Enrich.FromLogContext();
-});
-
 
 // Add Controllers
 builder.Services.AddControllers()
@@ -121,7 +99,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.User.RequireUniqueEmail = true;
     options.User.AllowedUserNameCharacters =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ "; // biar allow whitespace
-    options.SignIn.RequireConfirmedEmail = false; // TODO: ganti jadi true nanti
+    options.SignIn.RequireConfirmedEmail = true; // matikan utk testing
 
     options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
     options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
@@ -158,20 +136,6 @@ builder.Services.AddAuthentication(options =>
             OnAuthenticationFailed = context =>
             {
                 Console.WriteLine($"JWT failed: {context.Exception.Message}");
-                return Task.CompletedTask;
-            },
-            OnMessageReceived = context =>
-            {
-                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-                {
-                    context.Token = authHeader.Substring("Bearer ".Length);
-                }
-                else if (context.Request.Cookies.TryGetValue("AuthToken", out var token))
-                {
-                    context.Token = token;
-                }
-
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
@@ -258,24 +222,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// HealthChecks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<AppDbContext>("database")
-    .AddCheck<MemoryHealthCheck>("memory");
-
-// UI HealthCheck
-builder.Services.AddHealthChecksUI()
-    .AddInMemoryStorage();
-
-// UI HealthCheck
-builder.Services.AddHealthChecksUI(setup =>
-{
-    setup.SetEvaluationTimeInSeconds(10);
-    setup.MaximumHistoryEntriesPerEndpoint(50);
-    setup.AddHealthCheckEndpoint("Automotive API", "/health");
-})
-.AddInMemoryStorage();
-
 var app = builder.Build();
 
 Console.WriteLine("Current environment: " + app.Environment.EnvironmentName);
@@ -290,21 +236,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Log setiap request (Serilog) status code, waktu eksekusi, dll)
-// app.UseSerilogRequestLogging();
-
-// Global error handling kamu sudah ada:
-app.UseMiddleware<GlobalExceptionMiddleware>();
-
 //global error handling 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-// ➕ Tambahkan baris ini
-app.UseSerilogRequestLogging(options =>
-{
-    // opsional: log format yang enak dibaca
-    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-});
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -313,54 +246,21 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/images"
 });
 
+
 //app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Endpoint HealthCheck
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
-app.MapHealthChecksUI(options =>
-{
-    options.UIPath = "/health-ui";
-    options.ApiPath = "/health-ui-api";
-});
-
 // Seeding
-// using (var scope = app.Services.CreateScope())
-// {
-//     var services = scope.ServiceProvider;
-//     var db = services.GetRequiredService<AppDbContext>();
-//     var userManager = services.GetRequiredService<UserManager<User>>();
-//     var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-//     await MasterSeeder.SeedAsync(db, userManager, roleManager, true);
-// }
-
-// app.Run();
-
-// Seeding With Logging
-try
+using (var scope = app.Services.CreateScope())
 {
-    // Seeding
-    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<AppDbContext>();
-    var userMgr = services.GetRequiredService<UserManager<User>>();
-    var roleMgr = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    await MasterSeeder.SeedAsync(db, userMgr, roleMgr, true);
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    await MasterSeeder.SeedAsync(db, userManager, roleManager, true);
+}
 
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "An error occurred during app startup");
-    throw;
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+app.Run();

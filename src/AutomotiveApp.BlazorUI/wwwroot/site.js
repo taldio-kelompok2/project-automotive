@@ -11,9 +11,11 @@ window.loginViaFetch = async (url, body) => {
     });
     
     const data = await res.json();
-    
-    if(!res.ok) return false;
-    return res.ok;
+    return {
+        ok: res.ok,
+        status: res.status,
+        data: data
+    };
 }
 
 window.logoutViaFetch = async (url, body) => {

@@ -4,5 +4,5 @@ using MediatR;
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
     public record LoginCommand(LoginRequestDto LoginRequestDto)
-        : IRequest<AuthResponseDto>;
+        : IRequest<LoginResponseDto>;
 }
