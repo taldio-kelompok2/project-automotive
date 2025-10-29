@@ -130,6 +130,17 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
             return await query.FirstOrDefaultAsync(u => u.Id == id, ct);
         }
 
+        public async Task<PaginatedResult<User>> FindPagedAsync(
+            Expression<Func<User, bool>> predicate,
+            Func<IQueryable<User>, IQueryable<User>>? modifier = null,
+            int page = 1,
+            int itemTaken = 6,
+            bool isRandom = false,
+            CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Update(User entity)
         {
             var result = userManager.UpdateAsync(entity).GetAwaiter().GetResult();

@@ -3,15 +3,17 @@ using AutoMapper;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
+using AutomotiveApp.Shared.Exceptions;
+using AutomotiveApp.Shared.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.CourseBookings.Queries
 {
-    public class GetCourseBookingByUserHandler(IUnitOfWork Uow, IMapper Mapper)
-    : IRequestHandler<GetCourseBookingByUser, IEnumerable<CourseBookingQueryDto>>
+    public class GetCourseBookingByUserPagedHandler(IUnitOfWork Uow, IMapper Mapper)
+    : IRequestHandler<GetCourseBookingByUserPaged, PaginatedResult<CourseBookingQueryDto>>
     {
-        public async Task<IEnumerable<CourseBookingQueryDto>> Handle(GetCourseBookingByUser request, CancellationToken ct)
+        public async Task<PaginatedResult<CourseBookingQueryDto>> Handle(GetCourseBookingByUserPaged request, CancellationToken ct)
         {
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
@@ -24,10 +26,10 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
             if (request.CourseId != null)
                 predicate = cb => cb.UserId == request.UserId && cb.Session.CourseId == request.CourseId;
 
-            var items = await Uow.CourseBookingRepo.FindAsync(predicate, modifier, ct);
+            var (items, total) = await Uow.CourseBookingRepo.FindPagedAsync(predicate, modifier, request.Page, request.ItemTaken, false, ct);
 
-            var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items).ToList();
-            return mappedItems;
+            var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items);
+            return new PaginatedResult<CourseBookingQueryDto>(mappedItems, total);
         }
     }
 

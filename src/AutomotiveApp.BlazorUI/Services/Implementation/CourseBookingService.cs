@@ -25,5 +25,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             return response;
         }
+
+        public async Task<ApiResponse<PaginatedResult<CourseBookingQueryDto>>> GetUserBookingPaged(Guid? courseId = null, int page = 1, int itemTaken = 6, CancellationToken ct = default)
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<PaginatedResult<CourseBookingQueryDto>>>($"{BaseEndpoint}/me/paged?page={page}&itemTaken={itemTaken}&courseId={courseId}", ct)
+            ?? new ApiResponse<PaginatedResult<CourseBookingQueryDto>>
+            {
+                Success = false,
+                StatusCode = HttpStatusCode.InternalServerError,
+                Data = null,
+                Errors = ["Failed to load user Bookings"]
+            };
+
+            return response;
+        }
     }
 }

@@ -99,7 +99,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.User.RequireUniqueEmail = true;
     options.User.AllowedUserNameCharacters =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ "; // biar allow whitespace
-    options.SignIn.RequireConfirmedEmail = true; // matikan utk testing
+    options.SignIn.RequireConfirmedEmail = false; // matikan utk testing
 
     options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
     options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
@@ -144,6 +144,15 @@ builder.Services.AddAuthentication(options =>
                 Console.WriteLine($"JWT validated for user {userId}");
                 return Task.CompletedTask;
             },
+            OnMessageReceived = context =>
+                    {
+                        if (context.Request.Cookies.ContainsKey("AuthToken"))
+                        {
+                            context.Token = context.Request.Cookies["AuthToken"];
+                        }
+
+                        return Task.CompletedTask;
+                    },
             OnChallenge = async context =>
                     {
                         // Skip the default 401 response
