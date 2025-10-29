@@ -5,8 +5,11 @@ namespace AutomotiveApp.BlazorUI.Services.Invoices;
 public interface IInvoiceService
 {
     Task<List<InvoiceReadDto>> GetAllAsync(CancellationToken ct = default);
+
     Task<InvoiceReadDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
+
     Task<InvoiceReadDto?> GetByOrderAsync(Guid orderId, CancellationToken ct = default);
+    
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 
     public record InvoiceSearchResult(int totalItems, int page, int pageSize, int totalPages, List<InvoiceReadDto> items);
@@ -20,6 +23,7 @@ public interface IInvoiceService
         CancellationToken ct = default);
 
     Task<InvoiceReadDto?> CreateFormAsync(InvoiceCreateFormDto dto, CancellationToken ct = default);
+
     Task<bool> UpdateFormAsync(Guid id, InvoiceUpdateFormDto dto, CancellationToken ct = default);
 
     Task<List<InvoiceReadDto>> GetMyInvoicesAsync(Guid? orderId = null, int? invoiceNumber = null, CancellationToken ct = default);

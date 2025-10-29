@@ -15,6 +15,7 @@ namespace AutomotiveApp.WebAPI.Controllers
 
     public class InvoicesController : ControllerBase
     {
+        
         private readonly IRepository<Invoice> _repo;
         private readonly AppDbContext _db;
 
@@ -128,7 +129,6 @@ namespace AutomotiveApp.WebAPI.Controllers
             var inv = await _repo.GetByIdAsync(id);
             if (inv == null) return NotFound();
 
-            // contoh: izinkan update nomor & total (kalau kebijakan kamu mengizinkan)
             inv.InvoiceNumber = form.InvoiceNumber;
             inv.TotalPrice = form.TotalPrice;
 
@@ -291,10 +291,6 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             return Ok(items);
         }
-
-
-        
-
 
     }
 }

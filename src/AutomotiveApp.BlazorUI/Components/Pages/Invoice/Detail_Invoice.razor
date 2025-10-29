@@ -128,11 +128,11 @@
         new BreadcrumbItem("Details Invoice", href: null, disabled: true),
     };
 
-    private string   InvoiceNo   = "";
+    private string InvoiceNo = "";
     private DateTime InvoiceDate = DateTime.Now;
-    private long     TotalPrice;
+    private long TotalPrice;
     private List<InvoiceItem> Items = new();
-    private bool   _loading;
+    private bool _loading;
     private string? _error;
 
     protected override async Task OnInitializedAsync()
@@ -209,15 +209,15 @@
         }
     }
 
-    private string FormatIdr(long value)    => string.Format(Indo, "IDR {0:N0}", value);
+    private string FormatIdr(long value) => string.Format(Indo, "IDR {0:N0}", value);
     private string FormatIdr(decimal value) => string.Format(Indo, "IDR {0:N0}", value);
 
     public class InvoiceItem
     {
-        public int      No         { get; set; }
-        public string   CourseName { get; set; } = "";
-        public string   Type       { get; set; } = "";
-        public DateTime Schedule   { get; set; }
-        public decimal  Price      { get; set; }
+        public int No { get; set; }
+        public string CourseName { get; set; } = "";
+        public string Type { get; set; } = "";
+        public DateTime Schedule { get; set; }
+        public decimal Price { get; set; }
     }
 }

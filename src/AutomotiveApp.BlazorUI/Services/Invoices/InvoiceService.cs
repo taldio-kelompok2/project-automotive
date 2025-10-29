@@ -68,7 +68,7 @@ public class InvoiceService(IHttpClientFactory httpFactory) : IInvoiceService
         return res.IsSuccessStatusCode;
     }
 
-    // /me -> List<InvoiceReadDto>
+    // me
     public async Task<List<InvoiceReadDto>> GetMyInvoicesAsync(
         Guid? orderId = null,
         int? invoiceNumber = null,

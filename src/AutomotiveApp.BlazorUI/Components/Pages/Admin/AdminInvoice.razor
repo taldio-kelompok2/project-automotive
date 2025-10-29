@@ -104,7 +104,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Ambil semua invoice (admin scope) via service (authorized client)
+        // get data invoice 
         var rows = await InvoiceService.GetAllAsync();
 
         invoices = rows
@@ -121,7 +121,7 @@
             })
             .ToList();
 
-        // Ambil detail tiap invoice (untuk PaymentMethod + daftar kursus) secara paralel
+        // get data detail per invoice 
         var detailTasks = invoices.ToDictionary(
             inv => inv.Id,
             inv => InvoiceService.GetDetailsAsync(inv.Id)  
@@ -151,7 +151,7 @@
 
             inv.PaymentMethod = string.IsNullOrWhiteSpace(dto?.PaymentMethod) ? "-" : dto!.PaymentMethod;
 
-            // Sinkronkan TotalPrice kalau di detail ada fallback per item
+            // get TotalPrice 
             if (long.TryParse(inv.TotalPrice.Replace("IDR", "").Trim().Replace(".", "").Replace(",", ""),
                               out var _listPrice) && dto is not null)
             {
@@ -163,7 +163,6 @@
 
     private Task OnInvoiceDetails(Invoice invoice)
     {
-        // Arahkan ke halaman detail yang sudah kamu punya (opsional)
         // NavigationManager.NavigateTo($"/detail-invoice?id={invoice.Id}");
         return Task.CompletedTask;
     }
