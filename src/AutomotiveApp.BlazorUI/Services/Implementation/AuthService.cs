@@ -1,14 +1,10 @@
 ﻿using AutomotiveApp.BlazorUI.Services.Interface;
-using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Response;
-using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System.Net.Http.Headers;
 using System.Text.Json;
-using static System.Net.WebRequestMethods;
 
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
@@ -33,17 +29,39 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             await _httpClient.GetAsync("/api/auth/check");
         }
 
-        public async Task<bool> LoginViaProxyAsync(string email, string password)
+        public async Task<LoginFrontendResponseDto> LoginViaProxyAsync(string email, string password)
         {
             var payload = new { Email = email, Password = password };
             var json = JsonSerializer.Serialize(payload);
 
             //JS Runtime
-            return await _js.InvokeAsync<bool>(
+            var result = await _js.InvokeAsync<JsonElement>(
                 "loginViaFetch",
                 "auth/proxy-login",
                 json
             );
+
+            var success = result.GetProperty("ok").GetBoolean();
+            var response = new LoginFrontendResponseDto
+            {
+                Success = success,
+                Status = result.GetProperty("status").GetInt32()
+            };
+
+            if (!success)
+            {
+                var data = result.GetProperty("data");
+                if (data.TryGetProperty("Errors", out var errors))
+                {
+                    response.Message = errors[0].GetString();
+                }
+            }
+            else
+            {
+                response.Message = "Login successful!";
+            }
+
+            return response;
         }
 
         public async Task<bool> RefreshAuthProxyAsync()

@@ -153,7 +153,7 @@
             if (UserContext.Current.Role != "Admin")
             {
                 Console.WriteLine("🚫 Non-admin tried accessing admin route, redirecting");
-                Nav.NavigateTo("/profile", forceLoad: true);
+                Nav.NavigateTo("/NotFound", forceLoad: true);
                 return;
             }
         }

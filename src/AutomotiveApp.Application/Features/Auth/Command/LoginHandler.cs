@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Identity;
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
     public class LoginHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings, SignInManager<User> signInManager)
-        : IRequestHandler<LoginCommand, AuthResponseDto>
+        : IRequestHandler<LoginCommand, LoginResponseDto>
     {
-        public async Task<AuthResponseDto> Handle(LoginCommand req, CancellationToken ct)
+        public async Task<LoginResponseDto> Handle(LoginCommand req, CancellationToken ct)
         {
             // Cari user berdasarkan email
             var user = await userManager.FindByEmailAsync(req.LoginRequestDto.Email);
             if (user == null || !user.Status)
             {
-                return new AuthResponseDto
+                return new LoginResponseDto
                 {
                     Success = false,
                     Message = "Invalid email or password"
@@ -28,19 +28,10 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             {
                 //_logger.LogWarning("Login failed for email: {Email}. Reason: {Reason}", request.Email, result.ToString());
 
-                if (result.IsLockedOut)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "Account is locked out. Please try again later."
-                    };
-                }
-
-                return new AuthResponseDto
+                return new LoginResponseDto
                 {
                     Success = false,
-                    Message = "Invalid email or password"
+                    SignInResult = result
                 };
             }
 
@@ -56,9 +47,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
 
             //_logger.LogInformation("Login successful for email: {Email}", request.Email);
 
-            Console.WriteLine($"Token Expires: {DateTime.UtcNow.AddMinutes(jwtSettings.AccessTokenExpirationMinutes)}");
-
-            return new AuthResponseDto
+            return new LoginResponseDto
             {
                 Success = true,
                 Message = "Login successful",

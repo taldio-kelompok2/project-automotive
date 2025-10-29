@@ -112,24 +112,53 @@
         await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
     }
 
+    private async Task<bool> ShowConfirmEmailDialogAsync(string message)
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialogRef = await DialogService.ShowAsync<ConfirmEmailDialog>("Login Failed", options);
+        var result = await dialogRef.Result;
+
+        return !result.Canceled && result.Data is bool confirmed && confirmed;
+    }
+
     private async Task OnValidSubmit()
     {
         _isLoading = true;
         try
         {
             // Call the proxy login via JS fetch
-            var success = await AuthService.LoginViaProxyAsync(_loginModel.Email, _loginModel.Password);
+            var res = await AuthService.LoginViaProxyAsync(_loginModel.Email, _loginModel.Password);
 
-            if (success)
+            if (res.Success)
             {
                 await ShowSuccessDialogAsync();
-                await Task.Delay(2000);
+                await Task.Delay(1500);
                 var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
                 Nav.NavigateTo(redirect, forceLoad: true);
             }
             else
             {
-                await ShowErrorDialogAsync("Invalid email or password.");
+                if (res.Status == 401)
+                {
+                    bool wantsToConfirm = await ShowConfirmEmailDialogAsync(res.Message);
+
+                    if (wantsToConfirm)
+                    {
+                        var emailEncoded = Uri.EscapeDataString(_loginModel.Email);
+                        Nav.NavigateTo($"/resend-email?email={emailEncoded}");
+                    }
+                }
+                else
+                {
+                    await ShowErrorDialogAsync(res.Message);
+                }
+                
             }
         }
         finally

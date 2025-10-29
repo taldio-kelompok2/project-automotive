@@ -4,6 +4,7 @@ using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
@@ -72,15 +73,51 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var command = new LoginCommand(loginRequestDto);
             var result = await Mediator.Send(command);
 
-            response.Success = result.Success;
-            response.Data = result;
-
-            if (result.Success)
+            if (!result.Success)
             {
-                SetCookies(Response, result);
-                return Ok(response);
+                var signInResult = result.SignInResult;
+                if (signInResult == null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Errors = ["Invalid email or password"];
+                    return BadRequest(response);
+                }
+
+                if (signInResult.IsLockedOut)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Errors = ["Account is locked out. Please try again later."];
+                    return BadRequest(response);
+                }
+                if (signInResult.IsNotAllowed)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.Unauthorized;
+                    response.Errors = ["Email is not confirmed. Please confirm your email first."];
+                    return Unauthorized(response);
+                }
+                
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Errors = ["Invalid email or password"];
+                return BadRequest(response);
             }
-            return BadRequest(response);
+
+            var dto = new AuthResponseDto
+            {
+                Success = true,
+                Message = result.Message,
+                AccessToken = result.AccessToken,
+                RefreshToken = result.RefreshToken,
+                AccessTokenExpiry = result.AccessTokenExpiry,
+            };
+
+            response.Data = dto;
+            SetCookies(Response, dto);
+            return Ok(response);
+
         }
 
         [HttpPost("refresh-token")]

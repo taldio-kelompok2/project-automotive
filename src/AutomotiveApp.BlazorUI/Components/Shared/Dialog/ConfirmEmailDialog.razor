@@ -1,0 +1,28 @@
+﻿@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column justify-center align-center">
+
+            <MudText Class="mb-4" Align="Align.Center">
+                Email must be confirmed before logging in. Would you like to confirm your email now?
+            </MudText>
+
+            <div class="d-flex justify-center gap-3">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                    Cancel
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">
+                    Send Confirmation Email
+                </MudButton>
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Cancel();
+}
