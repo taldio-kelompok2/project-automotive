@@ -4,8 +4,12 @@
 @using AutomotiveApp.Application.Invoices
 @using Microsoft.AspNetCore.WebUtilities
 @using System.Net.Http.Json
+@using AutomotiveApp.BlazorUI.Services.Invoices
 @rendermode InteractiveServer
-
+@inject AutomotiveApp.BlazorUI.Services.Invoices.IInvoiceService InvoiceService
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IInvoiceService InvoiceService
 @inject NavigationManager Navigation
 @inject HttpClient Http
 
@@ -40,7 +44,6 @@
                     <MudStack Spacing="1">
                         <MudText Typo="Typo.subtitle1" class="mr-2"><b>Payment Method : @PaymentMethodDisplay </b></MudText>
                         <MudText Typo="Typo.subtitle1" Class="mr-2"><b>Total Price : @FormatIdr(TotalPrice)</b></MudText>
-                        @* <MudText Typo="Typo.subtitle1"><b>@FormatIdr(TotalPrice)</b></MudText> *@
                     </MudStack>
                 </MudItem>
             </MudGrid>
@@ -75,7 +78,7 @@
                 </div>
             </MudHidden>
 
-            <!-- View Mobile Phone -->
+            <!-- View Mobile -->
             <MudHidden Breakpoint="Breakpoint.MdAndUp">
                 <MudStack Spacing="2">
                     @foreach (var row in Items)
@@ -111,14 +114,13 @@
     .mobile-card .v{ color:#333; font-weight:600; text-align:right; }
     .mobile-card .total .k{ color:#5A5A5A; }
     .mobile-card .total .v{ color:#790b0a; font-weight:700; }
-    @* @media (max-width: 600px){ .mobile-card .k, .mobile-card .v { font-size:.92rem; } } *@
 </style>
 
 @code {
     private readonly CultureInfo Indo = new("id-ID");
     private string HeaderStyle => "background-color:#790b0a; height:55px; text-align:center; vertical-align:middle;";
     private string PaymentMethodDisplay = "-";
-    
+
     private List<BreadcrumbItem> Crumbs => new()
     {
         new BreadcrumbItem("Home", href: "/"),
@@ -126,13 +128,12 @@
         new BreadcrumbItem("Details Invoice", href: null, disabled: true),
     };
 
-    private string InvoiceNo = "";
+    private string   InvoiceNo   = "";
     private DateTime InvoiceDate = DateTime.Now;
-    private long TotalPrice;
+    private long     TotalPrice;
     private List<InvoiceItem> Items = new();
     private bool   _loading;
     private string? _error;
-    private record InvoiceLite(Guid Id, long TotalPrice, int InvoiceNumber, string InvoiceCode, Guid OrderId, DateTime CreatedAt);
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,29 +143,22 @@
             var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
             var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
-            // prefer id kalau dikirim (future-proof)
             if (query.TryGetValue("id", out var idStr) && Guid.TryParse(idStr, out var id))
             {
-                var details = await GetJsonOrError<InvoiceDetailsDto>($"api/Invoices/{id}/details");
-                if (details is null) return;
+                var details = await InvoiceService.GetDetailsAsync(id);
+                if (details is null) { _error = "Failed to load invoice details"; return; }
                 BindToUi(details);
                 return;
             }
 
-            // kalau yang dikirim adalah code: no=OTO00001
             if (query.TryGetValue("no", out var no) && !string.IsNullOrWhiteSpace(no))
             {
-                // get list invoice, cari yang InvoiceCode(no) 
-                var invoices = await GetJsonOrError<List<InvoiceLite>>("api/Invoices");
-                if (invoices is null) { _error = "Cannot load invoices."; return; }
-
-                // format, kalau InvoiceCode kamu di server sudah diisi 
-                var inv = invoices.FirstOrDefault(x => string.Equals(x.InvoiceCode, no.ToString(), StringComparison.OrdinalIgnoreCase));
+                var myInvoices = await InvoiceService.GetMyInvoicesAsync();
+                var inv = myInvoices.FirstOrDefault(x => string.Equals(x.InvoiceCode, no.ToString(), StringComparison.OrdinalIgnoreCase));
                 if (inv is null) { _error = $"Invoice '{no}' not found."; return; }
 
-                // endpoint by-id 
-                var details = await GetJsonOrError<InvoiceDetailsDto>($"api/Invoices/{inv.Id}/details");
-                if (details is null) return;
+                var details = await InvoiceService.GetDetailsAsync(inv.Id);
+                if (details is null) { _error = "Failed to load invoice details."; return; }
                 BindToUi(details);
                 return;
             }
@@ -181,9 +175,7 @@
         InvoiceDate = details.CreatedAt;
         TotalPrice  = details.TotalPrice;
 
-        PaymentMethodDisplay = string.IsNullOrWhiteSpace(details.PaymentMethod)
-        ? "-"
-        : details.PaymentMethod;
+        PaymentMethodDisplay = string.IsNullOrWhiteSpace(details.PaymentMethod) ? "-" : details.PaymentMethod;
 
         Items = details.Items.Select((x, idx) => new InvoiceItem
         {
@@ -210,7 +202,11 @@
             }
             return await res.Content.ReadFromJsonAsync<T>();
         }
-        catch (Exception ex) { _error = $"GET {url} error: {ex.Message}"; return default; }
+        catch (Exception ex)
+        {
+            _error = $"GET {url} error: {ex.Message}";
+            return default;
+        }
     }
 
     private string FormatIdr(long value)    => string.Format(Indo, "IDR {0:N0}", value);

@@ -7,6 +7,7 @@
 @using AutomotiveApp.Application.Invoices
 @using System.Net.Http.Json
 @inject NavigationManager NavigationManager
+@inject AutomotiveApp.BlazorUI.Services.Invoices.IInvoiceService InvoiceService
 @inject HttpClient Http
 
 @rendermode InteractiveServer
@@ -138,16 +139,13 @@
             await RetryHelper.ExecuteWithRetryAsync(
                 action: async () =>
                 {
-                    // Get All Data Invoice
-                    var invoices = await Http.GetFromJsonAsync<List<InvoiceLite>>("api/Invoices") ?? new();
+                    var invoices = await InvoiceService.GetMyInvoicesAsync();
 
-                    // Get All Data OrderItem & Sum / OrderId
                     var orderItems = await Http.GetFromJsonAsync<List<OrderItemLite>>("api/OrderItems") ?? new();
                     var itemCountByOrder = orderItems
                         .GroupBy(i => i.OrderId)
                         .ToDictionary(g => g.Key, g => g.Count());
 
-                    // Map Ke View Model & Data Isian 
                     Invoices = invoices
                         .OrderByDescending(x => x.CreatedAt)
                         .Select((x, idx) => new InvoiceItem
@@ -170,11 +168,11 @@
                 delayMs: 100
             );
         }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Failed to load invoices: {ex.Message}");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load invoices: {ex.Message}");
+        }
     }
-}
 
     private string FormatIdr(long value)
         => string.Format(new CultureInfo("id-ID"), "IDR {0:N0}", value);
@@ -182,7 +180,7 @@
     private void GoToDetail(string invoiceNo)
         => NavigationManager.NavigateTo($"/detail-invoice?no={invoiceNo}");
 
-    // Models
+    // Model
     public class InvoiceItem
     {
         public int No { get; set; }
