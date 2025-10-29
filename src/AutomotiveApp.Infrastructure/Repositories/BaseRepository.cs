@@ -101,6 +101,33 @@ namespace AutomotiveApp.Infrastructure.Repositories
             return await query.ToListAsync(ct);
         }
 
+        public async Task<PaginatedResult<T>> FindPagedAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? modifier = null,
+            int page = 1,
+            int itemTaken = 6,
+            bool isRandom = false,
+            CancellationToken ct = default)
+        {
+            var query = BuildQuery(modifier, predicate);
+            int total = await query.CountAsync(ct);
+
+            if (!query.Expression.ToString().Contains("OrderBy"))
+            {
+                query = query.OrderBy(e => true);
+            }
+
+            var skipIndex = (page - 1) * itemTaken;
+            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, total - itemTaken));
+
+            var items = await query
+                .Skip(skipIndex)
+                .Take(itemTaken)
+                .ToListAsync(ct);
+
+            return new PaginatedResult<T>(items, total);
+        }
+
         public async Task<int> CountAsync(
             Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default)

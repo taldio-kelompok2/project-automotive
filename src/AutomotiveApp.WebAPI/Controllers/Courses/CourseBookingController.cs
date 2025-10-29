@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AutomotiveApp.Application.Features.CourseBookings.Commands;
 using AutomotiveApp.Application.Features.CourseBookings.Queries;
 using AutomotiveApp.Shared.Dtos.Courses;
+using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using AutomotiveApp.WebAPI.Helper;
 using FluentValidation;
@@ -60,6 +61,27 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
             var query = new GetCourseBookingByUser(userId, courseId);
             var response = new ApiResponse<IEnumerable<CourseBookingQueryDto>>();
+            await validator.ValidateAndThrowAsync(query);
+
+            var result = await Mediator.Send(query);
+
+            response.Success = true;
+            response.StatusCode = HttpStatusCode.OK;
+            response.Data = result;
+
+            return Ok(response);
+        }
+
+        [HttpGet("me/paged")]
+        public async Task<ActionResult<IEnumerable<CourseBookingQueryDto>>> GetCurrentUserPaged(
+            [FromServices] IValidator<GetCourseBookingByUserPaged> validator,
+            [FromQuery] Guid? courseId,
+            [FromQuery] int page = 1,
+            [FromQuery] int itemTaken = 6)
+        {
+            var userId = User.GetCurrentUserId() ?? throw new UnauthorizedAccessException();
+            var query = new GetCourseBookingByUserPaged(userId, courseId, page, itemTaken);
+            var response = new ApiResponse<PaginatedResult<CourseBookingQueryDto>>();
             await validator.ValidateAndThrowAsync(query);
 
             var result = await Mediator.Send(query);

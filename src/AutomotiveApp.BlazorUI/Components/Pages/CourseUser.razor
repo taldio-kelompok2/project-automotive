@@ -1,5 +1,6 @@
 ﻿@page "/my-class"
 @using AutomotiveApp.BlazorUI.Helper
+@using AutomotiveApp.Shared.Models
 
 @inject ICourseBookingService BookingService
 @inject NavigationManager Nav
@@ -11,7 +12,7 @@
 
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
-        <MudGrid Class="m-0 pt-4 pb-4 px-md-5 px-4" Justify="Justify.Center">
+        <MudStack Class="m-0" Justify="Justify.Center" AlignItems="AlignItems.Center">
 
             @if (_isLoading)
             {
@@ -24,27 +25,41 @@
             }
             else if (bookedSessions.Success)
             {
-                @if (bookedSessions.Data?.Any() ?? false)
+                @if (bookedSessions.Data?.Items.Any() ?? false)
                 {
-                    @foreach (var car in bookedSessions.Data)
+                    @foreach (var car in bookedSessions.Data.Items)
                     {
                         <ClassScheduleRow Car="car" />
                     }
 
                     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                        @* Pagination controls here *@
+                        @if (bookedSessions.Data.TotalCount > _pageSize)
+                        {
+                            <MudStack Class="my-12 p-0" Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                                <MudPagination Class="pl-0" Count="@totalPages" Selected="@_selectedPage"
+                                    SelectedChanged="@OnPageChanged" BoundaryCount="5" />
+                            </MudStack>
+                        }
                     </MudHidden>
 
                     <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                        @* Pagination controls here *@
+                        @if (bookedSessions.Data.TotalCount > _pageSize)
+                        {
+                            <MudStack Class="my-12 p-0" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                                <MudPagination Class="pl-0" Count="@totalPages" Selected="@_selectedPage"
+                                    SelectedChanged="@OnPageChanged" BoundaryCount="5" />
+                            </MudStack>
+                        }
                     </MudHidden>
                 }
                 else
                 {
-                    <MudText>No booked sessions yet.</MudText>
+                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" style="min-height: 80vh">
+                        <MudText>No booked sessions yet.</MudText>
+                    </MudStack>
                 }
             }
-        </MudGrid>
+        </MudStack>
     </div>
 </div>
 
@@ -57,32 +72,53 @@
     public UserContext UserContext { get; set; } = default!;
     private int _selectedPage = 1;
     private bool _isLoading { get; set; } = true;
-    private int pageSize = 5;
-    private int pageCount => (int)Math.Ceiling((double)cars.Count() / pageSize);
-    private ApiResponse<IEnumerable<CourseBookingQueryDto>> bookedSessions = new();
+    private int _pageSize = 3;
+    private int totalPages;
+    private ApiResponse<PaginatedResult<CourseBookingQueryDto>> bookedSessions = new();
     private List<CarViewModel> cars = new List<CarViewModel>();
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine($"🔄 Starting - _isLoading: {_isLoading}");
-
         await RetryHelper.ExecuteWithRetryAsync(
         action: async () =>
         {
-            Console.WriteLine($"🔄 Attempting API call...");
-            bookedSessions = await BookingService.GetUserBooking();
-            Console.WriteLine($"✅ API call completed - Data: {bookedSessions.Data?.Count() ?? 0} items");
+            await LoadBookingsAsync(_selectedPage);
+
         },
         onLoadingChanged: (loading) =>
         {
-            Console.WriteLine($"🔄 Loading changed to: {loading}");
             _isLoading = loading;
             StateHasChanged();
         },
         maxAttempts: 5,
         delayMs: 100
         );
+    }
 
-        Console.WriteLine($"🏁 Completed - _isLoading: {_isLoading}, Data: {bookedSessions.Data?.Count() ?? 0} items");
+    private async Task LoadBookingsAsync(int page)
+    {
+        _isLoading = true;
+
+        try
+        {
+            bookedSessions = await BookingService.GetUserBookingPaged(page: page, itemTaken: _pageSize);
+
+            if (bookedSessions.Data != null)
+                totalPages = (int)Math.Ceiling((double)bookedSessions.Data.TotalCount / _pageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading bookings: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _selectedPage = page;
+        await LoadBookingsAsync(page);
     }
 
     private async Task OnPageChange(int newPage)
