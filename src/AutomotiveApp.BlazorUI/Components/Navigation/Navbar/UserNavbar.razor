@@ -26,6 +26,11 @@
             </MudButton>
             <span class="nav-seperator">|</span>
             <div class="d-flex align-items-center justify-content-between gap-3">
+                @if (IsAdmin)
+                {
+                <MudIconButton Icon="@Icons.Material.Filled.Dashboard" Size="Size.Small" Color="Color.Primary"
+                    OnClick="@(() => NavManager.NavigateTo(ADMIN_PAGE))" aria-label="Dashboard" />
+                }
                 <MudIconButton Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Primary"
                     OnClick="@(() => NavManager.NavigateTo(PROFILE_PAGE))" aria-label="Profile" />
                 <MudIconButton Icon="@Icons.Material.Outlined.ExitToApp" Size="Size.Small" Color="Color.Secondary"
@@ -52,6 +57,13 @@
                     OnClick="@(() => NavManager.NavigateTo(CHECKOUT_PAGE))">
                     Cart
                 </MudButton>
+                @if (IsAdmin)
+                {
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
+                    OnClick="@(() => NavManager.NavigateTo(ADMIN_PAGE))">
+                    Admin
+                </MudButton>
+                }
                 <MudButton Variant="Variant.Text" Color="Color.Primary" Class="px-0"
                     OnClick="@(() => NavManager.NavigateTo(PROFILE_PAGE))">
                     Profile
@@ -65,7 +77,7 @@
 </MudAppBar>
 
 @code {
-
+    private bool IsAdmin = false;
     private bool expandMenu = false;
     private const string LOGIN_PAGE = "/login";
     private const string REGISTER_PAGE = "/register";
@@ -74,6 +86,7 @@
     private const string INVOICE_PAGE = "/invoice";
     private const string MY_CLASS_PAGE = "/my-class";
     private const string PROFILE_PAGE = "/profile";
+    private const string ADMIN_PAGE = "/admin/dashboard";
 
     private async Task LogoutAsync()
     {
@@ -88,4 +101,19 @@
             Snackbar.Add($"Logout failed: {ex.Message}", Severity.Error);
         }
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user is not null && user.Roles is not null)
+                IsAdmin = user.Roles.Contains("Admin", StringComparer.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            IsAdmin = false;
+        }
+    }
+
 }
