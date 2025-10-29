@@ -1,22 +1,26 @@
 @page "/admin/invoice"
 @rendermode InteractiveServer
 
-@* @layout AdminLayout *@
 @using System.Linq
 @using System.Globalization
-@using System.Net.Http.Json
 @using MudBlazor
 @using System.ComponentModel.DataAnnotations
 @using System.ComponentModel
+@using AutomotiveApp.Application.Invoices
+@using AutomotiveApp.BlazorUI.Services.Invoices
+
 @inject IDialogService DialogService
-@inject HttpClient Http
+@inject IInvoiceService InvoiceService
 
 <PageTitle>Invoice Management</PageTitle>
 
-<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white;">
     <MudText Typo="Typo.h3" Class="pb-3">Invoice Management</MudText>
-    
-    <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" OnDetails="OnInvoiceDetails" />
+
+    <AdminTable TItem="Invoice"
+                Items="invoices"
+                Columns="invoiceColumns"
+                OnDetails="OnInvoiceDetails" />
 </MudPaper>
 
 <style>
@@ -24,37 +28,28 @@
 </style>
 
 @code {
-    private record ApiInvoiceDto(
-        Guid Id,
-        long TotalPrice,
-        int InvoiceNumber,
-        string InvoiceCode,
-        Guid OrderId,
-        DateTime CreatedAt
-    );
 
     private record InvoiceDetailsDto(
-        Guid Id, 
-        string InvoiceCode, 
-        DateTime CreatedAt, 
-        long TotalPrice, 
+        Guid Id,
+        string InvoiceCode,
+        DateTime CreatedAt,
+        long TotalPrice,
         string? PaymentMethod,
         List<InvoiceItemDto> Items
     );
     private record InvoiceItemDto(
-        string CourseName, 
-        string Type, 
-        DateTime Schedule, 
+        string CourseName,
+        string Type,
+        DateTime Schedule,
         decimal Price
     );
 
-    // TODO: add list of courses
     public class Invoice
     {
         [Browsable(false)]
         [Display(AutoGenerateField = false)]
-        internal Guid Id { get; set; }   
-        internal int RowNo { get; set; } 
+        internal Guid Id { get; set; }
+        internal int RowNo { get; set; }
         public required string InvoiceNumber { get; set; }
         public required string Date { get; set; }
         public required string TotalPrice { get; set; }
@@ -64,6 +59,7 @@
 
     private readonly CultureInfo _indo = new("id-ID");
     private List<Invoice> invoices = new();
+
     List<ColumnDefinition<Invoice>> invoiceColumns = new()
     {
         new ColumnDefinition<Invoice>
@@ -106,43 +102,44 @@
         }
     };
 
-
     protected override async Task OnInitializedAsync()
     {
-        var rows = await Http.GetFromJsonAsync<List<ApiInvoiceDto>>("api/Invoices") ?? new();
+        // Ambil semua invoice (admin scope) via service (authorized client)
+        var rows = await InvoiceService.GetAllAsync();
 
         invoices = rows
             .OrderByDescending(x => x.CreatedAt)
             .Select((x, idx) => new Invoice
             {
-                Id             = x.Id,
-                RowNo          = idx + 1,                     
-                InvoiceNumber  = x.InvoiceCode,
-                Date           = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),
-                TotalPrice     = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
-                PaymentMethod  = "-",
-                Courses        = "-"
+                Id            = x.Id,
+                RowNo         = idx + 1,
+                InvoiceNumber = x.InvoiceCode,                                
+                Date          = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),
+                TotalPrice    = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
+                PaymentMethod = "-",
+                Courses       = "-"
             })
             .ToList();
 
-        // get detail invoice
+        // Ambil detail tiap invoice (untuk PaymentMethod + daftar kursus) secara paralel
         var detailTasks = invoices.ToDictionary(
             inv => inv.Id,
-            inv => Http.GetFromJsonAsync<InvoiceDetailsDto>($"api/Invoices/{inv.Id}/details")
+            inv => InvoiceService.GetDetailsAsync(inv.Id)  
         );
 
         await Task.WhenAll(detailTasks.Values);
+
+        var enUS = new CultureInfo("en-US");
 
         foreach (var inv in invoices)
         {
             var dto = await detailTasks[inv.Id];
             if (dto?.Items is { Count: > 0 })
             {
-                var enUS = new CultureInfo("en-US");
                 inv.Courses = string.Join(Environment.NewLine,
                     dto.Items.Select((it, i) =>
                         $"{i + 1}) {it.CourseName} - {it.Type} - " +
-                        $"{it.Schedule.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - " +
+                        $"{it.Schedule.ToLocalTime():dddd, dd MMM yyyy} - " +
                         $"{string.Format(_indo, "IDR {0:N0}", it.Price)}"
                     )
                 );
@@ -152,11 +149,22 @@
                 inv.Courses = "-";
             }
 
-            // get payment method from api
             inv.PaymentMethod = string.IsNullOrWhiteSpace(dto?.PaymentMethod) ? "-" : dto!.PaymentMethod;
+
+            // Sinkronkan TotalPrice kalau di detail ada fallback per item
+            if (long.TryParse(inv.TotalPrice.Replace("IDR", "").Trim().Replace(".", "").Replace(",", ""),
+                              out var _listPrice) && dto is not null)
+            {
+                var detailTotal = dto.TotalPrice > 0 ? dto.TotalPrice : (long)dto.Items.Sum(x => x.Price);
+                inv.TotalPrice = string.Format(_indo, "IDR {0:N0}", detailTotal);
+            }
         }
     }
 
-    private Task OnInvoiceDetails(Invoice invoice) => Task.CompletedTask;
-
+    private Task OnInvoiceDetails(Invoice invoice)
+    {
+        // Arahkan ke halaman detail yang sudah kamu punya (opsional)
+        // NavigationManager.NavigateTo($"/detail-invoice?id={invoice.Id}");
+        return Task.CompletedTask;
+    }
 }
