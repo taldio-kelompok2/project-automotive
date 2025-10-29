@@ -4,16 +4,21 @@ using AutomotiveApp.Domain.Entities.Invoices;
 using AutomotiveApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using AutomotiveApp.WebAPI.Helper;
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
+
     public class InvoicesController : ControllerBase
     {
         
         private readonly IRepository<Invoice> _repo;
         private readonly AppDbContext _db;
+
 
         public InvoicesController(IRepository<Invoice> repo, AppDbContext db)
         {
@@ -21,7 +26,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             _db = db;
         }
 
-        // GET: /api/invoices
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<InvoiceReadDto>>> GetAll()
         {
@@ -39,7 +44,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             return Ok(dto);
         }
 
-        // GET: /api/invoices/{id}
+
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<InvoiceReadDto>> GetById(Guid id)
         {
@@ -58,7 +63,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             });
         }
 
-        // GET: /api/invoices/by-order/{orderId}
+
         [HttpGet("by-order/{orderId:guid}")]
         public async Task<ActionResult<InvoiceReadDto>> GetByOrderId(Guid orderId)
         {
@@ -77,7 +82,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             });
         }
 
-        // POST: /api/invoices/generate
+
         [HttpPost("create-form")]
         [ProducesResponseType(typeof(InvoiceReadDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -114,7 +119,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, dto);
         }
 
-        // PUT: /api/invoices/{id}/update-form
+
         [HttpPut("{id:guid}/update-form")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -124,7 +129,6 @@ namespace AutomotiveApp.WebAPI.Controllers
             var inv = await _repo.GetByIdAsync(id);
             if (inv == null) return NotFound();
 
-            // contoh: izinkan update nomor & total (kalau kebijakan kamu mengizinkan)
             inv.InvoiceNumber = form.InvoiceNumber;
             inv.TotalPrice = form.TotalPrice;
 
@@ -133,7 +137,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: /api/invoices/{id}
+
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
         {
@@ -145,7 +149,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             return NoContent();
         }
 
-        // GET: /api/invoices/search
+
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<InvoiceReadDto>>> Search(
             [FromQuery] int? invoiceNumber,
@@ -196,12 +200,11 @@ namespace AutomotiveApp.WebAPI.Controllers
             });
         }
 
-        // GET: /api/invoices/{id}/details
-        // [HttpGet("{id:guid}/details")]
+
         [HttpGet("{id:guid}/details")]
+        [Authorize]
         public async Task<ActionResult<InvoiceDetailsDto>> GetDetailsById(Guid id)
         {
-            // get invoice
             var inv = await _db.Invoices
                 .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == id);
@@ -209,25 +212,23 @@ namespace AutomotiveApp.WebAPI.Controllers
             if (inv is null)
                 return NotFound();
 
-            // get data item course semua di invoice (course yang dibeli)
             var items = await (
-                from oi  in _db.OrderItems.AsNoTracking()
-                join cs  in _db.CourseSessions.AsNoTracking()   on oi.SessionId  equals cs.Id
-                join c   in _db.Courses.AsNoTracking()          on cs.CourseId   equals c.Id
-                join cat in _db.CourseCategories.AsNoTracking() on c.CategoryId  equals cat.Id
+                from oi in _db.OrderItems.AsNoTracking()
+                join cs in _db.CourseSessions.AsNoTracking() on oi.SessionId equals cs.Id
+                join c in _db.Courses.AsNoTracking() on cs.CourseId equals c.Id
+                join cat in _db.CourseCategories.AsNoTracking() on c.CategoryId equals cat.Id
                 where oi.OrderId == inv.OrderId
                 select new InvoiceItemDto
                 {
                     CourseName = c.Name,
-                    Type       = cat.Name,
-                    Schedule   = cs.Date,
-                    Price      = oi.Price
+                    Type = cat.Name,
+                    Schedule = cs.Date,
+                    Price = oi.Price
                 }
             ).ToListAsync();
 
-            // payment method dari tb Orders = PaymentMethodId
             var paymentMethodName = await (
-                from o  in _db.Orders.AsNoTracking()
+                from o in _db.Orders.AsNoTracking()
                 join pm in _db.PaymentMethods.AsNoTracking()
                     on o.PaymentMethodId equals pm.Id
                 where o.Id == inv.OrderId
@@ -237,20 +238,58 @@ namespace AutomotiveApp.WebAPI.Controllers
             if (string.IsNullOrWhiteSpace(paymentMethodName))
                 paymentMethodName = "-";
 
-            // parsing DTO ke frontend
             var dto = new InvoiceDetailsDto
             {
-                Id            = inv.Id,
-                InvoiceCode   = inv.InvoiceCode,
-                CreatedAt     = inv.CreatedAt,
-                TotalPrice    = inv.TotalPrice > 0
+                Id = inv.Id,
+                InvoiceCode = inv.InvoiceCode,
+                CreatedAt = inv.CreatedAt,
+                TotalPrice = inv.TotalPrice > 0
                                     ? inv.TotalPrice
                                     : (long)items.Sum(x => x.Price),
                 PaymentMethod = paymentMethodName,
-                Items         = items
+                Items = items
             };
 
             return Ok(dto);
+        }
+
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<InvoiceReadDto>>> GetMyInvoices(
+            [FromQuery] Guid? orderId,
+            [FromQuery] int? invoiceNumber,
+            CancellationToken ct = default)
+        {
+            var userId = User.GetCurrentUserId();
+            if (userId is null) return Unauthorized();
+
+            var query = from i in _db.Invoices.AsNoTracking()
+                        join o in _db.Orders.AsNoTracking() on i.OrderId equals o.Id
+                        where o.UserId == userId.Value
+                        select i;
+
+            if (orderId.HasValue)
+                query = query.Where(i => i.OrderId == orderId.Value);
+
+            if (invoiceNumber.HasValue)
+                query = query.Where(i => i.InvoiceNumber == invoiceNumber.Value);
+
+            var items = await query
+                .OrderByDescending(i => i.CreatedAt)
+                .Select(i => new InvoiceReadDto
+                {
+                    Id = i.Id,
+                    InvoiceNumber = i.InvoiceNumber,
+                    InvoiceCode = i.InvoiceCode,
+                    TotalPrice = i.TotalPrice,
+                    OrderId = i.OrderId,
+                    CreatedAt = i.CreatedAt,
+                    UpdatedAt = i.UpdatedAt
+                })
+                .ToListAsync(ct);
+
+            return Ok(items);
         }
 
     }
