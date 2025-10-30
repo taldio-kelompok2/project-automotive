@@ -8,7 +8,7 @@ namespace AutomotiveApp.BlazorUI.Services.Interface
     {
         Task<PaginatedResult<UserQueryDto>> GetPagedUsers(int page, int itemTaken, string? search);
         Task<ApiResponse<UserCreateRequestDto>> CreateUser(UserCreateRequestDto userCreateDto);
-        Task<ApiResponse<bool>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto);
+        Task<ApiResponse<UserUpdateRequestDto>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto);
         Task<IEnumerable<UserQueryDto>> GetAllUsers();
 
     }

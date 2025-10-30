@@ -87,14 +87,14 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             return apiResponse;
         }
 
-        public async Task<ApiResponse<bool>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto)
+        public async Task<ApiResponse<UserUpdateRequestDto>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}", userUpdateDto);
-            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>()
-            ?? new ApiResponse<bool>()
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<UserUpdateRequestDto>>()
+            ?? new ApiResponse<UserUpdateRequestDto>()
             {
                 Success = false,
-                Data = false,
+                Data = null,
                 Errors = ["Something went wrong with the request"]
             };
 

@@ -96,6 +96,7 @@ IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
         {
             UserUpdateRequestDto? updatedUser = new UserUpdateRequestDto
             {
+                Id = user.Id,
                 UserName = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
