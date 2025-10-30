@@ -13,7 +13,7 @@ namespace AutomotiveApp.BlazorUI.Models.Admin
         public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email")]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",  ErrorMessage = "Invalid Email Format")]
         [StringLength(150, ErrorMessage = "Email must not exceed 150 characters")]
         public string Email { get; set; } = null!;
 

@@ -1,15 +1,16 @@
 ﻿using AutoMapper;
 using AutomotiveApp.Domain.Entities.Auth;
 using AutomotiveApp.Shared.Dtos.Auth;
+using AutomotiveApp.Shared.Dtos.User;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace AutomotiveApp.Application.Features.Users.Commands
 {
     public class CreateUserHandler(UserManager<User> userManager, IMapper mapper)
-        : IRequestHandler<CreateUser, bool>
+        : IRequestHandler<CreateUser, UserCreateRequestDto>
     {
-        public async Task<bool> Handle(CreateUser req, CancellationToken ct)
+        public async Task<UserCreateRequestDto> Handle(CreateUser req, CancellationToken ct)
         {
 
             var existingUser = await userManager.FindByEmailAsync(req.UserCreateDto.Email);
@@ -29,7 +30,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
 
             await userManager.AddToRoleAsync(user, req.UserCreateDto.Role);
 
-            return true;
+            return req.UserCreateDto;
         }
     }
 }

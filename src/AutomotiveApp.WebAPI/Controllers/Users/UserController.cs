@@ -119,7 +119,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var validation = await validator.ValidateAsync(userCreateDto);
             if (!validation.IsValid)
                 return HandleValidationFailure<UserCreateRequestDto>(validation);
-            var response = new ApiResponse<bool>();
+
+            var response = new ApiResponse<UserCreateRequestDto>();
 
             var command = new CreateUser(userCreateDto);
             var result = await Mediator.Send(command);
@@ -185,18 +186,26 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 
         [HttpPut("{userId:guid}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(
+        public async Task<ActionResult<UserUpdateRequestDto>> UpdateUser(
             Guid userId,
-            [FromBody] UserUpdateRequestDto userUpdateDto)
+            [FromBody] UserUpdateRequestDto userUpdateDto,
+            [FromServices] IValidator<UserUpdateRequestDto> validator)
         {
-            var response = new ApiResponse<bool>();
+            userUpdateDto.Id = userId;
+            var validation = await validator.ValidateAsync(userUpdateDto);
+            Console.WriteLine(userId);
+            Console.WriteLine(userUpdateDto.Id);
+            if (!validation.IsValid)
+                return HandleValidationFailure<UserUpdateRequestDto>(validation);
+
+            var response = new ApiResponse<UserUpdateRequestDto>();
 
             var command = new UpdateUser(userId, userUpdateDto);
             var result = await Mediator.Send(command);
 
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
-            response.Data = result;
+            response.Data = userUpdateDto;
 
             return Ok(response);
         }

@@ -2,8 +2,9 @@
 
 namespace AutomotiveApp.Shared.Dtos.User
 {
-    public class UserUpdateRequestDto
+    public class UserUpdateRequestDto : BaseCommandDto, IDto
     {
+        public Guid Id;
         [StringLength(50, MinimumLength = 4, ErrorMessage = "Username must be between 4-50 characters")]
         public string? UserName { get; set; } = string.Empty;
 
