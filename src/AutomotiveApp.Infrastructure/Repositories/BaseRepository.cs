@@ -100,7 +100,6 @@ namespace AutomotiveApp.Infrastructure.Repositories
             var query = BuildQuery(modifier, predicate);
             return await query.ToListAsync(ct);
         }
-
         public async Task<PaginatedResult<T>> FindPagedAsync(
             Expression<Func<T, bool>> predicate,
             Func<IQueryable<T>, IQueryable<T>>? modifier = null,

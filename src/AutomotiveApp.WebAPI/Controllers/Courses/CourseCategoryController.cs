@@ -12,6 +12,7 @@ using AutomotiveApp.Shared.Response;
 using AutomotiveApp.WebAPI.Dto.Courses;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
     {
         // Logger
         private readonly ILogger<CourseCategoryController> _logger = logger;
-        
+
         // Helper Tambahan HeroImage
         private string? ResolveHeroUrl(Guid id)
         {
@@ -51,7 +52,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             // HeroImage
             foreach (var item in result)
-            item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
+                item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
 
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
@@ -98,7 +99,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             // HeroImage
             foreach (var item in result.Items)
-            item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
+                item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
 
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
@@ -108,6 +109,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CourseCategoryQueryDto>> AddCourseCategory(
         [FromForm] CourseCategoryCreateRequest request,
         [FromServices] IValidator<CourseCategoryCreateRequest> validator)
@@ -117,7 +119,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             var response = new ApiResponse<CourseCategoryQueryDto>();
             await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
-            string? heroFileName  = null;
+            string? heroFileName = null;
             var dto = mapper.Map<CourseCategoryCommandDto>(request);
             try
             {
@@ -127,11 +129,11 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                     await ImageStorage.SaveFileAsync<CourseCategory>(request.Image.OpenReadStream(), imageFileName);
                 }
 
-                if (request.HeroImage != null)                 
-                {                                              
-                    heroFileName = $"{request.Id}-hero{Path.GetExtension(request.HeroImage.FileName)}"; 
-                    await ImageStorage.SaveFileAsync<CourseCategory>(request.HeroImage.OpenReadStream(), heroFileName); 
-                }     
+                if (request.HeroImage != null)
+                {
+                    heroFileName = $"{request.Id}-hero{Path.GetExtension(request.HeroImage.FileName)}";
+                    await ImageStorage.SaveFileAsync<CourseCategory>(request.HeroImage.OpenReadStream(), heroFileName);
+                }
 
                 dto.ImageFileName = imageFileName;
                 dto.HeroImageFileName = heroFileName;
@@ -142,7 +144,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Data = result;
 
                 _logger.LogInformation("POST /api/coursecategory - created category {CategoryId}", result.Id);
-                
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -166,6 +168,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpPatch("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CourseCategoryQueryDto>> EditCourseCategory([FromRoute] Guid id,
         [FromForm] CourseCategoryEditRequest request,
         IValidator<CourseCategoryEditRequest> validator)
@@ -174,7 +177,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             request.Id = id;
             await validator.ValidateAndThrowAsync(request);
             string? imageFileName = null;
-            string? heroFileName  = null;
+            string? heroFileName = null;
             var dto = mapper.Map<CourseCategoryEditDto>(request);
             var command = new EditCourseCategoryCommand(dto);
 
@@ -220,6 +223,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteCourseCategory([FromRoute] Guid id)
         {
             var response = new ApiResponse<string>();
@@ -232,7 +236,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
 
             return Ok(response);
         }
-        
+
     }
 
 }

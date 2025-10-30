@@ -20,7 +20,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
     public class UserController(IMediator _mediator) : BaseApiController(_mediator)
     {
         [HttpGet("me")]
-        [Authorize(Roles = "Admin, Buyer")]
+        [Authorize]
         public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetCurrentUser()
         {
             var response = new ApiResponse<UserProfileDto>();
@@ -69,7 +69,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         }
 
         [HttpPut("me")]
-        [Authorize(Roles = "Admin, Buyer")]
+        [Authorize]
         public async Task<ActionResult<UserProfileUpdateDto>> UpdateCurrentUserProfile(
            [FromBody] UserProfileUpdateDto userProfileUpdateDto,
             [FromServices] IValidator<UserProfileUpdateDto> validator)
@@ -117,7 +117,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromServices] IValidator<UserCreateRequestDto> validator)
         {
             var validation = await validator.ValidateAsync(userCreateDto);
-            if (!validation.IsValid) 
+            if (!validation.IsValid)
                 return HandleValidationFailure<UserCreateRequestDto>(validation);
             var response = new ApiResponse<bool>();
 

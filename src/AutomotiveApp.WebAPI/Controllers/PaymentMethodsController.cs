@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AutomotiveApp.Domain.Entities.Payments;          
-using AutomotiveApp.Infrastructure.Data;             
-using AutomotiveApp.Application.PaymentMethods;      
+using AutomotiveApp.Domain.Entities.Payments;
+using AutomotiveApp.Infrastructure.Data;
+using AutomotiveApp.Application.PaymentMethods;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.WebAPI.Dto.PaymentMethods;
 using Microsoft.AspNetCore.Http;
 using AutomotiveApp.Shared.Response;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -24,7 +25,7 @@ namespace AutomotiveApp.WebAPI.Controllers
     {
         private static readonly HashSet<string> AllowedExt =
             new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".svg" };
-        
+
         private string? BuildImageUrl(string? fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName)) return null;
@@ -51,9 +52,9 @@ namespace AutomotiveApp.WebAPI.Controllers
             var dto = items.Select(x => new PaymentMethodReadDto
             {
                 Id = x.Id,
-                Name = x.Name,      
+                Name = x.Name,
                 Status = x.Status,
-                CreatedAt = x.CreatedAt, 
+                CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,
                 ImageUrl = BuildImageUrl(x.ImageFileName)
             });
@@ -80,7 +81,9 @@ namespace AutomotiveApp.WebAPI.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Consumes("multipart/form-data")]
+
         public async Task<ActionResult> Create([FromForm] PaymentMethodCreateForm form)
         {
             var response = new ApiResponse<PaymentMethodReadDto>();
@@ -128,7 +131,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             var entity = new PaymentMethod
             {
                 Id = newId,
-                Name = form.Name ?? string.Empty,   
+                Name = form.Name ?? string.Empty,
                 Status = form.Status,
                 ImageFileName = imageFileName
             };
@@ -154,6 +157,7 @@ namespace AutomotiveApp.WebAPI.Controllers
 
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult> Update(Guid id, [FromForm] PaymentMethodUpdateRequest request)
         {
@@ -195,8 +199,8 @@ namespace AutomotiveApp.WebAPI.Controllers
                 entity.ImageFileName = newFileName;
             }
 
-            _repo.Update(entity);             
-            await _db.SaveChangesAsync();      
+            _repo.Update(entity);
+            await _db.SaveChangesAsync();
             var dto = new PaymentMethodReadDto
             {
                 Id = entity.Id,
@@ -214,17 +218,19 @@ namespace AutomotiveApp.WebAPI.Controllers
 
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return NotFound();
 
             _repo.Delete(entity);
-            await _db.SaveChangesAsync();     
+            await _db.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpPost("json")]
+        [Authorize(Roles = "Admin")]
         [Consumes("application/json")]
         public async Task<ActionResult> CreateJson([FromBody] PaymentMethodCreateDto body)
         {
@@ -236,7 +242,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 Id = newId,
                 Name = body.Name,
                 Status = body.Status,
-                ImageFileName = body.ImageFilename 
+                ImageFileName = body.ImageFilename
             };
 
             await _repo.AddAsync(entity);
@@ -259,6 +265,7 @@ namespace AutomotiveApp.WebAPI.Controllers
         }
 
         [HttpPut("{id:guid}/json")]
+        [Authorize(Roles = "Admin")]
         [Consumes("application/json")]
         public async Task<ActionResult> UpdateJson(Guid id, [FromBody] PaymentMethodUpdateDto body)
         {

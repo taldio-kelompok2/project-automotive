@@ -4,6 +4,7 @@ using AutomotiveApp.Application.Features.Courses.Commands;
 using AutomotiveApp.Application.Features.Courses.Queries;
 using AutomotiveApp.Application.Interfaces.Utils;
 using AutomotiveApp.Domain.Entities.Courses;
+using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
@@ -11,6 +12,7 @@ using AutomotiveApp.WebAPI.Dto.Courses;
 using AutomotiveApp.WebAPI.Helper;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveApp.WebAPI.Controllers.Courses
@@ -71,6 +73,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CourseQueryDto>> Add([FromForm] CourseCreateRequest request,
         [FromServices] IValidator<CourseCreateRequest> validator)
         {
@@ -110,6 +113,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpPatch("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CourseQueryDto>> Edit([FromRoute] Guid id, [FromForm] CourseEditRequest request,
         IValidator<CourseEditRequest> validator)
         {
@@ -152,6 +156,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete([FromRoute] Guid id)
         {
             var response = new ApiResponse<string>();
