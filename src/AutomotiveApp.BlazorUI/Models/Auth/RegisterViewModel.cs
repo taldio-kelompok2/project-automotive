@@ -8,7 +8,7 @@ namespace AutomotiveApp.BlazorUI.Models.Auth
         public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email")]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Invalid email")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required")]

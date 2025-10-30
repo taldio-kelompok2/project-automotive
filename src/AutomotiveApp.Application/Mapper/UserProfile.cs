@@ -52,6 +52,7 @@ namespace AutomotiveApp.Application.Mapper
                 .ForMember(dest => dest.Cart, opt => opt.Ignore());
 
             CreateMap<RegisterRequestDto, User>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.Orders, opt => opt.Ignore())
