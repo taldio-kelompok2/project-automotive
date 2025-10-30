@@ -18,11 +18,10 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             ?? new ApiResponse<IEnumerable<CourseBookingQueryDto>>
             {
                 Success = false,
-                StatusCode = HttpStatusCode.InternalServerError,
+                StatusCode = HttpStatusCode.BadRequest,
                 Data = [],
                 Errors = ["Failed to load user Bookings"]
             };
-
             return response;
         }
 
@@ -32,7 +31,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             ?? new ApiResponse<PaginatedResult<CourseBookingQueryDto>>
             {
                 Success = false,
-                StatusCode = HttpStatusCode.InternalServerError,
+                StatusCode = HttpStatusCode.BadRequest,
                 Data = null,
                 Errors = ["Failed to load user Bookings"]
             };

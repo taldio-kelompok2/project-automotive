@@ -1,4 +1,5 @@
 ﻿@page "/admin/course"
+@layout AdminLayout
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject HttpClient Http
@@ -16,12 +17,16 @@
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Course Management</MudText>
-    <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCourseDialog"  Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
-    <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdited" OnDetails="OnCourseDetails"  />
+    <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCourseDialog" Class="align-self-start m-2 mb-4"
+        Color="Color.Primary" Variant="Variant.Filled">Add Course</AppBaseButton>
+    <AdminTable TItem="CourseViewModel" Items="courses" Columns="courseColumns" OnEdit="OnCourseEdited"
+        OnDetails="OnCourseDetails" />
 </MudPaper>
 
 <style>
-  .mud-dialog-content td:nth-child(2) { white-space: pre-line; }
+    .mud-dialog-content td:nth-child(2) {
+        white-space: pre-line;
+    }
 </style>
 
 @code {
@@ -29,45 +34,45 @@
     private readonly Dictionary<Guid, string> _catMap = new();
 
     private List<ColumnDefinition<CourseViewModel>> courseColumns = new()
-    {
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "ID",
-            CellTemplate = x => x.ID,
-            IsSearchable = false
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Course Name",
-            CellTemplate = x => x.Name,
-            IsSearchable = true
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Description",
-            CellTemplate = x => x.Description,
-            IsSearchable = false
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Price",
-            CellTemplate = course => $"IDR {course.Price.ToString("N0", new CultureInfo("id-ID"))}",
-            IsSearchable = false
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Category",
-            CellTemplate = x => x.Category,
-            IsSearchable = true
-        },
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Image",
-            CellTemplate = x => x.Image,
-            IsImageColumn = true,
-            IsSearchable = false
-        },
-        @* new ColumnDefinition<CourseViewModel>
+{
+new ColumnDefinition<CourseViewModel>
+{
+Header = "ID",
+CellTemplate = x => x.ID,
+IsSearchable = false
+},
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Course Name",
+CellTemplate = x => x.Name,
+IsSearchable = true
+},
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Description",
+CellTemplate = x => x.Description,
+IsSearchable = false
+},
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Price",
+CellTemplate = course => $"IDR {course.Price.ToString("N0", new CultureInfo("id-ID"))}",
+IsSearchable = false
+},
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Category",
+CellTemplate = x => x.Category,
+IsSearchable = true
+},
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Image",
+CellTemplate = x => x.Image,
+IsImageColumn = true,
+IsSearchable = false
+},
+@* new ColumnDefinition<CourseViewModel>
         {
             Header = "Detail",
             CellTemplate = _ => "Detail",
@@ -75,16 +80,16 @@
             IsActionColumn = true,
             ShowDetails = true,
         }, *@
-        new ColumnDefinition<CourseViewModel>
-        {
-            Header = "Action",
-            @* CellTemplate = _ => "Edit", *@
-            IsSearchable = false,
-            IsActionColumn = true,
-            ShowEdit = true,
-            ShowDetails = true,
-        }
-    };
+new ColumnDefinition<CourseViewModel>
+{
+Header = "Action",
+@* CellTemplate = _ => "Edit", *@
+IsSearchable = false,
+IsActionColumn = true,
+ShowEdit = true,
+ShowDetails = true,
+}
+};
 
 
     protected override async Task OnInitializedAsync()
@@ -109,56 +114,56 @@
 
         // sessions per course
         var sessionsByCourse = allSessions
-            .GroupBy(s => s.CourseId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.OrderBy(s => s.Date).ToList()
-            );
+        .GroupBy(s => s.CourseId)
+        .ToDictionary(
+        g => g.Key,
+        g => g.OrderBy(s => s.Date).ToList()
+        );
 
         var idID = new CultureInfo("id-ID");
 
         // mapping ke VM + buat dialog view
         courses = rows
-            .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) =>
+        .OrderByDescending(x => x.CreatedAt)
+        .Select((x, idx) =>
+        {
+            // ringkasan jadwal
+            DateTime? sched = null;
+            uint cap = 0;
+
+            // view dialog sessions
+            string sessionsText = "-";
+            if (sessionsByCourse.TryGetValue(x.Id, out var list) && list.Count > 0)
             {
-                // ringkasan jadwal 
-                DateTime? sched = null;
-                uint cap = 0;
+                var enUS = new CultureInfo("en-US");
+                sessionsText = string.Join(Environment.NewLine,
+        list.Select((it, i) =>
+        $"{i + 1}) {it.Date.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
+        )
+        );
 
-                // view dialog sessions
-                string sessionsText = "-";
-                if (sessionsByCourse.TryGetValue(x.Id, out var list) && list.Count > 0)
-                {
-                    var enUS = new CultureInfo("en-US");
-                    sessionsText = string.Join(Environment.NewLine,
-                        list.Select((it, i) =>
-                            $"{i + 1}) {it.Date.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
-                        )
-                    );
+                // pick 1 utk ringkasan di tabel utama
+                var first = list[0];
+                sched = first.Date;
+                cap = first.Capacity;
+            }
 
-                    // pick 1 utk ringkasan di tabel utama 
-                    var first = list[0];
-                    sched = first.Date;
-                    cap = first.Capacity;
-                }
-
-                return new CourseViewModel
-                {
-                    ID          = idx + 1,
-                    CourseId    = x.Id,
-                    Name        = x.Name,
-                    Description = x.Description ?? string.Empty,
-                    Price       = x.Price,
-                    CategoryId  = x.CategoryId,
-                    Category    = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
-                    Image       = ResolveImageUrl(x.ImageUrl),
-                    Schedule    = sched,
-                    Capacity    = cap,
-                    Session     = sessionsText
-                };
-            })
-            .ToList();
+            return new CourseViewModel
+            {
+                ID = idx + 1,
+                CourseId = x.Id,
+                Name = x.Name,
+                Description = x.Description ?? string.Empty,
+                Price = x.Price,
+                CategoryId = x.CategoryId,
+                Category = _catMap.TryGetValue(x.CategoryId, out var catName) ? catName : "-",
+                Image = ResolveImageUrl(x.ImageUrl),
+                Schedule = sched,
+                Capacity = cap,
+                Session = sessionsText
+            };
+        })
+        .ToList();
 
         StateHasChanged();
     }
@@ -182,9 +187,9 @@
     private async Task ShowAddCourseDialog()
     {
         var parameters = new DialogParameters
-        {
-            { "Categories", _catMap } 
-        };
+{
+{ "Categories", _catMap }
+};
 
         var dlg = await DialogService.ShowAsync<AddCourseDialog>("Add Course", parameters);
         var result = await dlg.Result;
@@ -194,17 +199,17 @@
 
         try
         {
-            Guid? id = await CourseSvc.CreateMultipartAsync(
-                vm.Name,
-                vm.Description ?? string.Empty,
-                vm.Price,
-                vm.CategoryId,
-                vm.File
+            var response = await CourseSvc.CreateMultipartAsync(
+            vm.Name,
+            vm.Description ?? string.Empty,
+            vm.Price,
+            vm.CategoryId ?? Guid.Empty,
+            vm.File
             );
 
-            if (id is null)
+            if (!response.Success)
             {
-                Snackbar.Add("Course add failed", Severity.Error);
+                Snackbar.Add($"Course add failed: {string.Join("\n", response.Errors ?? [])}", Severity.Error);
                 return;
             }
 
@@ -213,14 +218,13 @@
             {
                 foreach (var s in vm.Sessions)
                 {
-                    // hanya buat baris valid
-                    if (s.Capacity > 0)
+                    if (s.Capacity > 0 && response?.Data?.Id is Guid courseId)
                     {
                         var okId = await CourseSessionSvc.CreateAsync(new()
                         {
-                            Date = s.Date.Value, 
+                            Date = s.Date!.Value,
                             Capacity = s.Capacity,
-                            CourseId = id.Value
+                            CourseId = courseId
                         });
 
                         if (okId is null)
@@ -242,14 +246,14 @@
     {
         try
         {
-            // update data course 
+            // update data course
             var ok = await CourseSvc.UpdateMultipartAsync(
-                vm.CourseId,
-                vm.Name,
-                vm.Description,
-                vm.Price,
-                vm.CategoryId,
-                vm.File
+            vm.CourseId,
+            vm.Name,
+            vm.Description,
+            vm.Price,
+            vm.CategoryId,
+            vm.File
             );
 
             if (!ok)
@@ -258,18 +262,17 @@
                 return;
             }
 
-            // update CourseSession sesuai jadwal & kapasitas
             var currentRes = await CourseSessionSvc.GetAllAsync();
             var current = (currentRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
-                            .Where(s => s.CourseId == vm.CourseId)
-                            .ToList();
+            .Where(s => s.CourseId == vm.CourseId)
+            .ToList();
             var currentById = current.ToDictionary(x => x.Id, x => x);
 
             // Id yang datang dari dialog (yang existing)
             var incoming = vm.Sessions;
             var incomingExistingIds = incoming.Where(x => x.Id.HasValue)
-                                            .Select(x => x.Id!.Value)
-                                            .ToHashSet();
+            .Select(x => x.Id!.Value)
+            .ToHashSet();
 
             // delete
             foreach (var c in current)
@@ -287,7 +290,7 @@
             {
                 if (s.Id is null)
                 {
-                    // create 
+                    // create
                     if (s.Capacity > 0)
                     {
                         var createdId = await CourseSessionSvc.CreateAsync(new()
@@ -303,19 +306,19 @@
                 }
                 else
                 {
-                    // upodate 
+                    // upodate
                     var old = currentById[s.Id.Value];
                     var oldCap = old.Capacity;
                     if (old.Date != s.Date || oldCap != s.Capacity)
                     {
                         var updated = await CourseSessionSvc.UpdateAsync(
-                            s.Id.Value,
-                            new()
-                            {
-                                Date = s.Date.Value,
-                                Capacity = s.Capacity,
-                                CourseId = vm.CourseId
-                            });
+                        s.Id.Value,
+                        new()
+                        {
+                            Date = s.Date.Value,
+                            Capacity = s.Capacity,
+                            CourseId = vm.CourseId
+                        });
 
                         if (!updated)
                             Snackbar.Add($"Failed to update session {s.Date:dd MMM yyyy}", Severity.Warning);
@@ -328,28 +331,28 @@
             var row = courses.FirstOrDefault(c => c.CourseId == vm.CourseId);
             if (row is not null)
             {
-                row.Name        = vm.Name;
+                row.Name = vm.Name;
                 row.Description = vm.Description ?? string.Empty;
-                row.Price       = vm.Price;
-                row.CategoryId  = vm.CategoryId;
-                row.Category    = _catMap.TryGetValue(vm.CategoryId, out var catName) ? catName : row.Category;
+                row.Price = vm.Price;
+                row.CategoryId = vm.CategoryId;
+                row.Category = _catMap.TryGetValue(vm.CategoryId ?? Guid.Empty, out var catName) ? catName : row.Category;
 
                 var orderedSessions = (vm.Sessions ?? new())
-                    .Where(s => s.Date.HasValue && s.Capacity > 0)
-                    .OrderBy(s => s.Date)
-                    .ToList();
+                .Where(s => s.Date.HasValue && s.Capacity > 0)
+                .OrderBy(s => s.Date)
+                .ToList();
 
                 var first = orderedSessions.FirstOrDefault();
                 row.Schedule = first?.Date;
                 row.Capacity = (uint)(first?.Capacity ?? 0);
 
-                var enUS = new CultureInfo("en-US");       
+                var enUS = new CultureInfo("en-US");
                 row.Session = orderedSessions.Count == 0
-                    ? "-"
-                    : string.Join(Environment.NewLine,
-                        orderedSessions.Select((it, i) =>
-                            $"{i + 1}) {it.Date!.Value.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
-                        ));
+                ? "-"
+                : string.Join(Environment.NewLine,
+                orderedSessions.Select((it, i) =>
+                $"{i + 1}) {it.Date!.Value.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - Capacity {it.Capacity}"
+                ));
 
                 if (vm.File is not null)
                 {
@@ -375,37 +378,37 @@
         var now = DateTime.UtcNow;
 
         var upcoming = sessions
-            .Where(s => s.Date >= now)
-            .OrderBy(s => s.Date)
-            .FirstOrDefault();
+        .Where(s => s.Date >= now)
+        .OrderBy(s => s.Date)
+        .FirstOrDefault();
 
         return upcoming ?? sessions
-            .OrderByDescending(s => s.Date)
-            .FirstOrDefault();
+        .OrderByDescending(s => s.Date)
+        .FirstOrDefault();
     }
 
     private async Task OnCourseDetails(CourseViewModel course)
     {
         var sessRes = await CourseSessionSvc.GetAllAsync();
         var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
-                        .Where(s => s.CourseId == course.CourseId)
-                        .OrderBy(s => s.Date)
-                        .ToList();
+        .Where(s => s.CourseId == course.CourseId)
+        .OrderBy(s => s.Date)
+        .ToList();
 
         var parameters = new DialogParameters
-        {
-            { "Course", course },
-            { "Sessions", sessions }
-        };
+{
+{ "Course", course },
+{ "Sessions", sessions }
+};
 
         await DialogService.ShowAsync<ViewCourseSessionsDialog>(
-            $"Sessions — {course.Name}", parameters);
+        $"Sessions — {course.Name}", parameters);
     }
 
-    
 
-    
-    
+
+
+
 
 
 

@@ -4,10 +4,13 @@
 @rendermode InteractiveServer
 
 <MudAppBar Elevation="2" Color="Color.Primary" Fixed=true style="height:55px;">
-    <MudText Typo="Typo.h6">Dashboard</MudText>
+    <MudText Typo="Typo.h6">Admin Panel</MudText>
 </MudAppBar>
 
 <MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Variant="DrawerVariant.Mini" Elevation="2" Class="d-flex">
+    <MudDrawerHeader Class="flex justify-center items-center py-4">
+        <img src="Images/logo.svg" alt="Logo" style="max-width: 140px; height: auto;" />
+    </MudDrawerHeader>
     <MudNavMenu>
         <div class="d-flex justify-content-end mb-3" style="border-bottom: 1px solid #828282; height: 55px;">
             <MudIconButton OnClick="@ToggleDrawer"
@@ -45,7 +48,7 @@
     private const string ADMIN_INVOICE_PAGE = "/admin/invoice";
 
     void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-    
+
     private async Task LogoutViaProxyAsync()
     {
         try
@@ -53,7 +56,6 @@
             await AuthService.LogoutViaProxyAsync();
             Snackbar.Add("You have been logged out successfully.", Severity.Info);
 
-            await Task.Delay(1000);
             NavManager.NavigateTo(LOGIN_PAGE, forceLoad: true);
         }
         catch (Exception ex)

@@ -12,7 +12,7 @@ public class CourseSessionService(HttpClient http) : ICourseSessionService
         var resp = await _http.PostAsJsonAsync(BaseEndpoint, dto, ct);
         if (!resp.IsSuccessStatusCode) return null;
 
-        return dto.Id; 
+        return dto.Id;
     }
 
     public async Task<bool> UpdateAsync(Guid id, CourseSessionEditCommandDto dto, CancellationToken ct = default)

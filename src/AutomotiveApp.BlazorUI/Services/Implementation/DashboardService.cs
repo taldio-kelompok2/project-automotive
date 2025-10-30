@@ -9,9 +9,9 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
     public class DashboardService : IDashboardService
     {
         private readonly HttpClient _httpClient;
-        public DashboardService(HttpClient httpClient)
+        public DashboardService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("ServerAPI");
         }
 
         public async Task<List<DashboardTransactionDto>> GetDashboardTransactions()
@@ -23,18 +23,18 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (response.IsSuccessStatusCode)
                 {
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<DashboardTransactionDto>>>();
-                    return apiResponse?.Data;
+                    return apiResponse?.Data ?? [];
                 }
                 else
                 {
                     Console.WriteLine($"[DashboardService] Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                    return null;
+                    return [];
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[DashboardService] Exception: {ex.Message}");
-                return null;
+                return [];
             }
         }
 

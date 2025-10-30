@@ -1,4 +1,5 @@
 @page "/admin/invoice"
+@layout AdminLayout
 @rendermode InteractiveServer
 
 @using System.Linq
@@ -17,31 +18,30 @@
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white;">
     <MudText Typo="Typo.h3" Class="pb-3">Invoice Management</MudText>
 
-    <AdminTable TItem="Invoice"
-                Items="invoices"
-                Columns="invoiceColumns"
-                OnDetails="OnInvoiceDetails" />
+    <AdminTable TItem="Invoice" Items="invoices" Columns="invoiceColumns" OnDetails="OnInvoiceDetails" />
 </MudPaper>
 
 <style>
-  .mud-dialog-content td:nth-child(2) { white-space: pre-line; }
+    .mud-dialog-content td:nth-child(2) {
+        white-space: pre-line;
+    }
 </style>
 
 @code {
 
     private record InvoiceDetailsDto(
-        Guid Id,
-        string InvoiceCode,
-        DateTime CreatedAt,
-        long TotalPrice,
-        string? PaymentMethod,
-        List<InvoiceItemDto> Items
+    Guid Id,
+    string InvoiceCode,
+    DateTime CreatedAt,
+    long TotalPrice,
+    string? PaymentMethod,
+    List<InvoiceItemDto> Items
     );
     private record InvoiceItemDto(
-        string CourseName,
-        string Type,
-        DateTime Schedule,
-        decimal Price
+    string CourseName,
+    string Type,
+    DateTime Schedule,
+    decimal Price
     );
 
     public class Invoice
@@ -61,70 +61,70 @@
     private List<Invoice> invoices = new();
 
     List<ColumnDefinition<Invoice>> invoiceColumns = new()
-    {
-        new ColumnDefinition<Invoice>
-        {
-            Header = "ID",
-            CellTemplate = invoice => invoice.RowNo,
-            IsSearchable = false
-        },
-        new ColumnDefinition<Invoice>
-        {
-            Header = "Invoice Number",
-            CellTemplate = invoice => invoice.InvoiceNumber,
-            IsSearchable = true
-        },
-        new ColumnDefinition<Invoice>
-        {
-            Header = "Date",
-            CellTemplate = invoice => invoice.Date,
-            IsSearchable = true
-        },
-        new ColumnDefinition<Invoice>
-        {
-            Header = "Total Price",
-            CellTemplate = invoice => invoice.TotalPrice,
-            IsSearchable = false
-        },
-        new ColumnDefinition<Invoice>
-        {
-            Header = "Payment Method",
-            CellTemplate = invoice => invoice.PaymentMethod,
-            IsSearchable = false
-        },
-        new ColumnDefinition<Invoice>
-        {
-            Header = "Action",
-            CellTemplate = invoice => "Details",
-            IsSearchable = false,
-            IsActionColumn = true,
-            ShowDetails = true
-        }
-    };
+{
+new ColumnDefinition<Invoice>
+{
+Header = "ID",
+CellTemplate = invoice => invoice.RowNo,
+IsSearchable = false
+},
+new ColumnDefinition<Invoice>
+{
+Header = "Invoice Number",
+CellTemplate = invoice => invoice.InvoiceNumber,
+IsSearchable = true
+},
+new ColumnDefinition<Invoice>
+{
+Header = "Date",
+CellTemplate = invoice => invoice.Date,
+IsSearchable = true
+},
+new ColumnDefinition<Invoice>
+{
+Header = "Total Price",
+CellTemplate = invoice => invoice.TotalPrice,
+IsSearchable = false
+},
+new ColumnDefinition<Invoice>
+{
+Header = "Payment Method",
+CellTemplate = invoice => invoice.PaymentMethod,
+IsSearchable = false
+},
+new ColumnDefinition<Invoice>
+{
+Header = "Action",
+CellTemplate = invoice => "Details",
+IsSearchable = false,
+IsActionColumn = true,
+ShowDetails = true
+}
+};
 
     protected override async Task OnInitializedAsync()
     {
-        // get data invoice 
+        // get data invoice
         var rows = await InvoiceService.GetAllAsync();
 
         invoices = rows
-            .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) => new Invoice
-            {
-                Id            = x.Id,
-                RowNo         = idx + 1,
-                InvoiceNumber = x.InvoiceCode,                                
-                Date          = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),
-                TotalPrice    = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
-                PaymentMethod = "-",
-                Courses       = "-"
-            })
-            .ToList();
+        .OrderByDescending(x => x.CreatedAt)
+        .Select((x, idx) => new Invoice
+        {
+            Id = x.Id,
+            RowNo = idx + 1,
+            InvoiceNumber = x.InvoiceCode,
+            Date = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),
+            TotalPrice = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
+            PaymentMethod = "-",
+            Courses = "-"
+        })
+        .ToList();
 
-        // get data detail per invoice 
+        // get data detail per invoice
         var detailTasks = invoices.ToDictionary(
-            inv => inv.Id,
-            inv => InvoiceService.GetDetailsAsync(inv.Id)  
+        inv => inv.Id,
+        inv => InvoiceService.GetDetailsAsync(inv.Id)
         );
 
         await Task.WhenAll(detailTasks.Values);
@@ -137,11 +137,11 @@
             if (dto?.Items is { Count: > 0 })
             {
                 inv.Courses = string.Join(Environment.NewLine,
-                    dto.Items.Select((it, i) =>
-                        $"{i + 1}) {it.CourseName} - {it.Type} - " +
-                        $"{it.Schedule.ToLocalTime():dddd, dd MMM yyyy} - " +
-                        $"{string.Format(_indo, "IDR {0:N0}", it.Price)}"
-                    )
+                dto.Items.Select((it, i) =>
+                $"{i + 1}) {it.CourseName} - {it.Type} - " +
+                $"{it.Schedule.ToLocalTime():dddd, dd MMM yyyy} - " +
+                $"{string.Format(_indo, "IDR {0:N0}", it.Price)}"
+                )
                 );
             }
             else
@@ -151,9 +151,9 @@
 
             inv.PaymentMethod = string.IsNullOrWhiteSpace(dto?.PaymentMethod) ? "-" : dto!.PaymentMethod;
 
-            // get TotalPrice 
+            // get TotalPrice
             if (long.TryParse(inv.TotalPrice.Replace("IDR", "").Trim().Replace(".", "").Replace(",", ""),
-                              out var _listPrice) && dto is not null)
+            out var _listPrice) && dto is not null)
             {
                 var detailTotal = dto.TotalPrice > 0 ? dto.TotalPrice : (long)dto.Items.Sum(x => x.Price);
                 inv.TotalPrice = string.Format(_indo, "IDR {0:N0}", detailTotal);
