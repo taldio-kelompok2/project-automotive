@@ -7,6 +7,7 @@
 
 @page "/checkout"
 @using AutomotiveApp.BlazorUI.Helper
+@using AutomotiveApp.BlazorUI.Models.Booking
 
 @rendermode InteractiveServer
 @layout MainLayout
@@ -49,6 +50,7 @@
                             ObjectFit="ObjectFit.Contain" />
                         <!-- large content screen -->
                         <div class="rental-cart-content d-none d-md-block">
+                            @cart.Item.Id
                             <MudText Typo="Typo.body2" Color="Color.Secondary">@cart.Item.Course.Category</MudText>
                             <MudText Typo="Typo.h5">@cart.Item.Course.Name</MudText>
                             <MudText Typo="Typo.body2">Schedule: @cart.Item.Schedule.ToString("dddd, dd MMMM yyyy", new
@@ -182,7 +184,8 @@
         Snackbar.Add($"Cart is Cleared", Severity.Info);
     }
 
-    private async Task<bool?> OpenDuplicateDialogAsync(Dictionary<string, DateTime> bookings, Dictionary<string, DateTime>
+    private async Task<bool?> OpenDuplicateDialogAsync(List<BookingConflictViewModel> bookings,
+    List<BookingConflictViewModel>
     carts)
     {
         var parameters = new DialogParameters
@@ -217,18 +220,26 @@
             .GroupBy(cart => cart.Item.Schedule.Date)
             .Where(group => group.Count() >= 2)
             .SelectMany(group => group)
-            .GroupBy(x => x.Item.Course.Name)
-            .Select(g => g.First())
-            .ToDictionary(
-            x => x.Item.Course.Name,
-            x => x.Item.Schedule.Date
-            );
+            .Select(x => new BookingConflictViewModel
+            {
+                SessionId = x.Item.SessionId,
+                SessionDate = x.Item.Schedule.Date,
+                CourseName = x.Item.Course.Name
+            })
+            .ToList();
 
             var SessionDuplicates = Cart.RentalCartItems
             .Where(cart =>
             cart.Selected &&
             _userSessions.Any(user => user.Session.Date.Date == cart.Item.Schedule.Date.Date))
-            .ToDictionary(x => x.Item.Course.Name, x => x.Item.Schedule.Date);
+            .Select(x => new BookingConflictViewModel
+            {
+                SessionId = x.Item.SessionId,
+                SessionDate = x.Item.Schedule.Date,
+                CourseName = x.Item.Course.Name
+            })
+            .ToList();
+
             bool success;
 
             if (cartDuplicates.Any() || SessionDuplicates.Any())

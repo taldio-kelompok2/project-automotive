@@ -1,4 +1,5 @@
 @using AutomotiveApp.BlazorUI.Models.Auth.Context
+@using AutomotiveApp.BlazorUI.Models.Booking
 @using AutomotiveApp.BlazorUI.Services.Implementation
 @using AutomotiveApp.Domain.Entities.Auth
 @using AutomotiveApp.Domain.Entities.Courses
@@ -228,12 +229,12 @@
         var result = await dialog.Result;
     }
 
-    private async Task<bool?> OpenDuplicateDialogAsync(Dictionary<string, DateTime> bookings)
+    private async Task<bool?> OpenDuplicateDialogAsync(List<BookingConflictViewModel> bookings)
     {
         var parameters = new DialogParameters
         {
             { "ExistingBookings", bookings },
-            { "ExistingCartBookings", new Dictionary<string, DateTime>() }
+            { "ExistingCartBookings", new List<BookingConflictViewModel>() }
         };
 
         var options = new DialogOptions
@@ -301,10 +302,13 @@
             if (isBookingDuplicate.Any()) {
                 var currentBooking = (chosenCar?.Data?.Sessions ?? new Dictionary<Guid, DateTime>())
                 .Where(s => s.Key == _selectedSessionId)
-                .ToDictionary(
-                    s => chosenCar?.Data?.Name ?? "Unknown Course",
-                    s => s.Value
-                );
+                .Select(s => new BookingConflictViewModel
+                {
+                    SessionId = s.Key,
+                    SessionDate = s.Value,
+                    CourseName = chosenCar?.Data?.Name ?? "Unknown Course"
+                })
+                .ToList();
 
                 success = await OpenDuplicateDialogAsync(currentBooking);
 

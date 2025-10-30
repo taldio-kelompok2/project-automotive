@@ -51,7 +51,6 @@
 "/admin/",
 "/email-confirmed",
 "/success-purchase",
-@* "/notfound" *@
 };
 
     private readonly string[] _protectedPages = new[]
@@ -64,6 +63,8 @@
     protected override async Task OnInitializedAsync()
     {
         UpdateNavbarVisibility();
+
+        Nav.LocationChanged += OnLocationChanged;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _lastAuthState = authState.User.Identity?.IsAuthenticated ?? false;
@@ -123,6 +124,11 @@
         _hideNavbar = _noNavbarPages.Any(path =>
         Nav.Uri.Contains(path, StringComparison.OrdinalIgnoreCase));
         StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateNavbarVisibility();
     }
 
     private async Task CheckProtectedPage()
@@ -186,5 +192,6 @@
     public void Dispose()
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        Nav.LocationChanged -= OnLocationChanged;
     }
 }

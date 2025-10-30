@@ -12,7 +12,9 @@ namespace AutomotiveApp.Application.Mapper
         {
             CreateMap<CourseCategory, CourseCategoryQueryDto>()
             .ForMember(dest => dest.ImageUrl, opt =>
-                opt.MapFrom<ImageUrlResolver<CourseCategory, CourseCategoryQueryDto>>());
+                opt.MapFrom<ImageUrlResolver<CourseCategory, CourseCategoryQueryDto>>())
+            .ForMember(dest => dest.HeroImageUrl, opt =>
+                opt.MapFrom<HeroImageUrlResolver<CourseCategory, CourseCategoryQueryDto>>());
 
             CreateMap<CourseCategoryQueryDto, CourseCategory>()
             .ForMember(dest => dest.Courses, opt => opt.Ignore());

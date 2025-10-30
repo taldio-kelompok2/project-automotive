@@ -11,8 +11,6 @@ using MudBlazor.Services;
 using System.Globalization;
 using System.Net;
 using System.Text;
-using AutomotiveApp.BlazorUI.Models.Auth.Context;
-using Microsoft.AspNetCore.Components.Server.Circuits;
 
 var builder = WebApplication.CreateBuilder(args);
 

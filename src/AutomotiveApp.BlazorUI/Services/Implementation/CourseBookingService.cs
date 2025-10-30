@@ -22,6 +22,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 Data = [],
                 Errors = ["Failed to load user Bookings"]
             };
+
             return response;
         }
 

@@ -18,7 +18,8 @@
         <RowTemplate>
             @foreach (var column in Columns)
             {
-                <MudTd Class="text-center" DataLabel="@column.Header">
+                <MudTd Class="text-center d-flex-column justify-content-center align-items-center"
+                    DataLabel="@column.Header">
                     @if (column.IsStatusColumn)
                     {
                         <MudChip T="string" Color="@(GetStatusColor(context))" Variant="Variant.Filled" Size="Size.Small">
@@ -45,7 +46,7 @@
                         @if (!string.IsNullOrEmpty(imageUrl))
                         {
 
-                            <MudImage Src="@imageUrl" Height="30" Class="p-1" />
+                            <MudImage Src="@imageUrl" Height="80" Width="80" ObjectFit="ObjectFit.Contain" Class="p-1" />
 
                         }
                         else

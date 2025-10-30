@@ -20,6 +20,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             }
 
             User user = mapper.Map<User>(req.UserCreateDto);
+            user.EmailConfirmed = true;
             var result = await userManager.CreateAsync(user, req.UserCreateDto.Password);
             if (!result.Succeeded)
             {

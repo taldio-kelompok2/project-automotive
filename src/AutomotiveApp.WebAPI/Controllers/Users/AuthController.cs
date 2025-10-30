@@ -64,7 +64,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
-            return Created();
+            return Ok(response);
         }
 
         [HttpPost("login")]
@@ -100,7 +100,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                     response.Errors = ["Email is not confirmed. Please confirm your email first."];
                     return Unauthorized(response);
                 }
-                
+
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = ["Invalid email or password"];

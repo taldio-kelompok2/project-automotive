@@ -51,8 +51,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             var result = await Mediator.Send(query);
 
             // HeroImage
-            foreach (var item in result)
-                item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
+            // foreach (var item in result)
+            //     item.HeroImageUrl ??= ResolveHeroUrl(item.Id);
 
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;

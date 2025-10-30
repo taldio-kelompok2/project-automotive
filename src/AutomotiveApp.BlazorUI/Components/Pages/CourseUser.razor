@@ -13,7 +13,7 @@
 @* <AuthorizeRedirect Role="Admin"> *@
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
-        <MudGrid Class="m-0 pt-4 pb-4 px-md-5 px-4" Justify="Justify.Center">
+        <MudStack Class="m-0" Justify="Justify.Center" AlignItems="AlignItems.Center">
 
             @if (_isLoading)
             {
@@ -46,7 +46,7 @@
                     <MudHidden Breakpoint="Breakpoint.MdAndUp">
                         @if (bookedSessions.Data.TotalCount > _pageSize)
                         {
-                            <MudStack Class="my-12 p-0" Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                            <MudStack Class="my-12 p-0" Justify="Justify.Center" AlignItems="AlignItems.Center">
                                 <MudPagination Class="pl-0" Count="@totalPages" Selected="@_selectedPage"
                                     SelectedChanged="@OnPageChange" BoundaryCount="5" />
                             </MudStack>
@@ -55,12 +55,15 @@
                 }
                 else
                 {
-                    <MudText>No booked sessions yet.</MudText>
+                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" style="min-height: 80vh">
+                        <MudText>No booked sessions yet.</MudText>
+                    </MudStack>
                 }
             }
-        </MudGrid>
+        </MudStack>
     </div>
 </div>
+
 
 <Footer />
 @* </AuthorizeRedirect> *@
