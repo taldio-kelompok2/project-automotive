@@ -24,7 +24,7 @@
         <!-- View Desktop -->
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <div class="table-responsive">
-                <MudTable Items="Invoices" Dense="true" Hover="true" Elevation="0" Class="w-100 custom-table" Loading="@_loading">
+                <MudTable Items="Invoices" Dense="true" Hover="true" Elevation="0" Class="w-100 custom-table" Loading="@_loading" Striped="true">
                     <HeaderContent>
                         <MudTh Style="@HeaderStyle" Class="text-white text-center">No</MudTh>
                         <MudTh Style="@HeaderStyle" Class="text-white text-center">No. Invoice</MudTh>
@@ -99,7 +99,9 @@
 <Footer />
 
 <style>
-    .custom-table tbody tr:hover { background-color: #790B0A1A !important; transition: background-color 0.2s ease-in-out; }
+    .custom-table tbody {background-color: white !important;}
+    .custom-table .mud-table-root { background-color: #ffffff !important;}
+    /* .custom-table tbody tr:hover { background-color: rgba(121, 11, 10, 0.3) !important; transition: background-color 0.2s ease-in-out; } */
     .mud-breadcrumbs li a, .mud-breadcrumbs li .mud-typography { color: #828282 !important; }
     .mud-breadcrumbs li:last-child a, .mud-breadcrumbs li:last-child .mud-typography { color: #790b0a !important; font-weight: 600; }
     .custom-details-btn { border: 1px solid #790b0a !important; color: #790b0a !important; }
@@ -114,6 +116,31 @@
     .mobile-card .total .k{ color:#5A5A5A; }
     .mobile-card .total .v{ color:#790b0a; font-weight:700; }
     @* @media (max-width: 600px){ .mobile-card .k, .mobile-card .v { font-size:.92rem; } } *@
+
+    .custom-table.mud-table-striped
+    .mud-table-container
+    .mud-table-root
+    .mud-table-body
+    .mud-table-row:nth-of-type(odd) {
+        background-color: white !important;
+    }
+
+    .custom-table.mud-table-striped 
+        .mud-table-container 
+        .mud-table-root 
+        .mud-table-body 
+        .mud-table-row:nth-of-type(even) {
+            background-color: rgba(121, 11, 10, 0.1) !important;
+    }
+
+    .custom-table.mud-table-striped
+    .mud-table-container
+    .mud-table-root
+    .mud-table-body
+    .mud-table-row:hover {
+        background-color: rgba(121, 11, 10, 0.25) !important;
+        transition: background-color 0.2s ease-in-out;
+    }
 </style>
 
 @code {

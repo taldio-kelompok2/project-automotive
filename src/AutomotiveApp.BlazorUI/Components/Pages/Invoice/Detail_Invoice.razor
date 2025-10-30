@@ -51,7 +51,7 @@
             <!-- View Desktop -->
             <MudHidden Breakpoint="Breakpoint.SmAndDown">
                 <div class="table-responsive">
-                    <MudTable Items="Items" Dense="true" Hover="true" Elevation="0" Class="w-100">
+                    <MudTable Items="Items" Dense="true" Hover="true" Elevation="0" Class="w-100 custom-table" Striped="true">
                         <HeaderContent>
                             <MudTh Style="@HeaderStyle" Class="text-white"><b>No</b></MudTh>
                             <MudTh Style="@HeaderStyle" Class="text-white"><b>Course Name</b></MudTh>
@@ -114,6 +114,39 @@
     .mobile-card .v{ color:#333; font-weight:600; text-align:right; }
     .mobile-card .total .k{ color:#5A5A5A; }
     .mobile-card .total .v{ color:#790b0a; font-weight:700; }
+
+    .custom-table tbody {
+        background-color: white !important;
+    }
+
+    .custom-table .mud-table-root {
+        background-color: #ffffff !important;
+    }
+
+    .custom-table.mud-table-striped
+    .mud-table-container
+    .mud-table-root
+    .mud-table-body
+    .mud-table-row:nth-of-type(odd) {
+        background-color: white !important;
+    }
+
+    .custom-table.mud-table-striped
+    .mud-table-container
+    .mud-table-root
+    .mud-table-body
+    .mud-table-row:nth-of-type(even) {
+        background-color: rgba(121, 11, 10, 0.1) !important;
+    }
+
+    .custom-table.mud-table-striped
+    .mud-table-container
+    .mud-table-root
+    .mud-table-body
+    .mud-table-row:hover {
+        background-color: rgba(121, 11, 10, 0.25) !important;
+        transition: background-color 0.2s ease-in-out;
+    }
 </style>
 
 @code {
