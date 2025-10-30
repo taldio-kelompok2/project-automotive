@@ -4,11 +4,11 @@ namespace AutomotiveApp.Shared.Dtos.User
 {
     public class UserCreateRequestDto : BaseCommandDto, IDto
     {
-        public string UserName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string? PhoneNumber { get; set; }
-        public string Role { get; set; }
-        public bool Status { get; set; } = true;
+        public required string UserName { get; set; } = string.Empty;
+        public required string Email { get; set; } = string.Empty;
+        public required string Password { get; set; } = string.Empty;
+        public required string? PhoneNumber { get; set; }
+        public required string Role { get; set; }
+        public required bool Status { get; set; } = true;
     }
 }

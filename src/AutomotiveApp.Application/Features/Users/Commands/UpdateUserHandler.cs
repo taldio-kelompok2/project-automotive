@@ -16,7 +16,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
                 throw new KeyNotFoundException($"User with ID {req.Id} not found");
 
             mapper.Map(req.UserUpdateDto, existingUser);
-            
+
             var result = await userManager.UpdateAsync(existingUser);
             if (!result.Succeeded)
             {

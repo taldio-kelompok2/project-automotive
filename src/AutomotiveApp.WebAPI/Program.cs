@@ -20,6 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using AutomotiveApp.WebAPI.Middleware;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,7 +129,8 @@ builder.Services.AddAuthentication(options =>
             ValidIssuer = jwtSettings.Issuer,
             ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
-            ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkew)
+            ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkew),
+            RoleClaimType = ClaimTypes.Role
         };
 
         options.Events = new JwtBearerEvents
