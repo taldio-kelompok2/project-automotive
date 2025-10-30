@@ -1,4 +1,5 @@
 ﻿@page "/admin/category"
+@layout AdminLayout
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject HttpClient Http
@@ -15,8 +16,9 @@
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">Category Management</MudText>
 
-    <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCategoryDialog" Class="align-self-start m-2 mb-4" Color="Color.Primary" Variant="Variant.Filled">Add Category</AppBaseButton>
-    
+    <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddCategoryDialog" Class="align-self-start m-2 mb-4"
+        Color="Color.Primary" Variant="Variant.Filled">Add Category</AppBaseButton>
+
     <AdminTable TItem="CategoryViewModel" Items="categories" Columns="categoryColumns" OnEdit="OnCategoryEdited" />
 </MudPaper>
 
@@ -43,75 +45,75 @@
     }; *@
 
     private List<ColumnDefinition<CategoryViewModel>> categoryColumns = new()
-    {
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "ID",
-            CellTemplate = category => @category.ID,
-            IsSearchable = true
-        },
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "Category Name",
-            CellTemplate = category => @category.Name,
-            IsSearchable = true
-        },
+{
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "ID",
+CellTemplate = category => @category.ID,
+IsSearchable = true
+},
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "Category Name",
+CellTemplate = category => @category.Name,
+IsSearchable = true
+},
 
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "Description",
-            CellTemplate = category => @category.Description,
-            IsSearchable = true
-        },
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "Description",
+CellTemplate = category => @category.Description,
+IsSearchable = true
+},
 
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "Image",
-            CellTemplate = category => @category.Logo,
-            IsImageColumn = true,
-            IsSearchable = false
-        },
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "Hero",
-            CellTemplate = category => @category.Hero,
-            IsImageColumn = true,
-            IsSearchable = false
-        },
-        @* new ColumnDefinition<CategoryViewModel>
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "Image",
+CellTemplate = category => @category.Logo,
+IsImageColumn = true,
+IsSearchable = false
+},
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "Hero",
+CellTemplate = category => @category.Hero,
+IsImageColumn = true,
+IsSearchable = false
+},
+@* new ColumnDefinition<CategoryViewModel>
         {
             Header = "Status",
             CellTemplate = category => @category.Status,
             IsSearchable = true,
             IsStatusColumn = true
         }, *@
-        new ColumnDefinition<CategoryViewModel>
-        {
-            Header = "Action",
-            CellTemplate = category => "Edit",
-            IsSearchable = false,
-            IsActionColumn = true,
-            ShowEdit = true
-        }
-    };
+new ColumnDefinition<CategoryViewModel>
+{
+Header = "Action",
+CellTemplate = category => "Edit",
+IsSearchable = false,
+IsActionColumn = true,
+ShowEdit = true
+}
+};
 
     protected override async Task OnInitializedAsync()
     {
-        var res = await CategorySvc.GetAllAsync(); 
+        var res = await CategorySvc.GetAllAsync();
 
         categories = res
-            .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) => new CategoryViewModel
-            {
-                ID          = idx + 1,
-                CategoryId  = x.Id,
-                Name        = x.Name,
-                Description = x.Description ?? "",
-                Logo        = ResolveLogoUrl(x.ImageUrl), 
-                Hero        = ResolveHeroUrl(x.HeroImageUrl)
-                @* Status = Status.Active *@
-            })
-            .ToList();
+        .OrderByDescending(x => x.CreatedAt)
+        .Select((x, idx) => new CategoryViewModel
+        {
+            ID = idx + 1,
+            CategoryId = x.Id,
+            Name = x.Name,
+            Description = x.Description ?? "",
+            Logo = ResolveLogoUrl(x.ImageUrl),
+            Hero = ResolveHeroUrl(x.HeroImageUrl)
+            @* Status = Status.Active *@
+        })
+        .ToList();
     }
 
     private string ResolveLogoUrl(string? value)
@@ -132,7 +134,7 @@
     private string ResolveHeroUrl(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return "/images/coursecategory/placeholder-hero.svg"; 
+            return "/images/coursecategory/placeholder-hero.svg";
 
         var v = value.Trim();
         if (v.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -148,26 +150,26 @@
     {
         var key = Norm(name);
         return categories.Any(x =>
-            Norm(x.Name) == key &&
-            (excludeId == null || x.CategoryId != excludeId.Value));
+        Norm(x.Name) == key &&
+        (excludeId == null || x.CategoryId != excludeId.Value));
     }
 
     private async Task ReloadList()
     {
         var rows = await CategorySvc.GetAllAsync();
         categories = rows
-             .OrderByDescending(x => x.CreatedAt)
-            .Select((x, idx) => new CategoryViewModel
-            {
-                ID          = idx + 1,
-                CategoryId  = x.Id,
-                Name        = x.Name,
-                Description = x.Description ?? "",
-                Logo        = ResolveLogoUrl(x.ImageUrl), 
-                Hero        = ResolveHeroUrl(x.HeroImageUrl),
-                @* Status = Status.Active *@
-            })
-            .ToList();
+        .OrderByDescending(x => x.CreatedAt)
+        .Select((x, idx) => new CategoryViewModel
+        {
+            ID = idx + 1,
+            CategoryId = x.Id,
+            Name = x.Name,
+            Description = x.Description ?? "",
+            Logo = ResolveLogoUrl(x.ImageUrl),
+            Hero = ResolveHeroUrl(x.HeroImageUrl),
+            @* Status = Status.Active *@
+        })
+        .ToList();
         StateHasChanged();
     }
 
@@ -178,7 +180,7 @@
 
         if (result is not { Canceled: false, Data: CategoryViewModel vm })
             return;
-        
+
         // cek duplikasi name
         if (CategoryNameExists(vm.Name))
         {
@@ -193,15 +195,15 @@
             if (vm.File is null && vm.HeroFile is null)
             {
                 id = await CategorySvc.CreateMultipartAsync(
-                    vm.Name, 
-                    vm.Description, 
-                    vm.File,
-                    vm.HeroFile
+                vm.Name,
+                vm.Description,
+                vm.File,
+                vm.HeroFile
                 );
             }
             else
             {
-                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File, vm.HeroFile); 
+                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File, vm.HeroFile);
             }
 
             if (id is null)
@@ -231,11 +233,11 @@
         try
         {
             var ok = await CategorySvc.UpdateMultipartAsync(
-                vm.CategoryId,
-                vm.Name,
-                vm.Description,
-                vm.File,
-                vm.HeroFile
+            vm.CategoryId,
+            vm.Name,
+            vm.Description,
+            vm.File,
+            vm.HeroFile
             );
 
             if (!ok)
@@ -248,7 +250,7 @@
             var row = categories.FirstOrDefault(c => c.CategoryId == vm.CategoryId);
             if (row is not null)
             {
-                row.Name        = vm.Name;
+                row.Name = vm.Name;
                 row.Description = vm.Description;
 
                 if (vm.File is not null)
@@ -257,7 +259,7 @@
                     var ext = Path.GetExtension(vm.File.Name);
                     row.Logo = $"{baseUrl}/images/CourseCategory/{vm.CategoryId}{ext}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 }
-                
+
                 if (vm.HeroFile is not null)
                 {
                     var baseUrl = Http.BaseAddress?.ToString()?.TrimEnd('/');

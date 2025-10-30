@@ -5,7 +5,7 @@ using AutomotiveApp.Shared.Response;
 
 public interface ICourseService
 {
-    Task<Guid?> CreateMultipartAsync(string name, string description, int price, Guid categoryId, IBrowserFile? file = null, CancellationToken ct = default);
+    Task<ApiResponse<CourseQueryDto>> CreateMultipartAsync(string name, string description, int price, Guid categoryId, IBrowserFile? file = null, CancellationToken ct = default);
     Task<bool> UpdateMultipartAsync(Guid id, string? name, string? description, int? price, Guid? categoryId, IBrowserFile? file = null, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 

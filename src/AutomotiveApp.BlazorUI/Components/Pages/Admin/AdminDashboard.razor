@@ -1,4 +1,6 @@
 ﻿@page "/admin/dashboard"
+@layout AdminLayout
+@using AutomotiveApp.BlazorUI.Helper
 @rendermode InteractiveServer
 @inject IDashboardService DashboardService
 
@@ -46,7 +48,7 @@
         </MudItem>
     </MudGrid>
 
-    <AdminTable TItem="DashboardTransactionModel" Items="Invoices" Columns="InvoiceColumns" />
+    <AdminTable TItem="DashboardTransactionModel" Items="Invoices" Columns="InvoiceColumns" Loading="@_isLoading" />
 </MudPaper>
 
 
@@ -84,8 +86,9 @@
     private string FormatIdr(decimal v) => string.Format(Indo, "IDR {0:N0}", v);
 
     // Statistik
+    private bool _isLoading = true;
     private int TotalActiveUsers;
-    private string TotalRevenue;
+    private string TotalRevenue = string.Empty;
     private int TotalMembers;
 
     private List<DashboardTransactionModel> Invoices = new();
@@ -102,7 +105,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadDashboardAsync();
+        await RetryHelper.ExecuteWithRetryAsync(
+        action: () => LoadDashboardAsync(),
+        onLoadingChanged: (loading) => _isLoading = loading,
+        maxAttempts: 5,
+        delayMs: 100
+        );
     }
 
     private async Task LoadDashboardAsync()

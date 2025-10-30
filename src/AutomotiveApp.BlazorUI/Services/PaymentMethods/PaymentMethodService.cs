@@ -6,11 +6,11 @@ using AutomotiveApp.Shared.Response;
 public class PaymentMethodService : IPaymentMethodService
 {
     private readonly HttpClient _http;
-    public PaymentMethodService(HttpClient http) => _http = http;
+    public PaymentMethodService(IHttpClientFactory httpClientFactory) => _http = httpClientFactory.CreateClient("ServerAPI");
 
     public async Task<IEnumerable<PaymentMethodReadDto>> GetAllAsync(CancellationToken ct = default)
         => await _http.GetFromJsonAsync<IEnumerable<PaymentMethodReadDto>>("api/PaymentMethods", ct)
-           ?? Enumerable.Empty<PaymentMethodReadDto>();
+            ?? Enumerable.Empty<PaymentMethodReadDto>();
 
     public async Task<Guid?> CreateAsync(PaymentMethodCreateDto dto, CancellationToken ct = default)
     {

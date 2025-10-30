@@ -2,87 +2,78 @@
 @inject IDialogService DialogService
 
 <MudPaper Class="w-100 p-2 mb-3">
-<MudTextField @bind-Value="SearchText" 
-              Placeholder="Search..." 
-              Adornment="Adornment.Start" 
-              AdornmentIcon="@Icons.Material.Filled.Search"
-              Immediate="true"
-              OnKeyUp="@(e => ApplySearch())" />
+    <MudTextField @bind-Value="SearchText" Placeholder="Search..." Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnKeyUp="@(e => ApplySearch())" />
 </MudPaper>
 
 <div class="responsive-table">
-<MudTable Items="FilteredItems" Hover="true" Dense=true Striped=true
-          Style="background-color: white;">
-    <HeaderContent>
-        @foreach (var column in Columns) 
-        {
-            <!-- TODO: change styling -->
-            <MudTh Class="text-center py-3" Style="background-color: #FFA896;">@column.Header</MudTh>
-        }
-    </HeaderContent>
-    <RowTemplate>
-        @foreach (var column in Columns)
-        {
-            <MudTd Class="text-center" DataLabel="@column.Header">
-                @if (column.IsStatusColumn)
-                {
-                    <MudChip T="string" Color="@(GetStatusColor(context))" 
-                             Variant="Variant.Filled" 
-                             Size="Size.Small">
-                        @column.CellTemplate(context)
-                    </MudChip>
-                }
-                else if (column.IsActionColumn)
-                {
-                    @if (column.ShowDetails)
+    <MudTable Items="FilteredItems" Hover="true" Dense=true Striped=true Style="background-color: white;">
+        <HeaderContent>
+            @foreach (var column in Columns)
+            {
+                <!-- TODO: change styling -->
+                <MudTh Class="text-center py-3" Style="background-color: #FFA896;">@column.Header</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            @foreach (var column in Columns)
+            {
+                <MudTd Class="text-center" DataLabel="@column.Header">
+                    @if (column.IsStatusColumn)
                     {
-                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
-                                       Color="Color.Primary"
-                                       OnClick="@(() => OnDetailsClick(context))"
-                                       Title="Details" />
+                        <MudChip T="string" Color="@(GetStatusColor(context))" Variant="Variant.Filled" Size="Size.Small">
+                            @column.CellTemplate(context)
+                        </MudChip>
                     }
+                    else if (column.IsActionColumn)
+                    {
+                        @if (column.ShowDetails)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary"
+                                OnClick="@(() => OnDetailsClick(context))" Title="Details" />
+                        }
 
-                    @if (column.ShowEdit)
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                       Color="Color.Primary"
-                                       OnClick="@(() => OnEditClick(context))"
-                                       Title="Edit" />
+                        @if (column.ShowEdit)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                                OnClick="@(() => OnEditClick(context))" Title="Edit" />
+                        }
                     }
-                }
-                else if (column.IsImageColumn)
-                {
-                    var imageUrl = column.CellTemplate(context)?.ToString();
-                    @if (!string.IsNullOrEmpty(imageUrl))
+                    else if (column.IsImageColumn)
                     {
-                        
+                        var imageUrl = column.CellTemplate(context)?.ToString();
+                        @if (!string.IsNullOrEmpty(imageUrl))
+                        {
+
                             <MudImage Src="@imageUrl" Height="30" Class="p-1" />
-                        
+
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Image" Color="Color.Inherit" />
+                        }
                     }
                     else
                     {
-                        <MudIcon Icon="@Icons.Material.Filled.Image" Color="Color.Inherit" />
+                        @column.CellTemplate(context)
                     }
-                }
-                else
-                {
-                    @column.CellTemplate(context)
-                }
-            </MudTd>
-        }
-    </RowTemplate>
-    <PagerContent>
-        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                </MudTd>
+            }
+        </RowTemplate>
+        <PagerContent>
+            <MudHidden Breakpoint="Breakpoint.MdAndUp">
                 <MudTablePager HidePageNumber=true HideRowsPerPage />
-        </MudHidden>
+            </MudHidden>
             <MudHidden Breakpoint="Breakpoint.SmAndDown">
                 <MudTablePager />
             </MudHidden>
-    </PagerContent>
-</MudTable>
+        </PagerContent>
+    </MudTable>
 </div>
 
 @code {
+
+    [Parameter] public required bool Loading { get; set; }
     [Parameter] public required IEnumerable<TItem> Items { get; set; }
     [Parameter] public required List<ColumnDefinition<TItem>> Columns { get; set; }
     [Parameter] public EventCallback<TItem> OnEdit { get; set; }
@@ -107,9 +98,9 @@
         }
 
         FilteredItems = Items.Where(item =>
-            Columns.Where(c => c.IsSearchable)
-                   .Any(c => (c.CellTemplate(item)?.ToString() ?? "")
-                        .Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+        Columns.Where(c => c.IsSearchable)
+        .Any(c => (c.CellTemplate(item)?.ToString() ?? "")
+        .Contains(SearchText, StringComparison.OrdinalIgnoreCase))
         ).ToList();
     }
 
@@ -120,7 +111,7 @@
             UserViewModel u => u.Status,
             CourseViewModel c => c.Status,
             CategoryViewModel ca => ca.Status,
-            PaymentMethodViewModel p=> p.Status,
+            PaymentMethodViewModel p => p.Status,
             _ => default
         };
 
@@ -135,7 +126,7 @@
     private async Task OnEditClick(TItem item)
     {
         DialogParameters parameters = new() { ["Item"] = item };
-        
+
         IDialogReference? dialog = item switch
         {
             UserViewModel u => await DialogService.ShowAsync<EditUserDialog>("Edit User", parameters),
@@ -163,6 +154,6 @@
     {
         var parameters = new DialogParameters { ["Item"] = item };
         var dialog = await DialogService.ShowAsync<DetailsDashboardDialog<TItem>>("Item Details", parameters);
-        await dialog.Result; 
+        await dialog.Result;
     }
 }

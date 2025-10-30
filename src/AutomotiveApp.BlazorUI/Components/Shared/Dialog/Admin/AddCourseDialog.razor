@@ -5,27 +5,22 @@
 
 <MudDialog Class="m-2">
     <DialogContent>
-        <MudForm @ref="_form">
+        <MudForm @ref="_form" Model="@_vm">
 
-            <MudSelect T="Guid" 
-                       @bind-Value="_vm.CategoryId" 
-                       Label="Category" 
-                       Placeholder="-- Select Category --"
-                       Required="true" 
-                       Class="mb-2">
+            <MudSelect T="Guid ?" @bind-Value="_vm.CategoryId" Label="Category" Placeholder="-- Select Category --"
+                Required="true" Class="mb-2" For=@(() => _vm.CategoryId)>
 
-                <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Category --</MudSelectItem>
-
+                <MudSelectItem T="Guid ?" Value=" null" Disabled="true">-- Select Category --</MudSelectItem>
                 @foreach (var kv in Categories)
                 {
-                    <MudSelectItem Value="@kv.Key">@kv.Value</MudSelectItem>
+                    <MudSelectItem T="Guid ?" Value="@(kv.Key)">@kv.Value</MudSelectItem>
                 }
             </MudSelect>
-            
+
             <MudTextField @bind-Value="_vm.Name" Label="Course Name" Required="true" Class="mb-2" />
             <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
-            <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="1" Step="1000" Class="mb-2" />
-
+            <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="1000" Step="1000" Class="mb-2"
+                For="@(() => _vm.Price)" />
             <MudItem Class="my-2">
                 <MudText Typo="Typo.body2" Class="mb-1">Sessions:</MudText>
                 <MudTable Items="_vm.Sessions" Hover="true" Dense="true" Class="mb-2">
@@ -36,17 +31,21 @@
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>
-                            <MudDatePicker T="DateTime?" Date="@context.Date" DateChanged="d => OnDateChanged(context, d)" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" MinDate="@DateTime.Today" />
+                            <MudDatePicker T="DateTime?" Date="@context.Date"
+                                DateChanged="d => OnDateChanged(context, d)" Culture="@(new CultureInfo("en-US"))"
+                                DateFormat="dd MMM yyyy" MinDate="@DateTime.Today" />
                         </MudTd>
                         <MudTd>
                             <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
                         </MudTd>
                         <MudTd Class="text-right">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=>RemoveSession(context))" Title="Remove" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                OnClick="@(()=>RemoveSession(context))" Title="Remove" />
                         </MudTd>
                     </RowTemplate>
                     <ToolBarContent>
-                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddSession">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add"
+                            OnClick="AddSession">
                             Add Session
                         </MudButton>
                     </ToolBarContent>
@@ -74,8 +73,8 @@
 
     private CourseViewModel _vm = new()
     {
-        CategoryId = Guid.Empty,
-        Sessions = new()  
+        CategoryId = null,
+        Sessions = new()
     };
 
     private MudForm _form = default!;
@@ -83,21 +82,21 @@
 
     private void OnDateChanged(CourseSessionVM row, DateTime? newDate)
     {
-        // not backdate 
+        // not backdate
         if (newDate.HasValue && newDate.Value.Date < DateTime.Today)
         {
             Snackbar.Add($"You cannot select past dates: {newDate.Value:dd MMM yyyy}", Severity.Warning);
-            return; 
+            return;
         }
 
-        // cek duplikat 
+        // cek duplikat
         if (newDate.HasValue && _vm.Sessions?.Any(s =>
-                !ReferenceEquals(s, row) &&
-                s.Date.HasValue &&
-                s.Date.Value.Date == newDate.Value.Date) == true)
+        !ReferenceEquals(s, row) &&
+        s.Date.HasValue &&
+        s.Date.Value.Date == newDate.Value.Date) == true)
         {
             Snackbar.Add($"Duplicate session date is not allowed: {newDate.Value:dd MMM yyyy}", Severity.Warning);
-            return; 
+            return;
         }
 
         row.Date = newDate;
@@ -110,7 +109,7 @@
         _vm.Sessions.Add(new CourseSessionVM
         {
             Id = null,
-            Date = null, 
+            Date = null,
             Capacity = 1
         });
     }
@@ -121,32 +120,32 @@
         await _form.Validate();
         if (!_form.IsValid) return;
 
-        if ((_vm.Sessions == null || _vm.Sessions.Count == 0) 
-            && _vm.Schedule is DateTime d 
-            && _vm.Capacity > 0)
+        if ((_vm.Sessions == null || _vm.Sessions.Count == 0)
+        && _vm.Schedule is DateTime d
+        && _vm.Capacity > 0)
         {
             _vm.Sessions = new()
-            {
-                new CourseSessionVM { Id = null, Date = d, Capacity = _vm.Capacity }
-            };
+{
+new CourseSessionVM { Id = null, Date = d, Capacity = _vm.Capacity }
+};
         }
 
         _vm.Sessions = (_vm.Sessions ?? new())
-            .Where(s => s.Date.HasValue && s.Capacity > 0)
-            .ToList();
+        .Where(s => s.Date.HasValue && s.Capacity > 0)
+        .ToList();
 
-        // cek duplikat 
+        // cek duplikat
         var dupes = _vm.Sessions
-            .Where(s => s.Date.HasValue)
-            .GroupBy(s => s.Date!.Value.Date)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key.ToString("dd MMM yyyy"))
-            .ToList();
+        .Where(s => s.Date.HasValue)
+        .GroupBy(s => s.Date!.Value.Date)
+        .Where(g => g.Count() > 1)
+        .Select(g => g.Key.ToString("dd MMM yyyy"))
+        .ToList();
 
         if (dupes.Count > 0)
         {
             Snackbar.Add($"Duplicate session dates are not allowed: {string.Join(", ", dupes)}", Severity.Warning);
-            return; 
+            return;
         }
 
         MudDialog.Close(DialogResult.Ok(_vm));

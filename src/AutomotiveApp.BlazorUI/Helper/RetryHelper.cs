@@ -8,6 +8,7 @@ namespace AutomotiveApp.BlazorUI.Helper
             int maxAttempts = 5,
             int delayMs = 100)
         {
+            Console.WriteLine($"[RetryHelper] Starting with maxAttempts={maxAttempts}, delayMs={delayMs}ms");
             onLoadingChanged(true);
 
             try
@@ -16,20 +17,30 @@ namespace AutomotiveApp.BlazorUI.Helper
                 {
                     try
                     {
+                        Console.WriteLine($"[RetryHelper] Attempt {i + 1}/{maxAttempts} starting...");
                         await action();
+                        Console.WriteLine($"[RetryHelper] Attempt {i + 1} succeeded ✅");
                         return;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        if (i == maxAttempts - 1)
-                            break;
+                        Console.WriteLine($"[RetryHelper] Attempt {i + 1} failed ❌: {ex.GetType().Name}: {ex.Message}");
 
+                        if (i == maxAttempts - 1)
+                        {
+                            Console.WriteLine($"[RetryHelper] All {maxAttempts} attempts failed. Giving up. 🚫");
+                            break;
+                        }
+
+                        Console.WriteLine($"[RetryHelper] Waiting {delayMs}ms before next attempt...");
                         await Task.Delay(delayMs);
+                        Console.WriteLine($"[RetryHelper] Retrying now...");
                     }
                 }
             }
             finally
             {
+                Console.WriteLine("[RetryHelper] Execution finished");
                 onLoadingChanged(false);
             }
         }

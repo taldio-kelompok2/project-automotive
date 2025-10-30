@@ -5,15 +5,17 @@ using AutomotiveApp.BlazorUI.Services.Interface;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+using System.Net;
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
 {
-    public class CourseService(HttpClient http) : ICourseService
+    public class CourseService(IHttpClientFactory httpFactory) : ICourseService
+
     {
-        private readonly HttpClient _http = http;
+        private readonly HttpClient _http = httpFactory.CreateClient("ServerAPI");
         private const string BaseEndpoint = "api/Course";
 
-        public async Task<Guid?> CreateMultipartAsync(
+        public async Task<ApiResponse<CourseQueryDto>> CreateMultipartAsync(
             string name,
             string description,
             int price,
@@ -21,11 +23,13 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             IBrowserFile? file = null,
             CancellationToken ct = default)
         {
-            using var content = new MultipartFormDataContent();
-            content.Add(new StringContent(name, Encoding.UTF8), "Name");
-            content.Add(new StringContent(description, Encoding.UTF8), "Description");
-            content.Add(new StringContent(price.ToString(), Encoding.UTF8), "Price");
-            content.Add(new StringContent(categoryId.ToString(), Encoding.UTF8), "CategoryId");
+            using var content = new MultipartFormDataContent
+            {
+                { new StringContent(name, Encoding.UTF8), "Name" },
+                { new StringContent(description, Encoding.UTF8), "Description" },
+                { new StringContent(price.ToString(), Encoding.UTF8), "Price" },
+                { new StringContent(categoryId.ToString(), Encoding.UTF8), "CategoryId" }
+            };
 
             if (file is not null)
             {
@@ -33,11 +37,18 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 content.Add(new StreamContent(stream), "Image", file.Name);
             }
 
-            using var resp = await _http.PostAsync($"{BaseEndpoint}", content, ct);
-            if (!resp.IsSuccessStatusCode) return null;
+            var response = await _http.PostAsync($"{BaseEndpoint}", content, ct);
 
-            var body = await resp.Content.ReadFromJsonAsync<ApiResponse<CourseQueryDto>>(cancellationToken: ct);
-            return body?.Data?.Id;
+            var body = await response.Content.ReadFromJsonAsync<ApiResponse<CourseQueryDto>>(cancellationToken: ct)
+            ?? new ApiResponse<CourseQueryDto>
+            {
+                Success = false,
+                StatusCode = HttpStatusCode.InternalServerError,
+                Data = null,
+                Errors = ["Failed to parse server response"]
+            };
+
+            return body;
         }
 
         public async Task<bool> UpdateMultipartAsync(

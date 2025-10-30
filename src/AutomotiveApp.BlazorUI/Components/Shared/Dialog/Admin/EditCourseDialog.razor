@@ -8,27 +8,22 @@
 
 <MudDialog>
   <DialogContent>
-    <MudForm @ref="_form">
-
-      <MudSelect T="Guid"
-                 @bind-Value="_vm.CategoryId"
-                 Label="Category"
-                 Placeholder="-- Select Category --"
-                 Required="true"
-                 Class="mb-2"
-                 ToStringFunc="@(g => Categories != null && Categories.TryGetValue(g, out var n) ? n : string.Empty)"
-                 @key="Categories">
-        <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Category --</MudSelectItem>
+    <MudForm @ref="_form" Model="@_vm">
+      <MudSelect T="Guid ?" @bind-Value="_vm.CategoryId" Label="Category" Placeholder="-- Select Category --"
+        Required="true" Class="mb-2"
+        ToStringFunc="@(g => Categories != null && Categories.TryGetValue(g ?? Guid.Empty, out var n) ? n : string.Empty)"
+        @key="Categories">
+        <MudSelectItem T="Guid ?" Value="null" Disabled="true">-- Select Category --</MudSelectItem>
 
         @foreach (var kv in Categories)
         {
-          <MudSelectItem Value="@kv.Key">@kv.Value</MudSelectItem>
+          <MudSelectItem T="Guid ?" Value="@kv.Key">@kv.Value</MudSelectItem>
         }
       </MudSelect>
-
       <MudTextField @bind-Value="_vm.Name" Label="Course Name" Required="true" Class="mb-2" />
       <MudTextField @bind-Value="_vm.Description" Label="Description" Required="true" Class="mb-2" />
-      <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="0" Class="mb-2" />
+      <MudNumericField @bind-Value="_vm.Price" Label="Price" Required="true" Min="1000" Class="mb-2"
+        For="@(() => _vm.Price)" />
 
       <MudItem Class="my-2">
         <MudText Typo="Typo.body2" Class="mb-1">Sessions:</MudText>
@@ -41,20 +36,17 @@
           <RowTemplate>
             <MudTd>
               @* <MudDatePicker T="DateTime?" @bind-Date="context.Date" Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" /> *@
-              <MudDatePicker T="DateTime?"
-               Date="@(context.Date)"
-               DateChanged="d => OnDateChanged(context, d)"
-               Culture="@(new CultureInfo("en-US"))"
-               DateFormat="dd MMM yyyy"
-               MinDate="@DateTime.Today"
-               Disabled="@IsPastLocked(context)" />
+              <MudDatePicker T="DateTime?" Date="@(context.Date)" DateChanged="d => OnDateChanged(context, d)"
+                Culture="@(new CultureInfo("en-US"))" DateFormat="dd MMM yyyy" MinDate="@DateTime.Today"
+                Disabled="@IsPastLocked(context)" />
 
             </MudTd>
             <MudTd>
               <MudNumericField T="uint" @bind-Value="context.Capacity" Min="1" />
             </MudTd>
             <MudTd Class="text-right">
-              <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=>RemoveSession(context))" Title="Remove" />
+              <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                OnClick="@(()=>RemoveSession(context))" Title="Remove" />
             </MudTd>
           </RowTemplate>
           <ToolBarContent>
@@ -93,130 +85,130 @@
 
   protected override async Task OnParametersSetAsync()
   {
-      if (Item is not null)
+    if (Item is not null)
+    {
+      _vm = new CourseViewModel
       {
-          _vm = new CourseViewModel
-          {
-              ID          = Item.ID,
-              CourseId    = Item.CourseId,
-              Name        = Item.Name,
-              Description = Item.Description,
-              Price       = Item.Price,
-              CategoryId  = Item.CategoryId,
-              Category    = Item.Category,
-              Image       = Item.Image
-          };
+        ID = Item.ID,
+        CourseId = Item.CourseId,
+        Name = Item.Name,
+        Description = Item.Description,
+        Price = Item.Price,
+        CategoryId = Item.CategoryId,
+        Category = Item.Category,
+        Image = Item.Image
+      };
 
-          // semua session course yg dipilih
-          var sessRes = await CourseSessionSvc.GetAllAsync();
-          var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
-                          .Where(s => s.CourseId == Item.CourseId)
-                          .OrderBy(s => s.Date)
-                          .ToList();
+      // semua session course yg dipilih
+      var sessRes = await CourseSessionSvc.GetAllAsync();
+      var sessions = (sessRes.Data ?? Enumerable.Empty<CourseSessionQueryDto>())
+      .Where(s => s.CourseId == Item.CourseId)
+      .OrderBy(s => s.Date)
+      .ToList();
 
-          _vm.Sessions = sessions
-              .Select(s => new CourseSessionVM
-              {
-                  Id       = s.Id,
-                  Date     = s.Date,          
-                  Capacity = s.Capacity 
-              })
-              .ToList();
-      }
-      else
+      _vm.Sessions = sessions
+      .Select(s => new CourseSessionVM
       {
-          _vm = new CourseViewModel();
-          _vm.CategoryId = Guid.Empty;
-          _vm.Sessions = new(); 
-      }
+        Id = s.Id,
+        Date = s.Date,
+        Capacity = s.Capacity
+      })
+      .ToList();
+    }
+    else
+    {
+      _vm = new CourseViewModel();
+      _vm.CategoryId = Guid.Empty;
+      _vm.Sessions = new();
+    }
   }
 
 
   private bool IsPastLocked(CourseSessionVM row)
-      => row.Id != null && row.Date.HasValue && row.Date.Value.Date < DateTime.Today;
+  => row.Id != null && row.Date.HasValue && row.Date.Value.Date < DateTime.Today;
 
 
-   // not backdate dan duplikat tanggal
+  // not backdate dan duplikat tanggal
   private void OnDateChanged(CourseSessionVM row, DateTime? newDate)
   {
-      if (IsPastLocked(row))
-      {
-          // session lama tidak boleh ubah tanggal
-          Snackbar.Add($"Past sessions cannot be rescheduled: {row.Date!.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
-          return;
-      }
+    if (IsPastLocked(row))
+    {
+      // session lama tidak boleh ubah tanggal
+      Snackbar.Add($"Past sessions cannot be rescheduled: {row.Date!.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+      return;
+    }
 
-      if (newDate.HasValue && newDate.Value.Date < DateTime.Today)
-      {
-          Snackbar.Add($"You cannot select past dates: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
-          return;
-      }
+    if (newDate.HasValue && newDate.Value.Date < DateTime.Today)
+    {
+      Snackbar.Add($"You cannot select past dates: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+      return;
+    }
 
-      if (newDate.HasValue && _vm.Sessions?.Any(s =>
-              !ReferenceEquals(s, row) &&
-              s.Date.HasValue &&
-              s.Date.Value.Date == newDate.Value.Date) == true)
-      {
-          Snackbar.Add($"Duplicate session date is not allowed: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
-          return;
-      }
+    if (newDate.HasValue && _vm.Sessions?.Any(s =>
+    !ReferenceEquals(s, row) &&
+    s.Date.HasValue &&
+    s.Date.Value.Date == newDate.Value.Date) == true)
+    {
+      Snackbar.Add($"Duplicate session date is not allowed: {newDate.Value.ToString("dd MMM yyyy", enUS)}", Severity.Warning);
+      return;
+    }
 
-      row.Date = newDate;
+    row.Date = newDate;
   }
 
 
   private void AddSession()
   {
-      _vm.Sessions.Add(new CourseSessionVM
-      {
-          Id = null,
-          Date = null, 
-          Capacity = 1
-      });
+    _vm.Sessions.Add(new CourseSessionVM
+    {
+      Id = null,
+      Date = null,
+      Capacity = 1
+    });
   }
 
 
   private void RemoveSession(CourseSessionVM s)
   {
-      _vm.Sessions.Remove(s);
+    _vm.Sessions.Remove(s);
   }
 
 
   private async Task Save()
   {
-      await _form.Validate();
-      if (!_form.IsValid) return;
+    await _form.Validate();
+    if (!_form.IsValid) return;
 
-      _vm.Sessions = (_vm.Sessions ?? new())
-          .Where(s => s.Date.HasValue && s.Capacity > 0)
-          .ToList();
+    _vm.Sessions = (_vm.Sessions ?? new())
+    .Where(s => s.Date.HasValue && s.Capacity > 0)
+    .ToList();
 
-      // cek backdate
-      var past = _vm.Sessions
-          .Where(s => s.Date!.Value.Date < DateTime.Today)
-          .Select(s => s.Date!.Value.ToString("dd MMM yyyy", enUS))
-          .ToList();
+    // cek backdate
+    var past = _vm.Sessions
+    .Where(s => s.Date!.Value.Date < DateTime.Today)
+    .Select(s => s.Date!.Value.ToString("dd MMM yyyy", enUS))
+    .ToList();
 
-      if (past.Count > 0)
-      {
-          Snackbar.Add($"You cannot select past dates: {string.Join(", ", past)}", Severity.Error);
-          return;
-      }
+    if (past.Count > 0)
+    {
+      Snackbar.Add($"You cannot select past dates: {string.Join(", ", past)}", Severity.Error);
+      return;
+    }
 
-      // cek duplikat
-      var dupes = _vm.Sessions
-          .GroupBy(s => s.Date!.Value.Date)
-          .Where(g => g.Count() > 1)
-          .Select(g => g.Key.ToString("dd MMM yyyy", enUS))
-          .ToList();
+    // cek duplikat
+    var dupes = _vm.Sessions
+    .GroupBy(s => s.Date!.Value.Date)
+    .Where(g => g.Count() > 1)
+    .Select(g => g.Key.ToString("dd MMM yyyy", enUS))
+    .ToList();
 
-      if (dupes.Count > 0)
-      {
-          Snackbar.Add($"Duplicate session dates are not allowed: {string.Join(", ", dupes)}", Severity.Error);
-          return;
-      }
+    if (dupes.Count > 0)
+    {
+      Snackbar.Add($"Duplicate session dates are not allowed: {string.Join(", ", dupes)}", Severity.Error);
+      return;
+    }
 
-      MudDialog.Close(DialogResult.Ok(_vm));
+    MudDialog.Close(DialogResult.Ok(_vm));
   }
 
 
@@ -227,14 +219,15 @@
     {
       var rows = await CategorySvc.GetAllAsync();
       Categories = rows
-        .OrderBy(x => x.Name)
-        .ToDictionary(x => x.Id, x => x.Name);
+      .OrderBy(x => x.Name)
+      .ToDictionary(x => x.Id, x => x.Name);
     }
+    var isCategoryExist = Categories.ContainsKey(Item?.CategoryId ?? Guid.Empty);
 
-    // set categoryId di vm sesuai item 
-    if (Item is not null && Categories.ContainsKey(Item.CategoryId))
+    // set categoryId di vm sesuai item
+    if (Item is not null && isCategoryExist)
       _vm.CategoryId = Item.CategoryId;
-    else if (_vm.CategoryId != Guid.Empty && !Categories.ContainsKey(_vm.CategoryId))
+    else if (_vm.CategoryId != Guid.Empty && !isCategoryExist)
       _vm.CategoryId = Guid.Empty;
 
     StateHasChanged();

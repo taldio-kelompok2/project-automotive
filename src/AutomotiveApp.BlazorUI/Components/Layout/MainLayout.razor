@@ -6,55 +6,32 @@
 @inject IRentalCartService Cart
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserContextService UserContext
-
 @inject IAuthService AuthService
 
 @inherits LayoutComponentBase
 <CascadingAuthenticationState>
-    @if (_isAdminSection)
-    {
-        <!-- Admin Layout -->
-        <MudLayout Style="background-color: var(--mud-palette-surface); min-height: 100vh;" Class="pb-3">
-            <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
-            <MudPopoverProvider />
-            <MudDialogProvider @rendermode="InteractiveServer" />
-            <MudSnackbarProvider />
+    <MudLayout>
+        <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
+        <MudPopoverProvider />
+        <MudDialogProvider @rendermode="InteractiveServer" />
+        <MudSnackbarProvider />
 
-            <AdminNavBar />
+        @if (!_hideNavbar)
+        {
+            <AuthorizeView>
+                <Authorized>
+                    <UserNavbar />
+                </Authorized>
+                <NotAuthorized>
+                    <GuestNavbar />
+                </NotAuthorized>
+            </AuthorizeView>
+        }
 
-            <MudMainContent Class="p-0">
-                <div style="padding-top: 55px;">
-                    @Body
-                </div>
-            </MudMainContent>
-        </MudLayout>
-    }
-    else
-    {
-        <!-- Regular Layout -->
-        <MudLayout>
-            <MudThemeProvider Theme="_theme" IsDarkMode="@_isDarkMode" />
-            <MudPopoverProvider />
-            <MudDialogProvider @rendermode="InteractiveServer" />
-            <MudSnackbarProvider />
-
-            @if (!_hideNavbar)
-            {
-                <AuthorizeView>
-                    <Authorized>
-                        <UserNavbar />
-                    </Authorized>
-                    <NotAuthorized>
-                        <GuestNavbar />
-                    </NotAuthorized>
-                </AuthorizeView>
-            }
-
-            <MudMainContent>
-                @Body
-            </MudMainContent>
-        </MudLayout>
-    }
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+    </MudLayout>
 </CascadingAuthenticationState>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -65,47 +42,65 @@
 
 @code {
     private readonly MudTheme _theme = new AppTheme();
-    private Timer? _refreshTimer;
 
     private bool _isDarkMode = false;
     private bool _hideNavbar = false;
-    private bool _isAdminSection = false;
-
-    [CascadingParameter]
-    private RouteData? CurrentRoute { get; set; }
 
     private readonly string[] _noNavbarPages =
     {
+"/admin/",
 "/email-confirmed",
-"/success-purchase"
+"/success-purchase",
+@* "/notfound" *@
 };
 
     private readonly string[] _protectedPages = new[]
     {
 "/checkout",
 "/profile",
-"/my-class",
-"/invoice"
+"/my-class"
 };
 
     protected override async Task OnInitializedAsync()
     {
-        Nav.LocationChanged += async (_, __) =>
-        {
-            CheckProtectedPage();
-            UpdateNavbarVisibility();
-        };
-
-        CheckProtectedPage();
         UpdateNavbarVisibility();
 
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _lastAuthState = authState.User.Identity?.IsAuthenticated ?? false;
 
-        // Listen for authentication state changes
-        AuthStateProvider.AuthenticationStateChanged += async (task) =>
+        // Subscribe to changes
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        StateHasChanged();
+    }
+
+    private bool _lastAuthState = false;
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        try
         {
             var state = await task;
-            StateHasChanged();
-        };
+            var isAuthenticated = state.User.Identity?.IsAuthenticated ?? false;
+
+            // Only update if auth state actually changed
+            if (isAuthenticated != _lastAuthState)
+            {
+                Console.WriteLine($"Auth state changed: {_lastAuthState} → {isAuthenticated}");
+                _lastAuthState = isAuthenticated;
+
+                // Update critical UI immediately
+                UpdateNavbarVisibility();
+
+                // Full re-render after a tiny delay
+                await Task.Delay(50);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in auth state change: {ex.Message}");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -113,55 +108,33 @@
         if (!firstRender)
             return;
 
-        await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-        await AuthStateProvider.GetAuthenticationStateAsync();
+        var success = await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+        if (!success)
+            await AuthStateProvider.GetAuthenticationStateAsync();
 
-        _refreshTimer = new Timer(async _ =>
-        {
-            await InvokeAsync(async () =>
-    {
-            try
-            {
-                await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
-            }
-            catch { /* Ignore errors */ }
-        });
-        }, null, TimeSpan.FromMinutes(0.5), TimeSpan.FromMinutes(0.5));
+        // Initial checks
+        await CheckProtectedPage();
+        await StartRefreshTimer();
     }
 
     private void UpdateNavbarVisibility()
     {
-        var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
-        _hideNavbar = _noNavbarPages.Any(p => uri.Contains(p));
-
+        var currentUri = Nav.Uri.ToLower();
+        _hideNavbar = _noNavbarPages.Any(path =>
+        Nav.Uri.Contains(path, StringComparison.OrdinalIgnoreCase));
         StateHasChanged();
     }
 
-    private void CheckProtectedPage()
+    private async Task CheckProtectedPage()
     {
         var uri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
-        _isAdminSection = uri.StartsWith("admin");
-
-        if (_isAdminSection)
-        {
-            if (!UserContext.Current.IsAuthenticated)
-            {
-                Console.WriteLine("🚫 No access token, redirecting to login");
-                Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
-                return;
-            }
-
-            if (UserContext.Current.Role != "Admin")
-            {
-                Console.WriteLine("🚫 Non-admin tried accessing admin route, redirecting");
-                Nav.NavigateTo("/NotFound", forceLoad: true);
-                return;
-            }
-        }
 
         if (_protectedPages.Any(p => uri.StartsWith(p.TrimStart('/'))))
         {
-            if (!UserContext.Current.IsAuthenticated)
+            var hasUserContextAuth = UserContext.Current.IsAuthenticated;
+
+            // Redirect only if NO access token found
+            if (!hasUserContextAuth)
             {
                 Console.WriteLine("🚫 No access token, redirecting to login");
                 Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Nav.Uri)}", forceLoad: true);
@@ -173,9 +146,45 @@
         }
     }
 
+    private async Task StartRefreshTimer()
+    {
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                var delay = CalculateHalfExpiryTime();
+                await Task.Delay(delay);
+
+                try
+                {
+                    await ((CustomAuthStateProvider)AuthStateProvider).TryRefreshSessionAsync();
+                }
+                catch { /* Ignore errors */ }
+            }
+        });
+
+        // Return immediately without waiting for the infinite loop
+        await Task.CompletedTask;
+    }
+    private TimeSpan CalculateHalfExpiryTime()
+    {
+        if (UserContext.Current.ExpiresAtUtc == null)
+            return TimeSpan.FromMinutes(5);
+
+        var now = DateTime.UtcNow;
+        var expiry = UserContext.Current.ExpiresAtUtc.Value;
+
+        if (now >= expiry)
+            return TimeSpan.Zero;
+
+        var totalDuration = expiry - now;
+        var halfDuration = TimeSpan.FromMinutes(totalDuration.TotalMinutes / 2);
+
+        return halfDuration;
+    }
 
     public void Dispose()
     {
-        _refreshTimer?.Dispose();
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

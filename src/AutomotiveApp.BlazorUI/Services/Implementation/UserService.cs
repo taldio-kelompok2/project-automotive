@@ -1,9 +1,8 @@
-﻿using AutomotiveApp.BlazorUI.Services.Interface;
+﻿using AutomotiveApp.BlazorUI.Components.Pages;
+using AutomotiveApp.BlazorUI.Services.Interface;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
-using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
@@ -12,9 +11,9 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
     {
         private readonly HttpClient _httpClient;
         public UserService(
-            HttpClient httpClient)
+            IHttpClientFactory httpFactory)
         {
-            _httpClient = httpClient;
+            _httpClient = httpFactory.CreateClient("ServerAPI");
         }
 
         public async Task<IEnumerable<UserQueryDto>> GetAllUsers()
@@ -26,18 +25,19 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (response.IsSuccessStatusCode)
                 {
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<UserQueryDto>>>();
-                    return apiResponse?.Data;
+
+                    return apiResponse?.Data ?? [];
                 }
                 else
                 {
                     Console.WriteLine($"[UserService] Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                    return null;
+                    return [];
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[UserService] Exception: {ex.Message}");
-                return null;
+                return [];
             }
         }
 
@@ -59,45 +59,45 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (response.IsSuccessStatusCode)
                 {
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<PaginatedResult<UserQueryDto>>>();
-                    return apiResponse?.Data;
+                    return apiResponse?.Data ?? new PaginatedResult<UserQueryDto>([], 0);
                 }
                 else
                 {
                     Console.WriteLine($"[UserService] Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                    return null;
+                    return new PaginatedResult<UserQueryDto>([], 0);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[UserService] Exception: {ex.Message}");
-                return null;
+                return new PaginatedResult<UserQueryDto>([], 0);
             }
         }
 
-        public async Task<ApiResponse<bool>> CreateUser(UserCreateRequestDto userCreateDto)
+        public async Task<ApiResponse<UserCreateRequestDto>> CreateUser(UserCreateRequestDto userCreateDto)
         {
             var response = await _httpClient.PostAsJsonAsync("api/user", userCreateDto);
-            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-
-            if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<UserCreateRequestDto>>()
+            ?? new ApiResponse<UserCreateRequestDto>()
             {
-                var message = apiResponse?.Errors?.FirstOrDefault() ?? "Internal error";
-                Console.WriteLine($"create user: {message}");
-                throw new Exception(message);
-            }
+                Success = false,
+                Data = null,
+                Errors = ["Something went wrong with the request"]
+            };
             return apiResponse;
         }
 
         public async Task<ApiResponse<bool>> UpdateUser(Guid userId, UserUpdateRequestDto userUpdateDto)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}", userUpdateDto);
-            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-
-            if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>()
+            ?? new ApiResponse<bool>()
             {
-                var message = apiResponse?.Errors?.FirstOrDefault() ?? "Internal error";
-                throw new Exception(message);
-            }
+                Success = false,
+                Data = false,
+                Errors = ["Something went wrong with the request"]
+            };
+
             return apiResponse;
         }
 
@@ -110,7 +110,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (response.IsSuccessStatusCode)
                 {
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-                    return apiResponse.Success;
+                    return apiResponse?.Success ?? false;
                 }
 
                 return false;

@@ -40,3 +40,12 @@ window.refreshViaFetch = async (url, body) => {
     return await res.text();
 }
 
+window.scrollToTop = () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+    });
+};
+

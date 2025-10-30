@@ -9,8 +9,7 @@ using AutomotiveApp.Shared.Response;
 public class CourseCategoryService : ICourseCategoryService
 {
     private readonly HttpClient _http;
-    public CourseCategoryService(HttpClient http) => _http = http;
-
+    public CourseCategoryService(IHttpClientFactory httpClientFactory) => _http = httpClientFactory.CreateClient("ServerAPI");
     public async Task<IEnumerable<CourseCategoryQueryDto>> GetAllAsync(CancellationToken ct = default)
     {
         var resp = await _http.GetFromJsonAsync<ApiResponse<IEnumerable<CourseCategoryQueryDto>>>(
@@ -38,7 +37,7 @@ public class CourseCategoryService : ICourseCategoryService
         if (heroFile is not null)
         {
             var hstream = heroFile.OpenReadStream(long.MaxValue);
-            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name); 
+            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name);
         }
 
         using var resp = await _http.PostAsync("api/CourseCategory", content, ct);
@@ -72,7 +71,7 @@ public class CourseCategoryService : ICourseCategoryService
         if (heroFile is not null)
         {
             var hstream = heroFile.OpenReadStream(long.MaxValue);
-            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name); 
+            content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name);
         }
 
         using var req = new HttpRequestMessage(HttpMethod.Patch, $"api/CourseCategory/{id}")
