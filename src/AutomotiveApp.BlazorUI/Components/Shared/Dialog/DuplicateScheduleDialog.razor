@@ -1,3 +1,5 @@
+@using AutomotiveApp.BlazorUI.Models.Booking
+
 <MudDialog>
     <TitleContent>
         <MudText Class="text-center" Typo="Typo.h5" Color="Color.Dark">
@@ -9,13 +11,14 @@
         @if (ExistingBookings?.Any() == true)
         {
             <MudPaper Class="p-2 mb-2" Elevation="0">
-                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">Already Booked Sessions
+                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">
+                    Already Booked Class
                 </MudText>
-                <MudList T="string">
+                <MudList T="BookingConflictViewModel">
                     @{
                         var groupedByDate = ExistingBookings?
-                        .GroupBy(x => x.Value)
-                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, KeyValuePair<string, DateTime>>>();
+                        .GroupBy(x => x.SessionDate.Date)
+                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, BookingConflictViewModel>>();
                     }
 
                     @foreach (var dateGroup in groupedByDate)
@@ -27,7 +30,7 @@
                                 @foreach (var booking in dateGroup)
                                 {
                                     <MudListItem>
-                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.Key</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.CourseName</MudText>
                                     </MudListItem>
                                 }
                             </MudList>
@@ -39,13 +42,14 @@
         @if (ExistingCartBookings?.Any() == true)
         {
             <MudPaper Class="p-2 mb-2" Elevation="0">
-                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">Duplicate Schedules in Cart
+                <MudText Typo="Typo.body1" Color="Color.Primary" Class="text-center mb-1">
+                    Duplicate Schedules in Cart
                 </MudText>
-                <MudList T="string">
+                <MudList T="BookingConflictViewModel">
                     @{
                         var cartGroupedByDate = ExistingCartBookings?
-                        .GroupBy(x => x.Value)
-                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, KeyValuePair<string, DateTime>>>();
+                        .GroupBy(x => x.SessionDate.Date)
+                        .OrderBy(x => x.Key) ?? Enumerable.Empty<IGrouping<DateTime, BookingConflictViewModel>>();
                     }
 
                     @foreach (var dateGroup in cartGroupedByDate)
@@ -57,7 +61,7 @@
                                 @foreach (var booking in dateGroup)
                                 {
                                     <MudListItem>
-                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.Key</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Primary">@booking.CourseName</MudText>
                                     </MudListItem>
                                 }
                             </MudList>
@@ -85,10 +89,10 @@
     public IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]
-    public Dictionary<string, DateTime> ExistingBookings { get; set; } = new();
+    public List<BookingConflictViewModel> ExistingBookings { get; set; } = new();
 
     [Parameter]
-    public Dictionary<string, DateTime>? ExistingCartBookings { get; set; } = new();
+    public List<BookingConflictViewModel> ExistingCartBookings { get; set; } = new();
 
     private void Cancel() => MudDialog.Cancel();
 

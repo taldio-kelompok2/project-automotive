@@ -163,12 +163,12 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
             OnCartChanged?.Invoke();
         }
 
-        public async Task<bool> RemoveItemAsync(Guid itemId)
+        public async Task<bool> RemoveItemAsync(Guid sessionid)
         {
-            var cartItem = RentalCartItems.FirstOrDefault(item => item.Item.SessionId == itemId);
+            var cartItem = RentalCartItems.FirstOrDefault(item => item.Item.SessionId == sessionid);
             if (cartItem == null)
             {
-                _logger.LogWarning("Attempted to remove non-existent cart item with ID {ItemId}", itemId);
+                _logger.LogWarning("Attempted to remove non-existent cart item with ID {sessionid}", sessionid);
                 return false;
             }
 

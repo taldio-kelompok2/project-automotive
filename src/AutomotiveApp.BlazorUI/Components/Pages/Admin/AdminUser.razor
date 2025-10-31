@@ -156,7 +156,10 @@ IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
                 {
                     Console.WriteLine($"add user: {res.Success}, message: {res.Errors?.ToString() ?? ""}");
 
-                    Snackbar.Add($"User add failed:\n{string.Join("\n", res.Errors ?? Array.Empty<string>())}", Severity.Error);
+                    Snackbar.Add(
+    (MarkupString)$"User add failed:<br>{string.Join("<br>", res.Errors ?? Array.Empty<string>())}",
+    Severity.Error
+);
 
                 }
             }

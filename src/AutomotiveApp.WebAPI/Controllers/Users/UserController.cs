@@ -161,7 +161,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var result = await Mediator.Send(query);
 
             response.Success = true;
-            response.StatusCode = System.Net.HttpStatusCode.OK;
+            response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
             return Ok(response);

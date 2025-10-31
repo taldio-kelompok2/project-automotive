@@ -13,7 +13,13 @@ namespace AutomotiveApp.Application.Features.Users.Queries
         {
             var users = userManager.Users.ToList();
 
-            var userDtos = mapper.Map<IEnumerable<UserQueryDto>>(users);
+            var userDtos = mapper.Map<List<UserQueryDto>>(users);
+
+            for (int i = 0; i < users.Count; i++)
+            {
+                var roles = await userManager.GetRolesAsync(users[i]);
+                userDtos[i].Roles = [.. roles];
+            }
 
             return userDtos;
         }

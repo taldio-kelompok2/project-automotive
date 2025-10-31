@@ -1,8 +1,9 @@
-<AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="@Width">
-    <MudText Typo="Typo.body1" Class="@Class" Style="@Style" @onclick="AddToCart">Add to Cart</MudText>
+<AppBaseButton Variant="Variant.Outlined" Color="Color.Primary" Width="@Width" @onclick="AddToCart">
+    <MudText Typo="Typo.body1" Class="@Class" Style="@Style">Add to Cart</MudText>
 </AppBaseButton>
-<AppBaseButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Width="@Width">
-    <MudText Typo="Typo.body1" Class="@Class" Style="@Style" @onclick="InstantPayment">Buy Now</MudText>
+<AppBaseButton Variant="Variant.Filled" Color="Color.Primary" @onclick="InstantPayment" DropShadow=" false"
+    Width="@Width">
+    <MudText Typo="Typo.body1" Class="@Class" Style="@Style">Buy Now</MudText>
 </AppBaseButton>
 
 @code {
