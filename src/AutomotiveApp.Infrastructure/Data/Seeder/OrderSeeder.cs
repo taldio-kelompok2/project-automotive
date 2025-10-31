@@ -26,12 +26,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 return;
 
             var random = new Random();
-            var orders = new List<Order>();
-            var orderItems = new List<OrderItem>();
-            var invoices = new List<Invoice>();
-            var bookings = new List<CourseBooking>();
 
-            int invoiceCounter = 0;
             foreach (var buyer in buyers)
             {
                 var buyerCartSessionIds = await db.CartItems
@@ -50,6 +45,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
 
                 for (int i = 0; i < orderCount; i++)
                 {
+                    // Buat order
                     var order = new Order
                     {
                         Id = Guid.NewGuid(),
@@ -58,7 +54,8 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                         Status = OrderStatus.Finished,
                         TotalPrice = 0
                     };
-                    orders.Add(order);
+                    await db.Orders.AddAsync(order);
+                    await db.SaveChangesAsync();
 
                     var selectedSessions = availableSessions
                         .OrderBy(_ => random.Next())
@@ -75,7 +72,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                             SessionId = s.Id,
                             Price = s.Course.Price
                         };
-                        orderItems.Add(orderItem);
+                        await db.OrderItems.AddAsync(orderItem);
                         total += s.Course.Price;
 
                         var booking = new CourseBooking
@@ -84,30 +81,24 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                             UserId = buyer.Id,
                             SessionId = s.Id
                         };
-                        bookings.Add(booking);
+                        await db.CourseBookings.AddAsync(booking);
                     }
 
                     order.TotalPrice = total;
-                    invoiceCounter++;
+                    await db.SaveChangesAsync();
 
+                    int lastInvoiceNumber = await db.Invoices.MaxAsync(i => (int?)i.InvoiceNumber) ?? 0;
                     var invoice = new Invoice
                     {
                         Id = Guid.NewGuid(),
                         OrderId = order.Id,
-                        InvoiceNumber = invoiceCounter,
+                        InvoiceNumber = lastInvoiceNumber + 1,
                         TotalPrice = total
                     };
-                    invoices.Add(invoice);
+                    await db.Invoices.AddAsync(invoice);
+                    await db.SaveChangesAsync();
                 }
             }
-
-            await db.Orders.AddRangeAsync(orders);
-            await db.OrderItems.AddRangeAsync(orderItems);
-            await db.SaveChangesAsync();
-            await db.Invoices.AddRangeAsync(invoices);
-            await db.CourseBookings.AddRangeAsync(bookings);
-
-            await db.SaveChangesAsync();
         }
     }
 }
