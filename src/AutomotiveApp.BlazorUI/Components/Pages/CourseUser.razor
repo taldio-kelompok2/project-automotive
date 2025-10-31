@@ -13,7 +13,7 @@
 @* <AuthorizeRedirect Role="Admin"> *@
 <div style="overflow-x:hidden; display:flex; flex-direction:column; min-height: 100vh;">
     <div style="flex:1;">
-        <MudStack Class="m-0" Justify="Justify.Center" AlignItems="AlignItems.Center">
+        <MudStack Class="mt-5" Justify="Justify.Center" AlignItems="AlignItems.Center">
 
             @if (_isLoading)
             {
@@ -41,6 +41,10 @@
                                     SelectedChanged="@OnPageChange" BoundaryCount="5" />
                             </MudStack>
                         }
+                        else
+                        {
+                            <div class="my-12"></div>
+                        }
                     </MudHidden>
 
                     <MudHidden Breakpoint="Breakpoint.MdAndUp">
@@ -50,6 +54,10 @@
                                 <MudPagination Class="pl-0" Count="@totalPages" Selected="@_selectedPage"
                                     SelectedChanged="@OnPageChange" BoundaryCount="5" />
                             </MudStack>
+                        }
+                        else
+                        {
+                            <div class="my-12"></div>
                         }
                     </MudHidden>
                 }

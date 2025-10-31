@@ -31,8 +31,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             var invoices = new List<Invoice>();
             var bookings = new List<CourseBooking>();
 
-            int invoiceCounter = await db.Invoices.MaxAsync(i => (int?)i.InvoiceNumber) ?? 0;
-
+            int invoiceCounter = 0;
             foreach (var buyer in buyers)
             {
                 var buyerCartSessionIds = await db.CartItems
@@ -89,8 +88,8 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                     }
 
                     order.TotalPrice = total;
-
                     invoiceCounter++;
+
                     var invoice = new Invoice
                     {
                         Id = Guid.NewGuid(),
@@ -104,6 +103,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
 
             await db.Orders.AddRangeAsync(orders);
             await db.OrderItems.AddRangeAsync(orderItems);
+            await db.SaveChangesAsync();
             await db.Invoices.AddRangeAsync(invoices);
             await db.CourseBookings.AddRangeAsync(bookings);
 
