@@ -29,6 +29,8 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 await userManager.AddToRoleAsync(admin, UserRole.Admin.ToString());
             }
 
+            // Buat user buyer
+
             if (await userManager.FindByEmailAsync("buyer@example.com") == null)
             {
                 var buyer = new User
@@ -42,6 +44,63 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 await userManager.CreateAsync(buyer, "password");
                 await userManager.AddToRoleAsync(buyer, UserRole.Buyer.ToString());
             }
+
+            if (await userManager.FindByEmailAsync("nathan.sutanto@example.com") == null)
+            {
+                var buyer1 = new User
+                {
+                    Id = Guid.Parse("b9a24c8e-3b6a-4d61-bb51-8c2b6f4a1a19"),
+                    UserName = "nathan.sutanto@example.com",
+                    Email = "nathan.sutanto@example.com",
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(buyer1, "password");
+                await userManager.AddToRoleAsync(buyer1, UserRole.Buyer.ToString());
+            }
+
+            if (await userManager.FindByEmailAsync("melissa.tan@example.com") == null)
+            {
+                var buyer2 = new User
+                {
+                    Id = Guid.Parse("3b4e5c3f-5d39-4bdf-9cc9-6f6b8d18ce20"),
+                    UserName = "melissa.tan@example.com",
+                    Email = "melissa.tan@example.com",
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(buyer2, "password");
+                await userManager.AddToRoleAsync(buyer2, UserRole.Buyer.ToString());
+            }
+
+            if (await userManager.FindByEmailAsync("jason.lim@example.com") == null)
+            {
+                var buyer3 = new User
+                {
+                    Id = Guid.Parse("7d65b1a2-6f49-4a8b-bfd8-b9f4a33d3921"),
+                    UserName = "jason.lim@example.com",
+                    Email = "jason.lim@example.com",
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(buyer3, "password");
+                await userManager.AddToRoleAsync(buyer3, UserRole.Buyer.ToString());
+            }
+
+            if (await userManager.FindByEmailAsync("clara.putri@example.com") == null)
+            {
+                var buyer4 = new User
+                {
+                    Id = Guid.Parse("c12e3ab4-3e32-4d88-bb4d-df5e62c5a22e"),
+                    UserName = "clara.putri@example.com",
+                    Email = "clara.putri@example.com",
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(buyer4, "password");
+                await userManager.AddToRoleAsync(buyer4, UserRole.Buyer.ToString());
+            }
+
         }
     }
 }

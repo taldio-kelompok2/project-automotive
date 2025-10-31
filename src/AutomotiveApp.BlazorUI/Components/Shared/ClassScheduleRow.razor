@@ -15,7 +15,8 @@
                 @Car.Course
             </MudText>
             <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: 500;">
-                Schedule : @Car.Session.ToString("dddd, dd MMMM yyyy")
+                Schedule : @Car.Session.ToString("dddd, dd MMMM yyyy", new
+                                System.Globalization.CultureInfo("en-US"))
             </MudText>
         </MudStack>
     </MudStack>

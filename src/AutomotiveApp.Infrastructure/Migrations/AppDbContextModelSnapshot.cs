@@ -224,7 +224,7 @@ namespace AutomotiveApp.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CourseBooking");
+                    b.ToTable("CourseBookings");
                 });
 
             modelBuilder.Entity("AutomotiveApp.Domain.Entities.Courses.CourseCategory", b =>

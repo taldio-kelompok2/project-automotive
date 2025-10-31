@@ -23,6 +23,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             await CourseSessionSeeder.SeedAsync(db, reapply);
             await UserSeeder.SeedAsync(userManager, roleManager);
             await CartSeeder.SeedAsync(db, reapply);
+            await OrderSeeder.SeedAsync(db, reapply);
         }
     }
 }

@@ -1,8 +1,6 @@
-using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Domain.Entities.Courses.Cart;
 using AutomotiveApp.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 
 namespace AutomotiveApp.Infrastructure.Data.Seeder
 {
@@ -10,45 +8,55 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
     {
         public static async Task SeedAsync(AppDbContext db, bool reapply = false)
         {
-            Guid BuyerId = Guid.Parse("aeafb671-9423-4613-8910-abedcfb48485");
+            Random random = new();
 
-            if (!reapply && await db.Carts.AnyAsync())
-            {
-                return;
-            }
+            if (!reapply && await db.Carts.AnyAsync()) return;
 
-            Cart dummyCart = new Cart
-            {
-                TotalPrice = 0,
-                UserId = BuyerId,
-            };
+            var buyerRoleId = await db.Roles
+                .Where(r => r.Name == UserRole.Buyer.ToString())
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
 
-            var sessions = await db.CourseSessions
-                .Include(s => s.Course)
-                .ThenInclude(c => c.Category)
-                .OrderBy(s => s.Date)
-                .Take(3)
+            var buyerIds = await db.UserRoles
+                .Where(ur => ur.RoleId == buyerRoleId)
+                .Join(db.Users, ur => ur.UserId, u => u.Id, (ur, u) => u.Id)
+                .OrderBy(_ => Guid.NewGuid())
                 .ToListAsync();
 
-            var cartItems = sessions.Select(s => new CartItem
+            foreach (var buyer in buyerIds)
             {
-                Id = Guid.NewGuid(),
-                CartId = dummyCart.Id,
-                SessionId = s.Id,
-            }).ToList();
+                var dummyBuyerCart = new Cart
+                {
+                    TotalPrice = 0,
+                    UserId = buyer
+                };
 
-            await db.Carts.AddAsync(dummyCart);
-            await db.SaveChangesAsync();
+                var sessions = await db.CourseSessions
+                    .Include(s => s.Course)
+                    .ThenInclude(c => c.Category)
+                    .OrderBy(s => s.Date)
+                    .Take(random.Next(1, 4))
+                    .ToListAsync();
 
-            await db.CartItems.AddRangeAsync(cartItems);
-            await db.SaveChangesAsync();
+                var cartItems = sessions.Select(s => new CartItem
+                {
+                    Id = Guid.NewGuid(),
+                    CartId = dummyBuyerCart.Id,
+                    SessionId = s.Id,
+                }).ToList();
 
-            dummyCart.Items = cartItems;
-            dummyCart.TotalPrice = sessions.Sum(s => s.Course.Price);
+                await db.Carts.AddAsync(dummyBuyerCart);
+                await db.SaveChangesAsync();
 
-            db.Carts.Update(dummyCart);
-            await db.SaveChangesAsync();
+                await db.CartItems.AddRangeAsync(cartItems);
+                await db.SaveChangesAsync();
 
+                dummyBuyerCart.Items = cartItems;
+                dummyBuyerCart.TotalPrice = sessions.Sum(s => s.Course.Price);
+
+                db.Carts.Update(dummyBuyerCart);
+                await db.SaveChangesAsync();
+            }
         }
     }
 }
