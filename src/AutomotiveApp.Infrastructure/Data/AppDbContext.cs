@@ -17,6 +17,7 @@ namespace AutomotiveApp.Infrastructure.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<CourseCategory> CourseCategories { get; set; }
         public DbSet<CourseSession> CourseSessions { get; set; }
+        public DbSet<CourseBooking> CourseBookings { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
