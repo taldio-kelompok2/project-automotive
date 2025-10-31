@@ -12,8 +12,6 @@ namespace AutomotiveApp.Application.Mapper.Resolver
         {
             var prop = source.GetType().GetProperty("HeroImageFileName");
 
-            Console.WriteLine($"[HeroImageUrlResolver] type={typeof(TSource).Name}, filename={prop?.GetValue(source)}");
-
             if (prop == null) return null;
 
             return prop.GetValue(source) is string filename ? urlHelper.GeneratePublicUrl<TSource>(filename) : null;
