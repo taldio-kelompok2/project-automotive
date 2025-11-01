@@ -62,7 +62,7 @@ dotnet sonarscanner begin \
     /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
     /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
     /d:sonar.coverage.exclusions="**/Migrations/**,**/wwwroot/**,**/*.cshtml,**/Program.cs" \
-    /d:sonar.exclusions="**/wwwroot/**,**/obj/**,**/bin/**"
+    /d:sonar.exclusions="**/wwwroot/**,**/obj/**,**/bin/**,**/*.sh,**/*.ps1,**/sonar-scan.sh,**/sonar-scan.ps1"
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗ Failed to start SonarQube scanner${NC}"
