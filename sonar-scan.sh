@@ -10,7 +10,7 @@ echo "=============================================="
 PROJECT_KEY="project-automotive"
 PROJECT_NAME="project-automotive"
 SONAR_HOST="http://localhost:9000"
-SONAR_TOKEN="your-token-here" # Read from environment or export earlier
+SONAR_TOKEN="sqp_b7979e39f01799d6094296e5a9e5b5ec30d6559e" # Read from environment or export earlier
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -62,8 +62,8 @@ dotnet sonarscanner begin \
     /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
     /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
     /d:sonar.coverage.exclusions="**/Migrations/**,**/wwwroot/**,**/*.cshtml,**/Program.cs" \
-    /d:sonar.exclusions="**/wwwroot/**,**/obj/**,**/bin/**,**/*.sh,**/*.ps1,**/sonar-scan.sh,**/sonar-scan.ps1"
-
+    /d:sonar.exclusions="**/wwwroot/**,**/obj/**,**/bin/**,**/*.sh,**/*.ps1,**/sonar-scan.sh,**/sonar-scan.ps1,**/appsettings.json"
+    
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗ Failed to start SonarQube scanner${NC}"
     exit 1
