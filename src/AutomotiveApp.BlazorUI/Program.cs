@@ -14,6 +14,7 @@ using System.Text;
 using AutomotiveApp.BlazorUI.Services.CourseSessions;
 using AutomotiveApp.BlazorUI.Services.PaymentMethods;
 using AutomotiveApp.Application.PaymentMethods;
+using AutomotiveApp.BlazorUI.Services.CourseCategories;
 
 
 var builder = WebApplication.CreateBuilder(args);
