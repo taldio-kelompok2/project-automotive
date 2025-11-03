@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.BlazorUI.Services.Interface; 
 
 namespace AutomotiveApp.BlazorUI.Services.CourseSessions;
 
