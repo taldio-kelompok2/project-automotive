@@ -166,7 +166,7 @@
     private List<CourseBookingQueryDto> _userSessions = new();
     private const string HOME_PAGE = "/";
     private bool _isLoading { get; set; } = true;
-    private async void RemoveItem(RentalCartItemViewModel item)
+    private async Task RemoveItem(RentalCartItemViewModel item)
     {
         if (!await Cart.RemoveItemAsync(item.Item.SessionId))
         {
