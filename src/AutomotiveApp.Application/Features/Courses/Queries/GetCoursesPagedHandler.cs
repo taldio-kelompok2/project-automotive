@@ -9,7 +9,7 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
     public class GetCoursesPagedHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCoursesPaged, PaginatedResult<CourseQueryDto>>
     {
-        public async Task<PaginatedResult<CourseQueryDto>> Handle(GetCoursesPaged request, CancellationToken ct)
+        public async Task<PaginatedResult<CourseQueryDto>> Handle(GetCoursesPaged request, CancellationToken cancellationToken)
         {
             try
             {
@@ -17,7 +17,7 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
                     page: request.Page,
                     itemTaken: request.ItemTaken,
                     isRandom: request.IsRandom,
-                    ct: ct
+                    ct: cancellationToken
                 );
 
                 var mappedItems = mapper.Map<IEnumerable<CourseQueryDto>>(items);

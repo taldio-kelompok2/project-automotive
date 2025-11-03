@@ -7,14 +7,12 @@
 @inject IUserService UserService
 @inject ISnackbar Snackbar
 
-@* @layout AdminLayout *@
-
 <PageTitle>User Management</PageTitle>
 
 <MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
     <MudText Typo="Typo.h3" Class="pb-2">User Management</MudText>
     <AppBaseButton Width="ButtonWidth.Short" OnClick="ShowAddUserDialog" Class="align-self-start m-2 mb-4"
-        Color="Color.Primary" Variant="Variant.Filled">Add User</AppBaseButton>
+                   Color="Color.Primary" Variant="Variant.Filled">Add User</AppBaseButton>
     <AdminTable TItem="UserViewModel" Items="users" Columns="userColumns" OnEdit="OnUserEdit" Loading="_isLoading" />
 </MudPaper>
 
@@ -22,21 +20,21 @@
     private bool _isLoading { get; set; } = true;
     private List<UserViewModel> users = new();
 
-    List<ColumnDefinition<UserViewModel>> userColumns = new()
-{
-new ColumnDefinition<UserViewModel> { Header = "Name", CellTemplate = u => u.Name, IsSearchable = true, IsStatusColumn =
-false },
-new ColumnDefinition<UserViewModel> { Header = "Email", CellTemplate = u => u.Email, IsSearchable = true, IsStatusColumn
-= false },
-new ColumnDefinition<UserViewModel> { Header = "Phone", CellTemplate = u => u.PhoneNumber ?? "", IsSearchable = false,
-IsStatusColumn = false },
-new ColumnDefinition<UserViewModel> { Header = "Role", CellTemplate = u => u.Role, IsSearchable = false, IsStatusColumn
-= false },
-new ColumnDefinition<UserViewModel> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = false,
-IsStatusColumn = true },
-new ColumnDefinition<UserViewModel> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false,
-IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
-};
+    readonly List<ColumnDefinition<UserViewModel>> userColumns = new()
+    {
+    new ColumnDefinition<UserViewModel> { Header = "Name", CellTemplate = u => u.Name, IsSearchable = true, IsStatusColumn =
+    false },
+    new ColumnDefinition<UserViewModel> { Header = "Email", CellTemplate = u => u.Email, IsSearchable = true, IsStatusColumn
+    = false },
+    new ColumnDefinition<UserViewModel> { Header = "Phone", CellTemplate = u => u.PhoneNumber ?? "", IsSearchable = false,
+    IsStatusColumn = false },
+    new ColumnDefinition<UserViewModel> { Header = "Role", CellTemplate = u => u.Role, IsSearchable = false, IsStatusColumn
+    = false },
+    new ColumnDefinition<UserViewModel> { Header = "Status", CellTemplate = u => u.Status, IsSearchable = false,
+    IsStatusColumn = true },
+    new ColumnDefinition<UserViewModel> { Header = "Action", CellTemplate = u => "Edit", IsSearchable = false,
+    IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,31 +48,24 @@ IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
 
     private async Task LoadUsersAsync()
     {
-        try
+        var rows = await UserService.GetAllUsers();
+        Console.WriteLine($"rows exist {rows.Any()}");
+        if (rows != null)
         {
-            var rows = await UserService.GetAllUsers();
-            Console.WriteLine($"rows exist {rows.Any()}");
-            if (rows != null)
+            users = rows.Select(x => new UserViewModel
             {
-                users = rows.Select(x => new UserViewModel
-                {
-                    Id = x.Id,
-                    Name = x.UserName,
-                    Email = x.Email,
-                    PhoneNumber = x.PhoneNumber,
-                    Role = RoleMapper(x.Roles),
-                    Status = x.Status ? Status.Active : Status.Inactive
-                }).ToList();
-            }
-        }
-        catch
-        {
-
+                Id = x.Id,
+                Name = x.UserName,
+                Email = x.Email,
+                PhoneNumber = x.PhoneNumber,
+                Role = RoleMapper(x.Roles),
+                Status = x.Status ? Status.Active : Status.Inactive
+            }).ToList();
         }
     }
 
     // string list to enum
-    private UserRole RoleMapper(List<string> input)
+    private static UserRole RoleMapper(List<string> input)
     {
         var role = input.FirstOrDefault() ?? "Buyer";
         if (role.Equals("Admin"))
@@ -85,7 +76,7 @@ IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
     }
 
     // enum to bool
-    private bool StatusMapper(Status input)
+    private static bool StatusMapper(Status input)
     {
         return input == Status.Active;
     }
@@ -121,7 +112,6 @@ IsStatusColumn = false, IsActionColumn = true, ShowEdit = true },
         catch (Exception ex)
         {
             Console.WriteLine($"update Crashed user: {ex.Message}");
-
             Snackbar.Add($"User update failed: {ex.Message}", Severity.Error);
         }
     }

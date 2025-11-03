@@ -1,22 +1,24 @@
-using AutomotiveApp.Application.Features.Courses.Commands;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Exceptions;
 using MediatR;
 
-public class DeleteCourseCommandHandler(IUnitOfWork uow)
-: IRequestHandler<DeleteCourseCommand>
+namespace AutomotiveApp.Application.Features.Courses.Commands
 {
-    public async Task<Unit> Handle(DeleteCourseCommand request, CancellationToken ct)
+    public class DeleteCourseCommandHandler(IUnitOfWork uow)
+: IRequestHandler<DeleteCourseCommand>
     {
-        var data = await uow.CourseRepo.GetByIdAsync(request.Id, ct: ct)
-        ?? throw new NotFoundException<Course>($"Course with ID {request.Id} was not found.");
+        public async Task<Unit> Handle(DeleteCourseCommand request, CancellationToken cancellationToken)
+        {
+            var data = await uow.CourseRepo.GetByIdAsync(request.Id, ct: cancellationToken)
+            ?? throw new NotFoundException<Course>($"Course with ID {request.Id} was not found.");
 
-        uow.CourseRepo.Delete(data);
-        var saved = await uow.SaveChangesAsync(ct);
-        if (saved > 0) return Unit.Value;
+            uow.CourseRepo.Delete(data);
+            var saved = await uow.SaveChangesAsync(cancellationToken);
+            if (saved > 0) return Unit.Value;
 
-        throw new InvalidOperationException("Unable to delete the course, Please try again.");
+            throw new InvalidOperationException("Unable to delete the course, Please try again.");
 
+        }
     }
 }

@@ -11,10 +11,10 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
     public class GetCourseByIdHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCourseById, CourseQueryDetailDto>
     {
-        public async Task<CourseQueryDetailDto> Handle(GetCourseById request, CancellationToken ct)
+        public async Task<CourseQueryDetailDto> Handle(GetCourseById request, CancellationToken cancellationToken)
         {
 
-            var item = await uow.CourseRepo.GetCourseDetailById(request.Id, ct)
+            var item = await uow.CourseRepo.GetCourseDetailById(request.Id, cancellationToken)
             ?? throw new NotFoundException<Course>(request.Id);
 
             if (request.UserId != null)
@@ -22,7 +22,7 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
                 var userBookings = await uow.CourseBookingRepo.FindAsync(
                     cb => cb.UserId == request.UserId && cb.Session.CourseId == request.Id,
                     q => q.Include(cb => cb.Session),
-                    ct);
+                    cancellationToken);
 
                 var bookedDates = userBookings
                     .Select(ub => ub.Session.Date.Date)

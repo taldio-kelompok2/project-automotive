@@ -12,7 +12,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Commands
     public class AddCourseBookingsHandler(IUnitOfWork uow, IMapper mapper, UserManager<User> userManager)
     : IRequestHandler<AddCourseBookingCommand, CourseBookingQueryDto>
     {
-        public async Task<CourseBookingQueryDto> Handle(AddCourseBookingCommand request, CancellationToken ct)
+        public async Task<CourseBookingQueryDto> Handle(AddCourseBookingCommand request, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByIdAsync(request.Data.UserId.ToString())
                 ?? throw new KeyNotFoundException($"User with Id {request.Data.UserId} not found.");
@@ -20,7 +20,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Commands
             var session = await uow.CourseSessionRepo.FirstOrDefaultAsync(
                 modifier: q => q.Include(s => s.Course),
                 predicate: s => s.Id == request.Data.SessionId,
-                ct: ct
+                ct: cancellationToken
             ) ?? throw new KeyNotFoundException($"Course session with Id {request.Data.SessionId} not found.");
 
             var mappedItem = mapper.Map<CourseBooking>(request.Data);
@@ -30,7 +30,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Commands
 
             await uow.CourseBookingRepo.AddAsync(mappedItem);
 
-            var saved = await uow.SaveChangesAsync(ct);
+            var saved = await uow.SaveChangesAsync(cancellationToken);
 
             if (saved > 0)
             {

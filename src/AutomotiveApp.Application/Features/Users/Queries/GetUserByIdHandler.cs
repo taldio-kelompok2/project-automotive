@@ -10,14 +10,14 @@ namespace AutomotiveApp.Application.Features.Users.Queries
     public class GetUserByIdHandler(UserManager<User> userManager, IMapper mapper)
         : IRequestHandler<GetUserById, UserProfileDto>
     {
-        public async Task<UserProfileDto> Handle(GetUserById req, CancellationToken ct)
+        public async Task<UserProfileDto> Handle(GetUserById req, CancellationToken cancellationToken)
         {
             var user = await userManager.Users
                 .AsSplitQuery()
                 .Include(u => u.Orders)
                 .Include(u => u.Bookings)
                 .Include(u => u.Cart)
-                .FirstOrDefaultAsync(u => u.Id == req.UserId && u.Status, ct);
+                .FirstOrDefaultAsync(u => u.Id == req.UserId && u.Status, cancellationToken);
             if (user == null)
                 throw new KeyNotFoundException($"User with Id: {req.UserId} not found");
 

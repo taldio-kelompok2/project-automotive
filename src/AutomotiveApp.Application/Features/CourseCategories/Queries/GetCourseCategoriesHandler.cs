@@ -11,9 +11,9 @@ namespace AutomotiveApp.Application.Features.CourseCategories.Queries
         private readonly IUnitOfWork _uow = uow;
         private readonly IMapper _mapper = mapper;
 
-        public async Task<IEnumerable<CourseCategoryQueryDto>> Handle(GetCourseCategories request, CancellationToken ct)
+        public async Task<IEnumerable<CourseCategoryQueryDto>> Handle(GetCourseCategories request, CancellationToken cancellationToken)
         {
-            var items = await _uow.CourseCategoryRepo.GetAllAsync(ct: ct);
+            var items = await _uow.CourseCategoryRepo.GetAllAsync(ct: cancellationToken);
             var mappedItems = _mapper.Map<IEnumerable<CourseCategoryQueryDto>>(items).ToList();
 
             return mappedItems;

@@ -42,7 +42,7 @@
 
     private void Close() => MudDialog.Close(DialogResult.Ok(true));
 
-    private class FieldModel
+    private sealed class FieldModel
     {
         public string Name { get; set; } = "";
         public string Value { get; set; } = "";

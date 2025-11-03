@@ -11,11 +11,11 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class RefreshTokenHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings)
     : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
     {
-        public async Task<AuthResponseDto> Handle(RefreshTokenCommand req, CancellationToken ct)
+        public async Task<AuthResponseDto> Handle(RefreshTokenCommand req, CancellationToken cancellationToken)
         {
             try
             {
-                var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshToken == req.RefreshToken, ct);
+                var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshToken == req.RefreshToken, cancellationToken);
 
                 if (user == null || !user.Status)
                 {

@@ -8,7 +8,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class ForgotPasswordHandler(UserManager<User> userManager, IEmailService emailService)
         : IRequestHandler<ForgotPasswordCommand, bool>
     {
-        public async Task<bool> Handle(ForgotPasswordCommand req, CancellationToken ct)
+        public async Task<bool> Handle(ForgotPasswordCommand req, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByEmailAsync(req.Email);
             if (user == null) 

@@ -11,7 +11,7 @@ namespace AutomotiveApp.Application.Features.CourseSessions.Queries
     public record GetCourseSessionHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCourseSessions, IEnumerable<CourseSessionQueryDto>>
     {
-        public async Task<IEnumerable<CourseSessionQueryDto>> Handle(GetCourseSessions request, CancellationToken ct)
+        public async Task<IEnumerable<CourseSessionQueryDto>> Handle(GetCourseSessions request, CancellationToken cancellationToken)
         {
             static IQueryable<CourseSession> modifier(IQueryable<CourseSession> q)
             => q.Include(c => c.Course);
@@ -27,7 +27,7 @@ namespace AutomotiveApp.Application.Features.CourseSessions.Queries
                 var items = await uow.CourseSessionRepo.FindAsync(
                     predicate,
                     modifier,
-                    ct
+                    cancellationToken
                 );
 
                 var mappedItems = mapper.Map<IEnumerable<CourseSessionQueryDto>>(items);

@@ -1,11 +1,12 @@
-﻿using AutomotiveApp.Application.Interfaces.Repositories;
+﻿using AutoMapper;
+using AutomotiveApp.Application.Interfaces.Repositories;
 using AutomotiveApp.Shared.Dtos.User;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.Users.Queries
 {
-    public class GetDashboardTransactionsPagedHandler(IInvoiceRepository invoiceRepository, IOrderItemRepository orderItemRepository) 
+    public class GetDashboardTransactionsPagedHandler(IInvoiceRepository invoiceRepository, IOrderItemRepository orderItemRepository, IMapper mapper) 
         : IRequestHandler<GetDashboardTransactionsPaged, List<DashboardTransactionDto>>
     {
         public async Task<List<DashboardTransactionDto>> Handle(GetDashboardTransactionsPaged request, CancellationToken cancellationToken)
@@ -17,23 +18,17 @@ namespace AutomotiveApp.Application.Features.Users.Queries
                 .Include(i => i.Order.PaymentMethod)
                 .OrderByDescending(i => i.CreatedAt),
                 page: request.Page,
-                itemTaken: request.PageSize);
+                itemTaken: request.PageSize,
+                ct: cancellationToken);
             var invoices = paged.Items;
 
             var result = new List<DashboardTransactionDto>();
 
             foreach (var inv in invoices)
             {
-                result.Add(new DashboardTransactionDto
-                {
-                    Email = inv.Order.User.Email,
-                    UserName = inv.Order.User.UserName,
-                    CourseCount = await orderItemRepository.CountAsync(predicate: oi => oi.OrderId == inv.OrderId),
-                    CreatedAt = inv.CreatedAt,
-                    InvoiceCode = inv.InvoiceCode,
-                    TotalPrice = inv.TotalPrice,
-                    PaymentMethodName = inv.Order.PaymentMethod.Name,
-                });
+                var dto = mapper.Map<DashboardTransactionDto>(inv);
+                dto.CourseCount = await orderItemRepository.CountAsync(predicate: oi => oi.OrderId == inv.OrderId, ct: cancellationToken);
+                result.Add(dto);
             }
 
             return result;

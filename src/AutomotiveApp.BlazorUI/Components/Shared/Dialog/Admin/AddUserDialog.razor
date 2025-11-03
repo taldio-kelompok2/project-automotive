@@ -36,7 +36,7 @@
   [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
   private MudForm _form = default!;
-  private UserViewModel _user = new();
+  private readonly UserViewModel _user = new();
   private bool _showPassword = false;
 
   private async Task Save()

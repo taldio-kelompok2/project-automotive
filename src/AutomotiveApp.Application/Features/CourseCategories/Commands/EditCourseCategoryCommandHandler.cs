@@ -10,16 +10,16 @@ namespace AutomotiveApp.Application.Features.CourseCategories.Commands
     public class EditCourseCategoryCommandHandler(IUnitOfWork _uow, IMapper _mapper)
     : IRequestHandler<EditCourseCategoryCommand, CourseCategoryQueryDto>
     {
-        public async Task<CourseCategoryQueryDto> Handle(EditCourseCategoryCommand request, CancellationToken ct)
+        public async Task<CourseCategoryQueryDto> Handle(EditCourseCategoryCommand request, CancellationToken cancellationToken)
         {
 
-            var oldData = await _uow.CourseCategoryRepo.GetByIdAsync(request.NewData.Id, ct: ct)
+            var oldData = await _uow.CourseCategoryRepo.GetByIdAsync(request.NewData.Id, ct: cancellationToken)
             ?? throw new NotFoundException<CourseCategory>(request.NewData.Id);
 
             _mapper.Map(request.NewData, oldData);
             _uow.CourseCategoryRepo.Update(oldData);
 
-            var saved = await _uow.SaveChangesAsync(ct);
+            var saved = await _uow.SaveChangesAsync(cancellationToken);
             if (saved > 0) return _mapper.Map<CourseCategoryQueryDto>(oldData);
             else throw new InvalidOperationException("Unable to save the updated course category data, please try again.");
 

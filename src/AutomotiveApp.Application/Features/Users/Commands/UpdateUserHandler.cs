@@ -9,9 +9,9 @@ namespace AutomotiveApp.Application.Features.Users.Commands
     public class UpdateUserHandler(UserManager<User> userManager, IMapper mapper)
         : IRequestHandler<UpdateUser, bool>
     {
-        public async Task<bool> Handle(UpdateUser req, CancellationToken ct)
+        public async Task<bool> Handle(UpdateUser req, CancellationToken cancellationToken)
         {
-            var existingUser = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.Id);
+            var existingUser = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.Id, cancellationToken:cancellationToken);
             if (existingUser == null)
                 throw new KeyNotFoundException($"User with ID {req.Id} not found");
 
@@ -27,7 +27,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             var currRole = await userManager.GetRolesAsync(existingUser);
             if (req.UserUpdateDto.Role != currRole.FirstOrDefault() && currRole.FirstOrDefault() != null)
             {
-                await userManager.RemoveFromRoleAsync(existingUser, currRole.First());
+                await userManager.RemoveFromRoleAsync(existingUser, currRole[0]);
                 await userManager.AddToRoleAsync(existingUser, req.UserUpdateDto.Role);
             }
 

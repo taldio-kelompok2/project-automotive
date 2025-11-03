@@ -44,7 +44,7 @@
 @code {
     private const string LOGIN_PAGE = "/login";
     private bool _isLoading { get; set; }
-    private RegisterViewModel _registerModel = new RegisterViewModel();
+    private readonly RegisterViewModel _registerModel = new RegisterViewModel();
 
     private bool IsFormFilled()
     {
@@ -104,7 +104,7 @@
             }
             else
             {
-                var errorMessage = result.Message;
+                var errorMessage = result!.Message;
                 await ShowErrorDialogAsync(errorMessage);
             }
         }
