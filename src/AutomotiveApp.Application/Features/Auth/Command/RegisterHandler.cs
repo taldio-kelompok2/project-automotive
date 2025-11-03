@@ -10,7 +10,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class RegisterHandler(UserManager<User> userManager, IMapper mapper, ITokenService tokenService, IJwtSettings jwtSettings, IEmailService emailService)
         : IRequestHandler<RegisterCommand, AuthResponseDto>
     {
-        public async Task<AuthResponseDto> Handle(RegisterCommand req, CancellationToken ct)
+        public async Task<AuthResponseDto> Handle(RegisterCommand req, CancellationToken cancellationToken)
         {
             var existingUsername = await userManager.FindByNameAsync(req.RegisterRequestDto.UserName);
             if (existingUsername != null)

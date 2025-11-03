@@ -11,7 +11,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
     public class GetCourseBookingByUserHandler(IUnitOfWork Uow, IMapper Mapper)
     : IRequestHandler<GetCourseBookingByUser, IEnumerable<CourseBookingQueryDto>>
     {
-        public async Task<IEnumerable<CourseBookingQueryDto>> Handle(GetCourseBookingByUser request, CancellationToken ct)
+        public async Task<IEnumerable<CourseBookingQueryDto>> Handle(GetCourseBookingByUser request, CancellationToken cancellationToken)
         {
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
@@ -24,7 +24,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
             if (request.CourseId != null)
                 predicate = cb => cb.UserId == request.UserId && cb.Session.CourseId == request.CourseId;
 
-            var items = await Uow.CourseBookingRepo.FindAsync(predicate, modifier, ct);
+            var items = await Uow.CourseBookingRepo.FindAsync(predicate, modifier, cancellationToken);
 
             var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items).ToList();
             return mappedItems;

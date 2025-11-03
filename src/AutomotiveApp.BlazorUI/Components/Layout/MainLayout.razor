@@ -43,22 +43,22 @@
 @code {
     private readonly MudTheme _theme = new AppTheme();
 
-    private bool _isDarkMode = false;
+    private readonly bool _isDarkMode = false;
     private bool _hideNavbar = false;
 
     private readonly string[] _noNavbarPages =
     {
-"/admin/",
-"/email-confirmed",
-"/success-purchase",
-};
+    "/admin/",
+    "/email-confirmed",
+    "/success-purchase",
+    };
 
     private readonly string[] _protectedPages = new[]
     {
-"/checkout",
-"/profile",
-"/my-class"
-};
+    "/checkout",
+    "/profile",
+    "/my-class"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,7 +120,6 @@
 
     private void UpdateNavbarVisibility()
     {
-        var currentUri = Nav.Uri.ToLower();
         _hideNavbar = _noNavbarPages.Any(path =>
         Nav.Uri.Contains(path, StringComparison.OrdinalIgnoreCase));
         StateHasChanged();

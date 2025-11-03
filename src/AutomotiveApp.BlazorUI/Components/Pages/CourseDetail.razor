@@ -166,7 +166,7 @@
         <MudText Typo="Typo.body1">
             Added to your cart
         </MudText>
-        <AppBaseButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Inherit" DisableElevation="true"
+        <AppBaseButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Inherit"
             OnClick="GoCheckout">
             <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" Class="mr-1" />
             View Cart
@@ -226,7 +226,7 @@
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
         var dialog = await Dialog.ShowAsync<LoginDialog>("Login Required", parameters, options);
-        var result = await dialog.Result;
+        await dialog.Result;
     }
 
     private async Task<bool?> OpenDuplicateDialogAsync(List<BookingConflictViewModel> bookings)

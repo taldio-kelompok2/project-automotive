@@ -9,7 +9,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class LoginHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings, SignInManager<User> signInManager)
         : IRequestHandler<LoginCommand, LoginResponseDto>
     {
-        public async Task<LoginResponseDto> Handle(LoginCommand req, CancellationToken ct)
+        public async Task<LoginResponseDto> Handle(LoginCommand req, CancellationToken cancellationToken)
         {
             // Cari user berdasarkan email
             var user = await userManager.FindByEmailAsync(req.LoginRequestDto.Email);

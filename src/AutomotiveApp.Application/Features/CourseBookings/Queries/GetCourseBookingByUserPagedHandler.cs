@@ -13,7 +13,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
     public class GetCourseBookingByUserPagedHandler(IUnitOfWork Uow, IMapper Mapper)
     : IRequestHandler<GetCourseBookingByUserPaged, PaginatedResult<CourseBookingQueryDto>>
     {
-        public async Task<PaginatedResult<CourseBookingQueryDto>> Handle(GetCourseBookingByUserPaged request, CancellationToken ct)
+        public async Task<PaginatedResult<CourseBookingQueryDto>> Handle(GetCourseBookingByUserPaged request, CancellationToken cancellationToken)
         {
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
                 q.Include(cb => cb.User)
@@ -26,7 +26,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
             if (request.CourseId != null)
                 predicate = cb => cb.UserId == request.UserId && cb.Session.CourseId == request.CourseId;
 
-            var (items, total) = await Uow.CourseBookingRepo.FindPagedAsync(predicate, modifier, request.Page, request.ItemTaken, false, ct);
+            var (items, total) = await Uow.CourseBookingRepo.FindPagedAsync(predicate, modifier, request.Page, request.ItemTaken, false, ct: cancellationToken);
 
             var mappedItems = Mapper.Map<IEnumerable<CourseBookingQueryDto>>(items);
             return new PaginatedResult<CourseBookingQueryDto>(mappedItems, total);

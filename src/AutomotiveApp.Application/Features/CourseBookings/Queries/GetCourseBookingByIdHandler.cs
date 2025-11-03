@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutomotiveApp.Application.Features.Courses.Queries;
 using AutomotiveApp.Application.Interfaces;
 using AutomotiveApp.Domain.Entities.Courses;
 using AutomotiveApp.Shared.Dtos.Courses;
@@ -11,7 +10,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
     public class GetCourseBookingByIdHandler(IUnitOfWork Uow, IMapper Mapper)
     : IRequestHandler<GetCourseBookingById, CourseBookingQueryDto>
     {
-        public async Task<CourseBookingQueryDto> Handle(GetCourseBookingById request, CancellationToken ct)
+        public async Task<CourseBookingQueryDto> Handle(GetCourseBookingById request, CancellationToken cancellationToken)
         {
 
             static IQueryable<CourseBooking> modifier(IQueryable<CourseBooking> q) =>
@@ -19,7 +18,7 @@ namespace AutomotiveApp.Application.Features.CourseBookings.Queries
                     .Include(cb => cb.Session)
                     .ThenInclude(s => s.Course);
 
-            var item = await Uow.CourseBookingRepo.GetByIdAsync(request.Id, modifier);
+            var item = await Uow.CourseBookingRepo.GetByIdAsync(request.Id, modifier, ct: cancellationToken);
             var mappedItems = Mapper.Map<CourseBookingQueryDto>(item);
 
             return mappedItems;

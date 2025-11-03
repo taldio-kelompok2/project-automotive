@@ -13,9 +13,9 @@ namespace AutomotiveApp.Application.Features.Auth.Query
     public class GetCurrentUserHandler(UserManager<User> userManager, IMapper mapper)
         : IRequestHandler<GetCurrentUser, CurrentUserResponseDto>
     {
-        public async Task<CurrentUserResponseDto> Handle(GetCurrentUser req, CancellationToken ct)
+        public async Task<CurrentUserResponseDto> Handle(GetCurrentUser req, CancellationToken cancellationToken)
         {
-            var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.Id, ct)
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.Id, cancellationToken)
             ?? throw new NotFoundException<User>(req.Id);
 
             var mappedUser = mapper.Map<CurrentUserResponseDto>(user);

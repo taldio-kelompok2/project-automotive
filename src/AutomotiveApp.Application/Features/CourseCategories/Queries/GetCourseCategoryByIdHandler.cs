@@ -8,9 +8,9 @@ namespace AutomotiveApp.Application.Features.CourseCategories.Queries
     public class GetCourseCategoryByIdHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCourseCategoryById, CourseCategoryQueryDto>
     {
-        public async Task<CourseCategoryQueryDto> Handle(GetCourseCategoryById request, CancellationToken ct)
+        public async Task<CourseCategoryQueryDto> Handle(GetCourseCategoryById request, CancellationToken cancellationToken)
         {
-            var item = await uow.CourseCategoryRepo.GetByIdAsync(request.Id, ct: ct);
+            var item = await uow.CourseCategoryRepo.GetByIdAsync(request.Id, ct: cancellationToken);
             return mapper.Map<CourseCategoryQueryDto>(item);
         }
     }

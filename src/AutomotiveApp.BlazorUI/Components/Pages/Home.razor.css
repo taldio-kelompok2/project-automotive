@@ -106,14 +106,12 @@ h5 {
 }
 
 .category-card:hover {
-  transform: translateY(-8px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  background-color: #f5f9ff; 
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    background-color: #f5f9ff;
+    cursor: pointer;
 }
 
-.category-card:hover {
-  cursor: pointer;
-}
 
 
 /* Responsive Style: HP */
@@ -142,8 +140,7 @@ h5 {
 
   .course-info-logo {
     position: relative;  
-    align-self: flex-start; 
-    margin-top: .5rem;
+    align-self: flex-start;
     width: 175px;       
     height: 190px;
     margin-top: 2rem;

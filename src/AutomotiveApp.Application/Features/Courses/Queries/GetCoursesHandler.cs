@@ -11,12 +11,12 @@ namespace AutomotiveApp.Application.Features.Courses.Queries
     public class GetCoursesHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCourses, IEnumerable<CourseQueryDto>>
     {
-        public async Task<IEnumerable<CourseQueryDto>> Handle(GetCourses request, CancellationToken ct)
+        public async Task<IEnumerable<CourseQueryDto>> Handle(GetCourses request, CancellationToken cancellationToken)
         {
 
             try
             {
-                var items = await uow.CourseRepo.GetCoursesWithCategory(ct);
+                var items = await uow.CourseRepo.GetCoursesWithCategory(cancellationToken);
                 var mappedItems = mapper.Map<IEnumerable<CourseQueryDto>>(items);
                 return mappedItems;
             }

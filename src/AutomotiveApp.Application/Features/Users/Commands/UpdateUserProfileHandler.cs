@@ -10,9 +10,9 @@ namespace AutomotiveApp.Application.Features.Users.Commands
     public class UpdateUserProfileHandler(UserManager<User> userManager, IMapper mapper)
         : IRequestHandler<UpdateUserProfile, bool>
     {
-        public async Task<bool> Handle(UpdateUserProfile req, CancellationToken ct)
+        public async Task<bool> Handle(UpdateUserProfile req, CancellationToken cancellationToken)
         {
-            var existingUser = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.UserProfileUpdateDto.CurrentUserId);
+            var existingUser = await userManager.Users.FirstOrDefaultAsync(u => u.Id == req.UserProfileUpdateDto.CurrentUserId, cancellationToken: cancellationToken);
             if (existingUser == null)
                 throw new KeyNotFoundException($"User with ID {req.UserProfileUpdateDto.CurrentUserId} not found");
 

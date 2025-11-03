@@ -7,7 +7,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class ResetPasswordHandler(UserManager<User> userManager)
         : IRequestHandler<ResetPasswordCommand, bool>
     {
-        public async Task<bool> Handle(ResetPasswordCommand req, CancellationToken ct)
+        public async Task<bool> Handle(ResetPasswordCommand req, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByEmailAsync(req.Email);
             if (user == null)

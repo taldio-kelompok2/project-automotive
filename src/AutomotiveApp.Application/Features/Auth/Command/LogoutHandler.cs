@@ -7,7 +7,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class LogoutHandler(UserManager<User> userManager)
         : IRequestHandler<LogoutCommand, bool>
     {
-        public async Task<bool> Handle(LogoutCommand req, CancellationToken ct)
+        public async Task<bool> Handle(LogoutCommand req, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByIdAsync(req.UserId);
             if (user != null)

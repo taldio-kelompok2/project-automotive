@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AutomotiveApp.Application.Features.Users.Queries
 {
-    public class GetDashboardHandler(UserManager<User> userManager, IInvoiceRepository invoiceRepository, ICourseRepository courseRepo) 
+    public class GetDashboardHandler(UserManager<User> userManager, IInvoiceRepository invoiceRepository) 
         : IRequestHandler<GetDashboard, DashboardDto>
     {
         public async Task<DashboardDto> Handle(GetDashboard request, CancellationToken cancellationToken)

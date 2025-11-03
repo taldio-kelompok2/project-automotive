@@ -11,7 +11,6 @@
         <HeaderContent>
             @foreach (var column in Columns)
             {
-                <!-- TODO: change styling -->
                 <MudTh Class="text-center py-3" Style="background-color: #FFA896;">@column.Header</MudTh>
             }
         </HeaderContent>
@@ -31,13 +30,13 @@
                         @if (column.ShowDetails)
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary"
-                                OnClick="@(() => OnDetailsClick(context))" Title="Details" />
+                                OnClick="@(() => OnDetailsClick(context))"/>
                         }
 
                         @if (column.ShowEdit)
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
-                                OnClick="@(() => OnEditClick(context))" Title="Edit" />
+                                OnClick="@(() => OnEditClick(context))"/>
                         }
                     }
                     else if (column.IsImageColumn)
@@ -105,14 +104,14 @@
         ).ToList();
     }
 
-    private Color GetStatusColor(TItem item)
+    private static Color GetStatusColor(TItem item)
     {
         var status = item switch
         {
-            UserViewModel u => u.Status,
-            CourseViewModel c => c.Status,
-            CategoryViewModel ca => ca.Status,
-            PaymentMethodViewModel p => p.Status,
+            UserViewModel { Status: var s } => s,
+            CourseViewModel { Status: var s } => s,
+            CategoryViewModel { Status: var s } => s,
+            PaymentMethodViewModel { Status: var s } => s,
             _ => default
         };
 

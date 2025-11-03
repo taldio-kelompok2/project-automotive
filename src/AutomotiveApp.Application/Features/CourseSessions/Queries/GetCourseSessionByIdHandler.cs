@@ -10,13 +10,13 @@ namespace AutomotiveApp.Application.Features.CourseSessions.Queries
     public class GetCourseSessionByIdHandler(IUnitOfWork uow, IMapper mapper)
     : IRequestHandler<GetCourseSessionById, CourseSessionQueryDto>
     {
-        public async Task<CourseSessionQueryDto> Handle(GetCourseSessionById request, CancellationToken ct)
+        public async Task<CourseSessionQueryDto> Handle(GetCourseSessionById request, CancellationToken cancellationToken)
         {
             static IQueryable<CourseSession> modifier(IQueryable<CourseSession> q) => q.Include(c => c.Course);
 
             try
             {
-                var item = await uow.CourseSessionRepo.GetByIdAsync(request.Id, modifier, ct: ct);
+                var item = await uow.CourseSessionRepo.GetByIdAsync(request.Id, modifier, ct: cancellationToken);
                 return mapper.Map<CourseSessionQueryDto>(item);
             }
             catch { throw; }

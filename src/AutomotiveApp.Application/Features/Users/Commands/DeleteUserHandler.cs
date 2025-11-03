@@ -8,7 +8,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
     public class DeleteUserHandler(UserManager<User> userManager)
         : IRequestHandler<DeleteUser, bool>
     {
-        public async Task<bool> Handle(DeleteUser req, CancellationToken ct)
+        public async Task<bool> Handle(DeleteUser req, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByIdAsync(req.Id.ToString());
             if (user == null)

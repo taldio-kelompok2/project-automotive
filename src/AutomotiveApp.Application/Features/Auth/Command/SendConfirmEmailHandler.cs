@@ -8,7 +8,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     public class SendConfirmEmailHandler(UserManager<User> userManager, IEmailService emailService)
         : IRequestHandler<SendConfirmEmailCommand, bool>
     {
-        public async Task<bool> Handle(SendConfirmEmailCommand req, CancellationToken ct)
+        public async Task<bool> Handle(SendConfirmEmailCommand req, CancellationToken cancellationToken)
         {
             var user = await userManager.FindByEmailAsync(req.Email);
             if (user == null) return true; // Don't reveal if user exists

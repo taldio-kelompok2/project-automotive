@@ -50,23 +50,22 @@
 </EditForm>
 
 @code {
-
     [Parameter] public string? ReturnUrl { get; set; }
     private const string FORGOT_PASSWORD_PAGE = "/forgot-password";
-    private const string HOME_PAGE = "/";
     private const string REGISTER_PAGE = "/register";
-    private LoginViewModel _loginModel = new LoginViewModel();
+    private readonly LoginViewModel _loginModel = new LoginViewModel();
     private bool _isLoading = false;
 
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"User State: {UserContext.Current.IsAuthenticated}");
-        if (UserContext.Current.IsAuthenticated == true)
+        if (UserContext.Current.IsAuthenticated)
         {
             var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
             Nav.NavigateTo(redirect, forceLoad: true);
-            return;
         }
+
+        await Task.Delay(1);
     }
 
     private bool IsFormFilled()
@@ -85,7 +84,6 @@
 
     private async Task ShowSuccessDialogAsync()
     {
-        var redirect = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
         var parameters = new DialogParameters
         {
             ["Title"] = "Login Successful",
@@ -124,7 +122,7 @@
         await DialogService.ShowAsync<AuthResultDialog>("Error", parameters, options);
     }
 
-    private async Task<bool> ShowConfirmEmailDialogAsync(string message)
+    private async Task<bool> ShowConfirmEmailDialogAsync()
     {
         var options = new DialogOptions
         {
@@ -136,7 +134,10 @@
         var dialogRef = await DialogService.ShowAsync<ConfirmEmailDialog>("Login Failed", options);
         var result = await dialogRef.Result;
 
-        return !result.Canceled && result.Data is bool confirmed && confirmed;
+        return result is not null
+            && !result.Canceled
+            && result.Data is bool confirmed
+            && confirmed;
     }
 
     private async Task OnValidSubmit()
@@ -158,7 +159,7 @@
             {
                 if (res.Status == 401)
                 {
-                    bool wantsToConfirm = await ShowConfirmEmailDialogAsync(res.Message);
+                    bool wantsToConfirm = await ShowConfirmEmailDialogAsync();
 
                     if (wantsToConfirm)
                     {
