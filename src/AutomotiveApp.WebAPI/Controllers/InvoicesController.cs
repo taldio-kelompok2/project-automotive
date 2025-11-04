@@ -227,6 +227,7 @@ namespace AutomotiveApp.WebAPI.Controllers
                 }
             ).ToListAsync();
 
+            // Payment Method
             var paymentMethodName = await (
                 from o in _db.Orders.AsNoTracking()
                 join pm in _db.PaymentMethods.AsNoTracking()
@@ -237,6 +238,22 @@ namespace AutomotiveApp.WebAPI.Controllers
 
             if (string.IsNullOrWhiteSpace(paymentMethodName))
                 paymentMethodName = "-";
+            
+            // Users
+            var userInfo = await (
+                from o in _db.Orders.AsNoTracking()
+                join u in _db.Users.AsNoTracking() on o.UserId equals u.Id
+                where o.Id == inv.OrderId
+                select new { u.UserName, u.Email }
+            ).FirstOrDefaultAsync();
+
+            var customerName  = userInfo?.UserName;
+            var customerEmail = userInfo?.Email;
+
+            if (string.IsNullOrWhiteSpace(customerName))
+                customerName = customerEmail ?? "-";
+            if (string.IsNullOrWhiteSpace(customerEmail))
+                customerEmail = "-";
 
             var dto = new InvoiceDetailsDto
             {
@@ -247,6 +264,8 @@ namespace AutomotiveApp.WebAPI.Controllers
                                     ? inv.TotalPrice
                                     : (long)items.Sum(x => x.Price),
                 PaymentMethod = paymentMethodName,
+                CustomerName  = customerName!,
+                CustomerEmail = customerEmail!,  
                 Items = items
             };
 

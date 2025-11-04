@@ -38,6 +38,8 @@ namespace AutomotiveApp.Application.Invoices
         public DateTime CreatedAt { get; set; }
         public long TotalPrice { get; set; }
         public string? PaymentMethod { get; set; }
+        public string CustomerName { get; set; } = "-";   
+        public string CustomerEmail { get; set; } = "-"; 
         public List<InvoiceItemDto> Items { get; set; } = new();
     }
 

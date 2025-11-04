@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Response;
+
+namespace AutomotiveApp.BlazorUI.Services.Interface;
 
 public interface ICourseSessionService
 {

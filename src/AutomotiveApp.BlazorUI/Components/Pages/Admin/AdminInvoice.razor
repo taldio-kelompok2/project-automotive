@@ -35,6 +35,8 @@
     DateTime CreatedAt,
     long TotalPrice,
     string? PaymentMethod,
+    string? CustomerName,  
+    string? CustomerEmail,  
     List<InvoiceItemDto> Items
     );
     private record InvoiceItemDto(
@@ -54,6 +56,8 @@
         public required string Date { get; set; }
         public required string TotalPrice { get; set; }
         public string PaymentMethod { get; set; } = "-";
+        public string CustomerName { get; set; } = "-";   
+        public string CustomerEmail { get; set; } = "-"; 
         public string Courses { get; set; } = "-";
     }
 
@@ -102,11 +106,37 @@ ShowDetails = true
 }
 };
 
+    // Name Normalize Display
+    private static string DeriveNameFromEmail(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return "-";
+        var at = email.IndexOf('@');
+        var local = at > 0 ? email[..at] : email;
+
+        var parts = local
+            .Replace('.', ' ')
+            .Replace('_', ' ')
+            .Replace('-', ' ')
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return string.Join(' ', parts.Select(p =>
+            char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p[1..].ToLowerInvariant() : "")));
+    }
+
+    private static string NormalizeDisplayName(string? customerName, string? customerEmail)
+    {
+        if (string.IsNullOrWhiteSpace(customerName) || customerName.Contains('@'))
+            return DeriveNameFromEmail(customerEmail ?? customerName);
+        return customerName!;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        var enUS = new CultureInfo("en-US");
+        
         // get data invoice
         var rows = await InvoiceService.GetAllAsync();
-
+        
         invoices = rows
         .OrderByDescending(x => x.CreatedAt)
         .Select((x, idx) => new Invoice
@@ -114,9 +144,11 @@ ShowDetails = true
             Id = x.Id,
             RowNo = idx + 1,
             InvoiceNumber = x.InvoiceCode,
-            Date = x.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd"),
+            Date = x.CreatedAt.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS),
             TotalPrice = string.Format(_indo, "IDR {0:N0}", x.TotalPrice),
             PaymentMethod = "-",
+            CustomerName = "-",
+            CustomerEmail = "-",
             Courses = "-"
         })
         .ToList();
@@ -129,8 +161,6 @@ ShowDetails = true
 
         await Task.WhenAll(detailTasks.Values);
 
-        var enUS = new CultureInfo("en-US");
-
         foreach (var inv in invoices)
         {
             var dto = await detailTasks[inv.Id];
@@ -139,7 +169,7 @@ ShowDetails = true
                 inv.Courses = string.Join(Environment.NewLine,
                 dto.Items.Select((it, i) =>
                 $"{i + 1}) {it.CourseName} - {it.Type} - " +
-                $"{it.Schedule.ToLocalTime():dddd, dd MMM yyyy} - " +
+                $"{it.Schedule.ToLocalTime().ToString("dddd, dd MMM yyyy", enUS)} - " +
                 $"{string.Format(_indo, "IDR {0:N0}", it.Price)}"
                 )
                 );
@@ -150,7 +180,9 @@ ShowDetails = true
             }
 
             inv.PaymentMethod = string.IsNullOrWhiteSpace(dto?.PaymentMethod) ? "-" : dto!.PaymentMethod;
-
+            inv.CustomerEmail = string.IsNullOrWhiteSpace(dto?.CustomerEmail) ? "-" : dto!.CustomerEmail;
+            inv.CustomerName  = NormalizeDisplayName(dto?.CustomerName, dto?.CustomerEmail);
+            
             // get TotalPrice
             if (long.TryParse(inv.TotalPrice.Replace("IDR", "").Trim().Replace(".", "").Replace(",", ""),
             out var _listPrice) && dto is not null)

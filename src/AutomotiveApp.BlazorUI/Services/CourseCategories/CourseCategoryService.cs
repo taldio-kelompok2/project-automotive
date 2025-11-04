@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Components.Forms;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.BlazorUI.Services.CourseCategories;
+
+namespace AutomotiveApp.BlazorUI.Services.CourseCategories;
 
 public class CourseCategoryService : ICourseCategoryService
 {
