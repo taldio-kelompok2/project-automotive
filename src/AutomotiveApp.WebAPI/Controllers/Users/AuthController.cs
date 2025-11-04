@@ -1,10 +1,8 @@
 ﻿using AutomotiveApp.Application.Features.Auth.Command;
 using AutomotiveApp.Shared.Dtos.Auth;
-using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
@@ -13,9 +11,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(IMediator mediator) : BaseApiController(mediator)
+    public class AuthController(IMediator mediator, ILogger<AuthController> logger) : BaseApiController(mediator)
     {
-
         private static void SetCookies(HttpResponse response, AuthResponseDto dto)
         {
             // Access Token cookie
@@ -71,6 +68,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var response = new ApiResponse<AuthResponseDto>();
+
+            logger.LogInformation("Login request from {Email}", loginRequestDto.Email);
 
             var command = new LoginCommand(loginRequestDto);
             var result = await Mediator.Send(command);

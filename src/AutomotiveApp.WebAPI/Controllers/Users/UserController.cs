@@ -17,7 +17,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UserController(IMediator _mediator) : BaseApiController(_mediator)
+    public class UserController(IMediator _mediator, ILogger<UserController> logger) : BaseApiController(_mediator)
     {
         [HttpGet("me")]
         [Authorize]
