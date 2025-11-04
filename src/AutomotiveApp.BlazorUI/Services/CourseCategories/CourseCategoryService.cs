@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.Shared.Config;
 
 public class CourseCategoryService : ICourseCategoryService
 {
@@ -30,13 +31,13 @@ public class CourseCategoryService : ICourseCategoryService
 
         if (file is not null)
         {
-            var stream = file.OpenReadStream(long.MaxValue);
+            var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
             content.Add(new StreamContent(stream), "Image", file.Name);
         }
 
         if (heroFile is not null)
         {
-            var hstream = heroFile.OpenReadStream(long.MaxValue);
+            var hstream = heroFile.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
             content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name);
         }
 
@@ -64,13 +65,13 @@ public class CourseCategoryService : ICourseCategoryService
 
         if (file is not null)
         {
-            var stream = file.OpenReadStream(long.MaxValue);
+            var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
             content.Add(new StreamContent(stream), "Image", file.Name);
         }
 
         if (heroFile is not null)
         {
-            var hstream = heroFile.OpenReadStream(long.MaxValue);
+            var hstream = heroFile.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
             content.Add(new StreamContent(hstream), "HeroImage", heroFile.Name);
         }
 

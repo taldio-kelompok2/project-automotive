@@ -6,6 +6,7 @@ using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using System.Net;
+using AutomotiveApp.Shared.Config;
 
 namespace AutomotiveApp.BlazorUI.Services.Implementation
 {
@@ -33,7 +34,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             if (file is not null)
             {
-                var stream = file.OpenReadStream(long.MaxValue);
+                var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
                 content.Add(new StreamContent(stream), "Image", file.Name);
             }
 
@@ -73,7 +74,7 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
 
             if (file is not null)
             {
-                var stream = file.OpenReadStream(long.MaxValue);
+                var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
                 content.Add(new StreamContent(stream), "Image", file.Name);
             }
 

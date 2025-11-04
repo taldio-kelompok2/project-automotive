@@ -104,7 +104,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Repositories
 
             var totalItems = await query.CountAsync(ct);
             var skipIndex = (page - 1) * itemTaken;
-            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, totalItems - itemTaken));
+            if (isRandom) skipIndex = Random.Shared.Next(0, Math.Max(0, totalItems - itemTaken));
 
             var items = await query
                 .Skip(skipIndex)

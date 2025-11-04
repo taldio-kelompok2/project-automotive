@@ -3,9 +3,11 @@ using AutomotiveApp.BlazorUI.Models.Auth.Context;
 using AutomotiveApp.BlazorUI.Services.Implementation;
 using AutomotiveApp.BlazorUI.Services.Interface;
 using AutomotiveApp.BlazorUI.Services.Invoices;
+using AutomotiveApp.Shared.Config;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using Microsoft.AspNetCore.Http.Features;
 using MudBlazor;
 using MudBlazor.Services;
 using System.Globalization;
@@ -45,6 +47,11 @@ builder.Services.AddHttpClient("ServerAPI", client =>
     UseCookies = true,
     CookieContainer = new CookieContainer()
 }).AddHttpMessageHandler<AuthMessageHandler>();
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = FileUploadConfig.MaxFileSize;
+});
 
 //Mud blazor implementation
 builder.Services.AddMudServices(config =>

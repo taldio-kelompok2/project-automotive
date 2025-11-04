@@ -74,7 +74,7 @@ namespace AutomotiveApp.Infrastructure.Repositories
             }
 
             var skipIndex = (page - 1) * itemTaken;
-            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, total - itemTaken));
+            if (isRandom) skipIndex = Random.Shared.Next(0, Math.Max(0, total - itemTaken));
 
             var items = await query
                 .Skip(skipIndex)
@@ -117,7 +117,7 @@ namespace AutomotiveApp.Infrastructure.Repositories
             }
 
             var skipIndex = (page - 1) * itemTaken;
-            if (isRandom) skipIndex = new Random().Next(0, Math.Max(0, total - itemTaken));
+            if (isRandom) skipIndex = Random.Shared.Next(0, Math.Max(0, total - itemTaken));
 
             var items = await query
                 .Skip(skipIndex)

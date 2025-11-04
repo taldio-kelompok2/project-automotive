@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components.Forms;
 using AutomotiveApp.Application.PaymentMethods;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.Shared.Config;
 
 public class PaymentMethodService : IPaymentMethodService
 {
@@ -30,7 +31,7 @@ public class PaymentMethodService : IPaymentMethodService
         content.Add(new StringContent(name), "Name");
         content.Add(new StringContent(status.ToString()), "Status");
 
-        var stream = file.OpenReadStream(long.MaxValue);
+        var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
         var fileContent = new StreamContent(stream);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
         content.Add(fileContent, "FileImageName", file.Name);
@@ -51,7 +52,7 @@ public class PaymentMethodService : IPaymentMethodService
 
         if (file is not null)
         {
-            var stream = file.OpenReadStream(long.MaxValue);
+            var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
             var fileContent = new StreamContent(stream);
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
             content.Add(fileContent, "FileImageName", file.Name);

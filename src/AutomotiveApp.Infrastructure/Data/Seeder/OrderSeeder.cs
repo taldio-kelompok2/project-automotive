@@ -25,7 +25,7 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             if (!buyers.Any() || !paymentMethods.Any() || !allSessions.Any())
                 return;
 
-            var random = new Random();
+            var random = Random.Shared;
 
             foreach (var buyer in buyers)
             {
