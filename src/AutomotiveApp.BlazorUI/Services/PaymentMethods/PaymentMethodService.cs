@@ -58,18 +58,24 @@ namespace AutomotiveApp.BlazorUI.Services.PaymentMethods
             using var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(name), "Name");
-            content.Add(new StringContent(status.ToString()), "Status");
+            content.Add(new StringContent(status.ToString(System.Globalization.CultureInfo.InvariantCulture)), "Status");
 
             if (file is not null)
             {
-                await using var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize);
-                using var fileContent = new StreamContent(stream);
+                var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
+                var fileContent = new StreamContent(stream);
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
                 content.Add(fileContent, "FileImageName", file.Name);
             }
 
             using var resp = await _http.PutAsync($"{BasePath}/{id}", content, ct);
+            var responseText = await resp.Content.ReadAsStringAsync(ct);
+
+            Console.WriteLine($"Response: {resp.StatusCode}");
+            Console.WriteLine(responseText);
+
             return resp.IsSuccessStatusCode;
         }
+
     }
 }

@@ -62,8 +62,13 @@ namespace AutomotiveApp.WebAPI.Controllers
                 if (string.IsNullOrWhiteSpace(authorizationHeader))
                     return null;
 
-                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                    return authorizationHeader.Substring("Bearer ".Length).Trim();
+                if (authorizationHeader != null &&
+    authorizationHeader.Length > BearerPrefix.Length &&
+    authorizationHeader.StartsWith(BearerPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract the token safely
+                    return authorizationHeader[BearerPrefix.Length..].Trim();
+                }
 
                 return authorizationHeader;
             }
@@ -78,7 +83,7 @@ namespace AutomotiveApp.WebAPI.Controllers
             try
             {
                 var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault(); // NOSONAR
-                return ExtractAccessTokenFromHeader(authorizationHeader); 
+                return ExtractAccessTokenFromHeader(authorizationHeader);
             }
             catch
             {
