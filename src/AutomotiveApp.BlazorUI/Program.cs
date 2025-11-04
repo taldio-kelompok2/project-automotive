@@ -13,6 +13,11 @@ using MudBlazor.Services;
 using System.Globalization;
 using System.Net;
 using System.Text;
+using AutomotiveApp.BlazorUI.Services.CourseSessions;
+using AutomotiveApp.BlazorUI.Services.PaymentMethods;
+using AutomotiveApp.Application.PaymentMethods;
+using AutomotiveApp.BlazorUI.Services.CourseCategories;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -176,6 +181,5 @@ app.MapPost("/auth/proxy-refresh-token", async (HttpContext context, IHttpClient
     await context.Response.WriteAsync(content);
 });
 
-app.Run();
-
-
+// app.Run();
+await app.RunAsync();

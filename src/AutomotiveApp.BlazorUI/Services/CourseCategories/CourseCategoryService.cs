@@ -6,6 +6,7 @@ using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
 using AutomotiveApp.Shared.Config;
+namespace AutomotiveApp.BlazorUI.Services.CourseCategories;
 
 public class CourseCategoryService : ICourseCategoryService
 {

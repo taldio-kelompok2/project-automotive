@@ -190,21 +190,13 @@ ShowEdit = true
 
         try
         {
-            // file null tetap kirim tanpa file.
-            Guid? id;
-            if (vm.File is null && vm.HeroFile is null)
-            {
-                id = await CategorySvc.CreateMultipartAsync(
+            // file null tetap dikirim tanpa file 
+            Guid? id = await CategorySvc.CreateMultipartAsync(
                 vm.Name,
                 vm.Description,
                 vm.File,
                 vm.HeroFile
-                );
-            }
-            else
-            {
-                id = await CategorySvc.CreateMultipartAsync(vm.Name, vm.Description, vm.File, vm.HeroFile);
-            }
+            );
 
             if (id is null)
             {

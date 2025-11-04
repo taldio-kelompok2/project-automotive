@@ -274,4 +274,5 @@ using (var scope = app.Services.CreateScope())
     await MasterSeeder.SeedAsync(db, userManager, roleManager, true);
 }
 
-app.Run();
+// app.Run();
+await app.RunAsync();

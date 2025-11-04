@@ -7,6 +7,8 @@ using Microsoft.JSInterop;
 using System.Security.Claims;
 using System.Text.Json;
 
+namespace AutomotiveApp.BlazorUI.Services.Implementation;
+
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
     private readonly ICookieService _cookieService;

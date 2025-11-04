@@ -1,64 +1,75 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Components.Forms;
 using AutomotiveApp.Application.PaymentMethods;
 using AutomotiveApp.Shared.Response;
 using AutomotiveApp.Shared.Config;
 
-public class PaymentMethodService : IPaymentMethodService
+namespace AutomotiveApp.BlazorUI.Services.PaymentMethods
 {
-    private readonly HttpClient _http;
-    public PaymentMethodService(IHttpClientFactory httpClientFactory) => _http = httpClientFactory.CreateClient("ServerAPI");
-
-    public async Task<IEnumerable<PaymentMethodReadDto>> GetAllAsync(CancellationToken ct = default)
-        => await _http.GetFromJsonAsync<IEnumerable<PaymentMethodReadDto>>("api/PaymentMethods", ct)
-            ?? Enumerable.Empty<PaymentMethodReadDto>();
-
-    public async Task<Guid?> CreateAsync(PaymentMethodCreateDto dto, CancellationToken ct = default)
+    public sealed class PaymentMethodService : IPaymentMethodService
     {
-        using var resp = await _http.PostAsJsonAsync("api/PaymentMethods/json", dto, ct);
-        if (!resp.IsSuccessStatusCode) return null;
-        var body = await resp.Content.ReadFromJsonAsync<ApiResponse<PaymentMethodReadDto>>(cancellationToken: ct);
-        return body?.Data?.Id;
-    }
+        private readonly HttpClient _http;
+        private const string BasePath = "api/PaymentMethods";
 
-    public async Task<bool> UpdateAsync(Guid id, PaymentMethodUpdateDto dto, CancellationToken ct = default)
-        => (await _http.PutAsJsonAsync($"api/PaymentMethods/{id}/json", dto, ct)).IsSuccessStatusCode;
+        public PaymentMethodService(IHttpClientFactory httpClientFactory)
+            => _http = httpClientFactory.CreateClient("ServerAPI");
 
-    public async Task<Guid?> CreateMultipartAsync(string name, bool status, IBrowserFile file, CancellationToken ct = default)
-    {
-        using var content = new MultipartFormDataContent();
+        public async Task<IEnumerable<PaymentMethodReadDto>> GetAllAsync(CancellationToken ct = default)
+            => await _http.GetFromJsonAsync<IEnumerable<PaymentMethodReadDto>>(BasePath, ct)
+                ?? Enumerable.Empty<PaymentMethodReadDto>();
 
-        content.Add(new StringContent(name), "Name");
-        content.Add(new StringContent(status.ToString()), "Status");
-
-        var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
-        var fileContent = new StreamContent(stream);
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-        content.Add(fileContent, "FileImageName", file.Name);
-
-        using var resp = await _http.PostAsync("api/PaymentMethods", content, ct);
-        if (!resp.IsSuccessStatusCode) return null;
-
-        var body = await resp.Content.ReadFromJsonAsync<ApiResponse<PaymentMethodReadDto>>(cancellationToken: ct);
-        return body?.Data?.Id;
-    }
-
-    public async Task<bool> UpdateMultipartAsync(Guid id, string name, bool status, IBrowserFile? file, CancellationToken ct = default)
-    {
-        using var content = new MultipartFormDataContent();
-
-        content.Add(new StringContent(name), "Name");
-        content.Add(new StringContent(status.ToString()), "Status");
-
-        if (file is not null)
+        public async Task<Guid?> CreateAsync(PaymentMethodCreateDto dto, CancellationToken ct = default)
         {
-            var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize, ct);
-            var fileContent = new StreamContent(stream);
-            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-            content.Add(fileContent, "FileImageName", file.Name);
+            using var resp = await _http.PostAsJsonAsync($"{BasePath}/json", dto, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            var body = await resp.Content.ReadFromJsonAsync<ApiResponse<PaymentMethodReadDto>>(cancellationToken: ct);
+            return body?.Data?.Id;
         }
 
-        using var resp = await _http.PutAsync($"api/PaymentMethods/{id}", content, ct);
-        return resp.IsSuccessStatusCode;
+        public async Task<bool> UpdateAsync(Guid id, PaymentMethodUpdateDto dto, CancellationToken ct = default)
+        {
+            using var resp = await _http.PutAsJsonAsync($"{BasePath}/{id}/json", dto, ct);
+            return resp.IsSuccessStatusCode;
+        }
+
+        public async Task<Guid?> CreateMultipartAsync(string name, bool status, IBrowserFile file, CancellationToken ct = default)
+        {
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(name), "Name");
+            content.Add(new StringContent(status.ToString()), "Status");
+
+            await using var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize);
+            using var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "FileImageName", file.Name);
+
+            using var resp = await _http.PostAsync(BasePath, content, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            var body = await resp.Content.ReadFromJsonAsync<ApiResponse<PaymentMethodReadDto>>(cancellationToken: ct);
+            return body?.Data?.Id;
+        }
+
+        public async Task<bool> UpdateMultipartAsync(Guid id, string name, bool status, IBrowserFile? file, CancellationToken ct = default)
+        {
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(name), "Name");
+            content.Add(new StringContent(status.ToString()), "Status");
+
+            if (file is not null)
+            {
+                await using var stream = file.OpenReadStream(FileUploadConfig.MaxFileSize);
+                using var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(fileContent, "FileImageName", file.Name);
+            }
+
+            using var resp = await _http.PutAsync($"{BasePath}/{id}", content, ct);
+            return resp.IsSuccessStatusCode;
+        }
     }
 }

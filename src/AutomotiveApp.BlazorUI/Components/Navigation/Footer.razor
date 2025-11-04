@@ -131,9 +131,13 @@
 
     public async ValueTask DisposeAsync()
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
+        if (_cts is not null)
+        {
+            await _cts.CancelAsync(); 
+            _cts.Dispose();
+        }
+
         _timer?.Dispose();
-        await Task.CompletedTask;
     }
+
 }

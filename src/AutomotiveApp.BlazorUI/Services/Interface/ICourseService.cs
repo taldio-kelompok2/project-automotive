@@ -1,7 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Forms;
 using AutomotiveApp.Shared.Dtos.Courses;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+
+namespace AutomotiveApp.BlazorUI.Services.Interface;
 
 public interface ICourseService
 {

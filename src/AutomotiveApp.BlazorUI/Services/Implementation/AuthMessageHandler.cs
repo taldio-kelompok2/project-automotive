@@ -2,6 +2,8 @@
 using AutomotiveApp.BlazorUI.Services.Implementation;
 using System.Net.Http.Headers;
 
+namespace AutomotiveApp.BlazorUI.Services.Implementation;
+
 public class AuthMessageHandler : DelegatingHandler
 {
     private readonly ICookieService _cookieService;
