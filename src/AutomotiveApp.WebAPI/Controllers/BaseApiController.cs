@@ -11,6 +11,7 @@ namespace AutomotiveApp.WebAPI.Controllers
 {
     public abstract class BaseApiController : ControllerBase
     {
+        private const string BearerPrefix = "Bearer ";
         protected readonly IMediator? _mediator;
         public BaseApiController() { }
         protected BaseApiController(IMediator? mediator = null)
