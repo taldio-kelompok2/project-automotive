@@ -1,6 +1,4 @@
 using AutomotiveApp.Application.Interfaces.Repositories;
-using AutomotiveApp.Domain.Entities.Auth;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AutomotiveApp.Application.Interfaces
@@ -19,7 +17,6 @@ namespace AutomotiveApp.Application.Interfaces
         IInvoiceRepository InvoiceRepo { get; }
         IPaymentRepository PaymentRepo { get; }
         Task<int> SaveChangesAsync(CancellationToken ct = default);
-
         Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
 
     }
