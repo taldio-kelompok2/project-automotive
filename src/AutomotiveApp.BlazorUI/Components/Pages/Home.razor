@@ -24,10 +24,6 @@
         </MudText>
     </div>
     <div class="banner-content-bottom">
-        @* <MudStack Spacing="4">
-            <MudText Typo="Typo.h1" Color="Color.Inherit">50+</MudText>
-            <span class="banner-caption">A class ready to make you a reliable driver</span>
-        </MudStack> *@
         <MudStack Spacing="4">
             @if (analyticsLoading)
             {
@@ -35,11 +31,37 @@
             }
             else
             {
-                <MudText Typo="Typo.h1" Color="Color.Inherit">@($"{coursesCount}+")</MudText>
+                <MudText Typo="Typo.h1">@($"{coursesCount}+")</MudText>
             }
             <span class="banner-caption">A class ready to make you a reliable driver</span>
         </MudStack>
+        <MudStack Spacing="4">
+            @if (analyticsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h1">@($"{ordersCount}+")</MudText>
+            }
+            <span class="banner-caption">Professional workforce with great experience</span>
+        </MudStack>
+        <MudStack Spacing="4">
+            @if (analyticsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h1">@($"{partnersCount}+")</MudText>
+            }
+            <span class="banner-caption">Cooperate with driver service partners</span>
+        </MudStack>
 
+        @* <MudStack Spacing="4">
+            <MudText Typo="Typo.h1" Color="Color.Inherit">50+</MudText>
+            <span class="banner-caption">A class ready to make you a reliable driver</span>
+        </MudStack>
         <MudStack Spacing="4">
             <MudText Typo="Typo.h1" Color="Color.Inherit">20+</MudText>
             <span class="banner-caption">Professional workforce with great experience</span>
@@ -47,7 +69,7 @@
         <MudStack Spacing="4">
             <MudText Typo="Typo.h1" Color="Color.Inherit">10+</MudText>
             <span class="banner-caption">Cooperate with driver service partners</span>
-        </MudStack>
+        </MudStack> *@
     </div>
 </section>
 
@@ -173,15 +195,8 @@
         categoryPage = 1;
         await LoadCategoriesAsync(categoryPage);
 
-
-    coursePage = 1;
-    await LoadCoursesAsync(coursePage);
-
-    categoryPage = 1;
-    await LoadCategoriesAsync(categoryPage);
-
-    // Panggil analytics di sini
-    await LoadAnalyticsAsync();
+        // analytics
+        await LoadAnalyticsAsync();
     }
 
     private async Task OnPageChanged(int page)
@@ -257,10 +272,12 @@
 
 
     // --- Analytics ---
-    private int coursesCount = 0;
-    private bool analyticsLoading = false;
+    private int coursesCount;
+    private int ordersCount;
+    private int partnersCount;
+    private bool analyticsLoading;
 
-    private async Task LoadAnalyticsAsync()
+    @* private async Task LoadAnalyticsAsync()
     {
         analyticsLoading = true;
         try
@@ -279,6 +296,22 @@
         {
             analyticsLoading = false;
         }
+    } *@
+
+    private async Task LoadAnalyticsAsync()
+    {
+        analyticsLoading = true;
+        try
+        {
+            var result = await AnalyticsSvc.GetOverviewAsync();
+            if (result.Success && result.Data != null)
+            {
+                coursesCount = result.Data.CoursesCount;
+                ordersCount = result.Data.OrdersCount;
+                partnersCount = result.Data.PartnersCount;
+            }
+        }
+        finally { analyticsLoading = false; }
     }
 
 
