@@ -1,6 +1,7 @@
 ﻿using AutomotiveApp.Application.Features.Auth.Command;
 using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Response;
+using Azure.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,8 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
+            logger.LogInformation("POST /api/register - Register request with Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
+
             var command = new RegisterCommand(registerRequestDto);
             var result = await Mediator.Send(command);
 
@@ -56,11 +59,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [result.Message];
                 response.Data = result;
+                logger.LogWarning("Register failed for Email={Email} StatusCode={code} Error={Error}", registerRequestDto.Email, response.StatusCode, response.Errors.ToString());
                 return BadRequest(response);
             }
             response.Success = true;
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
+            logger.LogInformation("Register successful for Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
             return Ok(response);
         }
 
@@ -69,7 +74,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
-            logger.LogInformation("Login request from {Email}", loginRequestDto.Email);
+            logger.LogInformation("POST /api/login - Login request from Email={Email}", loginRequestDto.Email);
 
             var command = new LoginCommand(loginRequestDto);
             var result = await Mediator.Send(command);
@@ -82,6 +87,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = ["Invalid email or password"];
+                    logger.LogWarning("Login failed for Email={Email} StatusCode={code} Error={Error}", loginRequestDto.Email, response.StatusCode, response.Errors.ToString());
                     return BadRequest(response);
                 }
 
@@ -90,6 +96,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Errors = ["Account is locked out. Please try again later."];
+                    logger.LogWarning("Login failed for Email={Email} StatusCode={code} Error={Error}", loginRequestDto.Email, response.StatusCode, response.Errors.ToString());
                     return BadRequest(response);
                 }
                 if (signInResult.IsNotAllowed)
@@ -97,12 +104,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.Unauthorized;
                     response.Errors = ["Email is not confirmed. Please confirm your email first."];
+                    logger.LogWarning("Login failed for Email={Email} StatusCode={code} Error={Error}", loginRequestDto.Email, response.StatusCode, response.Errors.ToString());
                     return Unauthorized(response);
                 }
 
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = ["Invalid email or password"];
+                logger.LogWarning("Login failed for Email={Email} StatusCode={code} Error={Error}", loginRequestDto.Email, response.StatusCode, response.Errors.ToString());
                 return BadRequest(response);
             }
 
@@ -114,6 +123,12 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 RefreshToken = result.RefreshToken,
                 AccessTokenExpiry = result.AccessTokenExpiry,
             };
+
+            logger.LogInformation("Login successful for Email={Email}, AccessToken={accessToken}, RefreshToken={refreshToken}, AccessTokenExpiry={accessTokenExpiry}",
+                loginRequestDto.Email,
+                result.AccessToken,
+                result.RefreshToken,
+                result.AccessTokenExpiry.ToString());
 
             response.Data = dto;
             SetCookies(Response, dto);
@@ -140,17 +155,12 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             var command = new RefreshTokenCommand(refreshToken);
             var result = await Mediator.Send(command);
 
-            if (result.Success)
-            {
-                SetCookies(Response, result);
-            }
-
-            response.Success = result.Success;
-            response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
             if (result.Success)
             {
+                response.Success = result.Success;
+                response.StatusCode = HttpStatusCode.OK;
                 SetCookies(Response, result);
                 return Ok(response);
             }
@@ -194,6 +204,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpPost("send-confirm-email")]
         public async Task<ActionResult<ApiResponse<bool>>> SendConfirmEmail([FromBody] SendConfirmEmailRequestDto request)
         {
+            logger.LogInformation("POST /api/send-confirm-email - Send Confirm email request for Email={Email}", request.Email);
             var response = new ApiResponse<bool>();
             var command = new SendConfirmEmailCommand(request.Email);
             var result = await Mediator.Send(command);
@@ -201,7 +212,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.Data = result;
 
-            if (result) return Ok(response);
+            if (result) 
+                return Ok(response);
+
             return BadRequest(response);
         }
 
@@ -210,14 +223,18 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromQuery] string userId,
             [FromQuery] string token)
         {
+            logger.LogInformation("POST /api/confirm-email - Confirm email request for UserId={UserId}", userId);
             var response = new ApiResponse<bool>();
+
             var command = new ConfirmEmailCommand(userId, token);
             var result = await Mediator.Send(command);
 
             response.Success = true;
             response.Data = result;
 
-            if (result) return Ok(response);
+            if (result)
+                return Ok(response);
+
             return BadRequest(response);
         }
 
@@ -225,22 +242,31 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
+            logger.LogInformation("POST /api/forgot-password - Forgot password request from Email={Email}", request.Email);
+
             try
             {
                 var command = new ForgotPasswordCommand(request.Email);
                 var result = await Mediator.Send(command);
 
-                response.Success = true;
                 response.Data = result;
+                response.Success = true; // biar gak expose email yg ada
 
-                if (result) return Ok(response);
+                if (result)
+                {
+                    return Ok(response);
+                }
+
                 return BadRequest(response);
             }
-            catch (Exception ex) // temp: biar gak expose email yg ada
+            catch (Exception ex)
             {
-                Console.WriteLine($"forgot password error: {ex.Message}");
+                logger.LogWarning("Forgot password failed for Email={Email} StatusCode={code} Error={Error}", 
+                    request.Email,
+                    400,
+                    ex.Message);
 
-                response.Success = true;
+                response.Success = true; // biar gak expose email yg ada
                 return BadRequest(response);
             }
         }
@@ -248,16 +274,33 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpPost("reset-password")]
         public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
+            logger.LogInformation("POST /api/reset-password - Reset password request from Email={Email}", request.Email);
+
             var response = new ApiResponse<bool>();
 
-            var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword);
-            var result = await Mediator.Send(command);
+            try
+            {
+                var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword);
+                var result = await Mediator.Send(command);
 
-            response.Success = true;
-            response.Data = result;
+                response.Data = result;
 
-            if (result) return Ok(response);
-            return BadRequest(response);
+                if (result)
+                {
+                    response.Success = true;
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Reset password failed for Email={Email} StatusCode={code} Error={Error}",
+                    request.Email,
+                    400,
+                    ex.Message);
+
+                return BadRequest(response);
+            }
         }
     }
 }

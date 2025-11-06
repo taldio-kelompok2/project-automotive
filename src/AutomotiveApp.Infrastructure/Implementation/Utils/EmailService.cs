@@ -1,5 +1,6 @@
 ﻿using AutomotiveApp.Application.Interfaces.Utils;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
@@ -10,13 +11,16 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
     {
         private readonly EmailSettings _emailSettings;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
 
         public EmailService(
             IOptions<EmailSettings> emailSettings,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<EmailService> logger)
         {
             _emailSettings = emailSettings.Value;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
@@ -43,7 +47,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send email: {ex.Message}");
+                _logger.LogError("Failed to send email to {Email}. Error={Message}", toEmail, ex.Message);
                 throw new InvalidOperationException("Failed to send email", ex);
             }
         }
@@ -62,6 +66,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
             );
 
             await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Confirmation email successfully sent to {Email}", email);
         }
 
         public async Task SendPasswordResetEmailAsync(string email, string token)
@@ -79,6 +84,7 @@ namespace AutomotiveApp.Infrastructure.Implementation.Utils
             );
 
             await SendEmailAsync(email, subject, body);
+            _logger.LogInformation("Password reset email successfully sent to {Email}", email);
         }
 
         private string GenerateStyledEmail(string title, string message, string buttonText, string link)

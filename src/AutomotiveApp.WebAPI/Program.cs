@@ -34,10 +34,10 @@ builder.Host.UseSerilog((ctx, lc) => lc
         .Enrich.FromLogContext()
         .Enrich.With<ShortSourceContextEnricher>()
         .WriteTo.Console(outputTemplate:
-            "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {Message:lj} {ShortSourceContext} {NewLine}{Exception}")
+            "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}")
         .WriteTo.File("logs/app-.log",
             rollingInterval: RollingInterval.Day,
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {Message:lj} {ShortSourceContext} {NewLine}{Exception}")
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}")
         .WriteTo.GrafanaLoki("http://localhost:3100",
         textFormatter: new Serilog.Formatting.Display.MessageTemplateTextFormatter(
             "{Level:u3} [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}",

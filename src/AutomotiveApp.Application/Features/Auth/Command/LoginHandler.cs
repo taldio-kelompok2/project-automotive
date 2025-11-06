@@ -27,8 +27,6 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             var result = await signInManager.CheckPasswordSignInAsync(user, req.LoginRequestDto.Password, lockoutOnFailure: true);
             if (!result.Succeeded)
             {
-                logger.LogWarning("Login failed for email: {Email}. Reason: {Reason}", req.LoginRequestDto.Email, result.ToString());
-
                 return new LoginResponseDto
                 {
                     Success = false,
@@ -45,8 +43,6 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
             user.LastLogin = DateTime.UtcNow;
             await userManager.UpdateAsync(user);
-
-            logger.LogInformation("Login successful for email: {Email}", req.LoginRequestDto.Email);
 
             return new LoginResponseDto
             {
