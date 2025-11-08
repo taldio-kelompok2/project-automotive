@@ -63,6 +63,12 @@ namespace AutomotiveApp.BlazorUI.Themes
                 {
                     FontSize = "1rem",
                     FontWeight = "400",
+                },
+
+                Subtitle2 = new Subtitle2Typography
+                {
+                    FontSize = "0.9rem",
+                    FontWeight = "500",
                 }
             };
 

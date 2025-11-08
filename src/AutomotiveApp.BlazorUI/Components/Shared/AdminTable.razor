@@ -1,12 +1,12 @@
 ﻿@typeparam TItem
 @inject IDialogService DialogService
 
-<MudPaper Class="w-100 p-2 mb-3">
-    <MudTextField @bind-Value="SearchText" Placeholder="Search..." Adornment="Adornment.Start"
-        AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnKeyUp="@(e => ApplySearch())" />
-</MudPaper>
 
 <div class="responsive-table">
+    <MudPaper Class="w-100 p-22">
+        <MudTextField @bind-Value="SearchText" Placeholder="Search..." Adornment="Adornment.Start"
+            AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnKeyUp="@(e => ApplySearch())" />
+    </MudPaper>
     <MudTable Items="FilteredItems" Hover="true" Dense=true Striped=true Style="background-color: white;">
         <HeaderContent>
             @foreach (var column in Columns)
@@ -30,13 +30,13 @@
                         @if (column.ShowDetails)
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary"
-                                OnClick="@(() => OnDetailsClick(context))"/>
+                                OnClick="@(() => OnDetailsClick(context))" />
                         }
 
                         @if (column.ShowEdit)
                         {
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
-                                OnClick="@(() => OnEditClick(context))"/>
+                                OnClick="@(() => OnEditClick(context))" />
                         }
                     }
                     else if (column.IsImageColumn)

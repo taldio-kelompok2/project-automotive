@@ -41,18 +41,19 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                 if (!availableSessions.Any())
                     continue;
 
-                int orderCount = random.Next(1, 3);
-
+                int orderCount = random.Next(5, 10);
                 for (int i = 0; i < orderCount; i++)
                 {
-                    // Buat order
+
+                    var orderDate = DateTime.UtcNow.AddDays(-random.Next(0, 365));
                     var order = new Order
                     {
                         Id = Guid.NewGuid(),
                         UserId = buyer.Id,
                         PaymentMethodId = paymentMethods[random.Next(paymentMethods.Count)].Id,
                         Status = OrderStatus.Finished,
-                        TotalPrice = 0
+                        TotalPrice = 0,
+                        CreatedAt = orderDate,
                     };
                     await db.Orders.AddAsync(order);
                     await db.SaveChangesAsync();
@@ -93,7 +94,8 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                         Id = Guid.NewGuid(),
                         OrderId = order.Id,
                         InvoiceNumber = lastInvoiceNumber + 1,
-                        TotalPrice = total
+                        TotalPrice = total,
+                        CreatedAt = orderDate,
                     };
                     await db.Invoices.AddAsync(invoice);
                     await db.SaveChangesAsync();

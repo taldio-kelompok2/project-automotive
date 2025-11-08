@@ -1,18 +1,19 @@
 ﻿@page "/admin/dashboard"
 @layout AdminLayout
 @using AutomotiveApp.BlazorUI.Helper
+@using AutomotiveApp.Domain.Entities.Courses
+@using AutomotiveApp.WebAPI.Dto.Courses
 @rendermode InteractiveServer
 @inject IDashboardService DashboardService
 
 @* @layout AdminLayout *@
 
+
 <PageTitle>Dashboard</PageTitle>
-
-<MudPaper Class="m-md-4 d-flex flex-column p-3" Style="min-height: 80vh; background-color: white; ">
+<MudPaper Class="m-md-4 d-flex flex-column p-3 gap-3" Style="min-height: 80vh; " Elevation="0">
     <MudText Typo="Typo.h3" Class="mb-3">Welcome, Admin</MudText>
-
     <MudGrid Spacing="3">
-        <MudItem xs="12" md="4">
+        <MudItem xs="12" lg="4">
             <MudPaper Class="stat-card stat-red" Elevation="0">
                 <div class="stat-left">
                     <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" />
@@ -22,22 +23,22 @@
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="12" md="4">
+        <MudItem xs="12" lg="4">
             <MudPaper Class="stat-card stat-blue" Elevation="0">
                 <div class="stat-left">
                     <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Large" />
                     <MudText Typo="Typo.subtitle2">Total Revenue</MudText>
                 </div>
-                <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                    <MudText Typo="Typo.h5" Class="stat-value">@TotalRevenue</MudText>
+                <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                    <MudText Typo="Typo.body2" Class="stat-value">@TotalRevenue</MudText>
                 </MudHidden>
-                <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert=true>
-                    <MudText Typo="Typo.h6" Class="stat-value">@TotalRevenue</MudText>
+                <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert=true>
+                    <MudText Typo="Typo.h3" Class="stat-value">@TotalRevenue</MudText>
                 </MudHidden>
             </MudPaper>
         </MudItem>
-
-        <MudItem xs="12" md="4">
+        
+        <MudItem xs="12" lg="4">
             <MudPaper Class="stat-card stat-purple" Elevation="0">
                 <div class="stat-left">
                     <MudIcon Icon="@Icons.Material.Filled.GroupAdd" Size="Size.Large" />
@@ -48,6 +49,42 @@
         </MudItem>
     </MudGrid>
 
+    <MudStack Spacing="2" Class="mb-3">
+        <MudSelect T="int" FitContent=true Variant="Variant.Outlined" @bind-Value="SelectedYear" Dense="true">
+            @foreach (var year in availableYears)
+            {
+                <MudSelectItem Value="year">@year</MudSelectItem>
+            }
+        </MudSelect>
+    </MudStack>
+
+    <MudGrid Spacing="5" Class="text-center">
+    <MudItem xs="12" md="6">
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.h5">Total revenue per category</MudText>
+            <MudPaper Class="pa-4 d-flex justify-content-center">
+                <MudChart ChartType="ChartType.Donut" InputData="@revenuePerCategory" InputLabels="@categoryLabels"/>
+            </MudPaper>
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.h5">Enrolled Users per Course</MudText>
+            <MudPaper Class="pa-4 d-flex justify-content-center">
+                <MudChart ChartType="ChartType.Donut" InputData="@userPerCourse" InputLabels="@categoryLabels"/>
+            </MudPaper>
+            </MudStack>
+    </MudItem>
+    <MudItem xs="12" md="12">
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.h5">Monthly Revenue</MudText>
+            <MudPaper Class="pa-4 d-flex justify-content-center" Style="">
+                <MudChart ChartType="ChartType.Line" ChartSeries="@monthlyRevenueSeries" XAxisLabels="@monthLabels" Width="800px" Height="400px" ChartOptions="@lineChartOptions"/>
+            </MudPaper>
+            </MudStack>
+    </MudItem>
+
+    </MudGrid>
     <AdminTable TItem="DashboardTransactionModel" Items="Invoices" Columns="InvoiceColumns" Loading="@_isLoading" />
 </MudPaper>
 
@@ -58,7 +95,8 @@
     justify-content:space-between; 
     align-items:center;
     border-radius:10px; 
-    padding:18px 20px; 
+    padding:20px 20px;
+    height: 90px;
     color:#fff;
     margin-bottom:16px;
     margin-top:2px;
@@ -81,6 +119,77 @@
 
 
 @code {
+    private double[] revenuePerCategory => statistics
+        .GroupBy(s => s.Category)
+        .Select(g => (double)g.Sum(s => s.TotalRevenue))
+        .ToArray();
+    
+    private double[] userPerCourse => statistics
+    .GroupBy(s => s.Category)
+    .Select(g => (double)g.Sum(s => s.TotalOrders))
+    .ToArray();
+
+    private string[] categoryLabels => statistics
+        .Select(s => s.Category ?? "")
+        .Distinct()
+        .ToArray();
+
+    private string[] monthLabels => Enumerable.Range(1, 12)
+        .Select(m => new DateTime(2025, m, 1).ToString("MMM"))
+        .ToArray();
+
+    private double totalRevenue => statistics
+        .SelectMany(s => s.MonthlySales)
+        .Sum(ms => ms.TotalRevenue);
+    private int[] availableYears = [];
+
+    private int _selectedYear = DateTime.UtcNow.Year;
+    public int SelectedYear
+    {
+        get => _selectedYear;
+        set
+        {
+            if (_selectedYear != value)
+            {
+                _selectedYear = value;
+                OnYearChanged(value);
+            }
+        }
+    }
+
+    private List<ChartSeries> monthlyRevenueSeries => new List<ChartSeries>
+    {
+        new ChartSeries
+        {
+            Name = "Revenue",
+            Data = Enumerable.Range(1, 12)
+                .Select(month => (double)statistics
+                    .SelectMany(s => s.MonthlySales)
+                    .Where(ms => ms.Month == month)
+                    .Sum(ms => ms.TotalRevenue))
+                .ToArray(),
+            ShowDataMarkers = true,
+        }
+    };
+    
+    private ChartOptions lineChartOptions = new ChartOptions() {
+        InterpolationOption = InterpolationOption.Straight,
+        LineStrokeWidth = 4,
+        YAxisTicks = 1_500_000,
+        YAxisFormat = "N0",
+        ChartPalette = new string[]
+        {
+            Colors.Red.Darken3, // first series
+        }
+
+    };
+
+    private async void OnYearChanged(int year)
+    {
+        _selectedYear = year;
+        statistics = await DashboardService.GetCourseStatistics(year);
+        StateHasChanged();
+    }
     private readonly CultureInfo Indo = new("id-ID");
 
     private string FormatIdr(decimal v) => string.Format(Indo, "IDR {0:N0}", v);
@@ -90,7 +199,7 @@
     private int TotalActiveUsers;
     private string TotalRevenue = string.Empty;
     private int TotalMembers;
-
+    private List<CourseStatisticDto> statistics = [];
     private List<DashboardTransactionModel> Invoices = new();
 
     private List<ColumnDefinition<DashboardTransactionModel>> InvoiceColumns => new()
@@ -118,6 +227,13 @@
         try
         {
             var overview = await DashboardService.GetOverview();
+            statistics = await DashboardService.GetCourseStatistics(null);
+            availableYears = statistics
+            .SelectMany(s => s.MonthlySales)
+            .Select(ms => ms.Year)
+            .Distinct()
+            .OrderByDescending(y => y)
+            .ToArray();
 
             if (overview != null)
             {
