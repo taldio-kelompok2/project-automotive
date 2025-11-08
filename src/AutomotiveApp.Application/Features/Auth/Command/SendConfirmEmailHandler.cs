@@ -31,7 +31,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
 
             await emailService.SendConfirmationEmailAsync(user.Email!, user.Id.ToString(), token);
 
-            logger.LogInformation("Confrmation email successfuly sent to Email={Email}, Token={Token}",
+            logger.LogInformation("POST /api/auth/send-confirm-email - Confrmation email successfuly sent to Email={Email}, Token={Token}",
                 req.Email,
                 token);
 

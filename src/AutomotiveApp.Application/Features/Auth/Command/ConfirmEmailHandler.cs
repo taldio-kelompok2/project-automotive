@@ -31,7 +31,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                     error);
                 throw new InvalidOperationException($"Email confirmation failed: {error}");
             }
-            logger.LogInformation("Email={Email} successfully confirmed", user.Email);
+            logger.LogInformation("POST /api/auth/confirm-email - Successfully confirmed Email={Email}", user.Email);
 
             return true;
         }

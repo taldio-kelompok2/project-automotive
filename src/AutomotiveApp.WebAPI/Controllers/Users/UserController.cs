@@ -5,6 +5,7 @@ using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Enums;
 using AutomotiveApp.Shared.Models;
 using AutomotiveApp.Shared.Response;
+using Azure.Core;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -97,12 +98,20 @@ namespace AutomotiveApp.WebAPI.Controllers.User
 
             userProfileUpdateDto.CurrentUserId = userId;
 
+            logger.LogInformation("PUT /api/user/me - Update user profile request from Email={Email} with UserName={UserName}, PhoneNumber={PhoneNumber}",
+                userProfileUpdateDto.Email,
+                userProfileUpdateDto.UserName,
+                userProfileUpdateDto.PhoneNumber);
+
             var validation = await validator.ValidateAsync(userProfileUpdateDto);
             if (!validation.IsValid)
                 return HandleValidationFailure<UserProfileUpdateDto>(validation);
 
             var query = new UpdateUserProfile(userProfileUpdateDto);
             var result = await _mediator.Send(query);
+
+            logger.LogInformation("PUT /api/user/me - Update user profile completed for Email={Email}",
+                userProfileUpdateDto.Email);
 
             response.Success = true;
             response.Data = userProfileUpdateDto;
@@ -116,6 +125,13 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromBody] UserCreateRequestDto userCreateDto,
             [FromServices] IValidator<UserCreateRequestDto> validator)
         {
+            logger.LogInformation("POST /api/user - Create user request with Email={Email}, UserName={UserName}, PhoneNumber={PhoneNumber}, Role={Role}, Status={Status}",
+                userCreateDto.Email,
+                userCreateDto.UserName,
+                userCreateDto.PhoneNumber,
+                userCreateDto.Role,
+                userCreateDto.Status);
+
             var validation = await validator.ValidateAsync(userCreateDto);
             if (!validation.IsValid)
                 return HandleValidationFailure<UserCreateRequestDto>(validation);
@@ -128,6 +144,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
+
+            logger.LogInformation("POST /api/user - Create user successful with Email={Email}",
+                userCreateDto.Email);
 
             return StatusCode(201, response);
         }
@@ -192,6 +211,14 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromServices] IValidator<UserUpdateRequestDto> validator)
         {
             userUpdateDto.Id = userId;
+
+            logger.LogInformation("PUT /api/user - Update user request with Email={Email}, UserName={UserName}, PhoneNumber={PhoneNumber}, Role={Role}, Status={Status}",
+                userUpdateDto.Email,
+                userUpdateDto.UserName,
+                userUpdateDto.PhoneNumber,
+                userUpdateDto.Role,
+                userUpdateDto.Status);
+
             var validation = await validator.ValidateAsync(userUpdateDto);
             Console.WriteLine(userId);
             Console.WriteLine(userUpdateDto.Id);
@@ -206,6 +233,9 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.StatusCode = HttpStatusCode.OK;
             response.Data = userUpdateDto;
+
+            logger.LogInformation("PUT /api/user - Update user successful with Email={Email}",
+                userUpdateDto.Email);
 
             return Ok(response);
         }

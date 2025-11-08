@@ -35,7 +35,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
 
             await emailService.SendPasswordResetEmailAsync(req.Email, token);
 
-            logger.LogInformation("Forgot password email successfuly sent to Email={Email}, Token={Token}",
+            logger.LogInformation("POST /api/auth/forgot-password - Forgot password email successfuly sent to Email={Email}, Token={Token}",
                 req.Email,
                 token);
 

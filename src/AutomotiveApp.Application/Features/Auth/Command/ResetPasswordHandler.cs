@@ -30,7 +30,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                     error);
                 throw new InvalidOperationException($"Reset password failed: {error}");
             }
-            logger.LogInformation("Reset password successful for Email={Email}", user.Email);
+            logger.LogInformation("POST /api/auth/reset-password - Reset password successful for Email={Email}", user.Email);
 
             return true;
         }

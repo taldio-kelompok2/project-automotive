@@ -10,7 +10,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
     {
         public async Task<bool> Handle(LogoutCommand req, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Logout request from UserId={Id}", req.UserId);
+            logger.LogInformation("POST /api/auth/logout - Logout request from UserId={Id}", req.UserId);
 
             var user = await userManager.FindByIdAsync(req.UserId);
             if (user != null)
@@ -18,7 +18,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                 user.RefreshToken = null;
                 user.RefreshTokenExpiryTime = DateTime.UtcNow;
                 await userManager.UpdateAsync(user);
-                logger.LogInformation("Logout success for UserId={Id}", req.UserId);
+                logger.LogInformation("POST /api/auth/logout - Logout success for UserId={Id}", req.UserId);
                 return true;
             }
             logger.LogInformation("Logout failed for UserId={Id}", req.UserId);

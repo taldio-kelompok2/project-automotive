@@ -161,13 +161,11 @@ builder.Services.AddAuthentication(options =>
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine($"JWT failed: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
                 var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                Console.WriteLine($"JWT validated for user {userId}");
                 return Task.CompletedTask;
             },
             OnMessageReceived = context =>

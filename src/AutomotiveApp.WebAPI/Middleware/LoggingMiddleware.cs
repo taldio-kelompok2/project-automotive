@@ -54,7 +54,7 @@ namespace AutomotiveApp.WebAPI.Middleware
 
         private static string GenerateCorrelationId()
         {
-            return Guid.NewGuid().ToString("N")[..10];
+            return Guid.NewGuid().ToString("N")[..12];
         }
     }
 

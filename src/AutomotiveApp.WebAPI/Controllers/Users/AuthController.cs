@@ -48,7 +48,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
-            logger.LogInformation("POST /api/register - Register request with Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
+            logger.LogInformation("POST /api/auth/register - Register request with Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
 
             var command = new RegisterCommand(registerRequestDto);
             var result = await Mediator.Send(command);
@@ -65,7 +65,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             response.Success = true;
             response.StatusCode = HttpStatusCode.Created;
             response.Data = result;
-            logger.LogInformation("Register successful for Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
+            logger.LogInformation("POST /api/auth/register - Register successful for Email={Email}, Username={Username}", registerRequestDto.Email, registerRequestDto.UserName);
             return Ok(response);
         }
 
@@ -74,7 +74,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         {
             var response = new ApiResponse<AuthResponseDto>();
 
-            logger.LogInformation("POST /api/login - Login request from Email={Email}", loginRequestDto.Email);
+            logger.LogInformation("POST /api/auth/login - Login request from Email={Email}", loginRequestDto.Email);
 
             var command = new LoginCommand(loginRequestDto);
             var result = await Mediator.Send(command);
@@ -124,7 +124,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
                 AccessTokenExpiry = result.AccessTokenExpiry,
             };
 
-            logger.LogInformation("Login successful for Email={Email}, AccessToken={accessToken}, RefreshToken={refreshToken}, AccessTokenExpiry={accessTokenExpiry}",
+            logger.LogInformation("POST /api/auth/login - Login successful for Email={Email}, AccessToken={accessToken}, RefreshToken={refreshToken}, AccessTokenExpiry={accessTokenExpiry}",
                 loginRequestDto.Email,
                 result.AccessToken,
                 result.RefreshToken,
@@ -204,7 +204,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpPost("send-confirm-email")]
         public async Task<ActionResult<ApiResponse<bool>>> SendConfirmEmail([FromBody] SendConfirmEmailRequestDto request)
         {
-            logger.LogInformation("POST /api/send-confirm-email - Send Confirm email request for Email={Email}", request.Email);
+            logger.LogInformation("POST /api/auth/send-confirm-email - Send Confirm email request for Email={Email}", request.Email);
             var response = new ApiResponse<bool>();
             var command = new SendConfirmEmailCommand(request.Email);
             var result = await Mediator.Send(command);
@@ -223,7 +223,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
             [FromQuery] string userId,
             [FromQuery] string token)
         {
-            logger.LogInformation("POST /api/confirm-email - Confirm email request for UserId={UserId}", userId);
+            logger.LogInformation("POST /api/auth/confirm-email - Confirm email request for UserId={UserId}", userId);
             var response = new ApiResponse<bool>();
 
             var command = new ConfirmEmailCommand(userId, token);
@@ -242,7 +242,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             var response = new ApiResponse<bool>();
-            logger.LogInformation("POST /api/forgot-password - Forgot password request from Email={Email}", request.Email);
+            logger.LogInformation("POST /api/auth/forgot-password - Forgot password request from Email={Email}", request.Email);
 
             try
             {
@@ -274,7 +274,7 @@ namespace AutomotiveApp.WebAPI.Controllers.User
         [HttpPost("reset-password")]
         public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
-            logger.LogInformation("POST /api/reset-password - Reset password request from Email={Email}", request.Email);
+            logger.LogInformation("POST /api/auth/reset-password - Reset password request from Email={Email}", request.Email);
 
             var response = new ApiResponse<bool>();
 
