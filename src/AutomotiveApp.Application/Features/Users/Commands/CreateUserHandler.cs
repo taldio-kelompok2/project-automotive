@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
 using AutomotiveApp.Domain.Entities.Auth;
-using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.User;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System.Data;
 
 namespace AutomotiveApp.Application.Features.Users.Commands
 {
-    public class CreateUserHandler(UserManager<User> userManager, IMapper mapper)
+    public class CreateUserHandler(UserManager<User> userManager, IMapper mapper, ILogger<CreateUserHandler> logger)
         : IRequestHandler<CreateUser, UserCreateRequestDto>
     {
         public async Task<UserCreateRequestDto> Handle(CreateUser req, CancellationToken cancellationToken)
@@ -17,6 +17,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             var existingUser = await userManager.FindByEmailAsync(req.UserCreateDto.Email);
             if (existingUser != null)
             {
+                logger.LogError("Create user failed Email={Email} already exists", req.UserCreateDto.Email);
                 throw new DuplicateNameException($"User with email {req.UserCreateDto.Email} already exists");
             }
 
@@ -26,7 +27,7 @@ namespace AutomotiveApp.Application.Features.Users.Commands
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-
+                logger.LogError("Create user failed Error={errors}", errors);
                 throw new InvalidOperationException($"{errors}");
             }
 

@@ -45,7 +45,7 @@ namespace AutomotiveApp.WebAPI.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex, HttpStatusCode httpStatus, params string[] errors)
         {
-            _logger.LogError(ex, "Exception: {Message}", ex.Message);
+            _logger.LogError("Exception: {Message}", ex.Message);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)httpStatus;

@@ -20,7 +20,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
     [ApiController]
     [Route("api/[controller]")]
 
-    public class CourseController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage) : BaseApiController(mediator)
+    public class CourseController(IMediator mediator, IMapper mapper, IFileStorage ImageStorage, ILogger<CourseController> logger) : BaseApiController(mediator)
     {
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseQueryDto>>> GetAll()
@@ -77,6 +77,12 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         public async Task<ActionResult<CourseQueryDto>> Add([FromForm] CourseCreateRequest request,
         [FromServices] IValidator<CourseCreateRequest> validator)
         {
+            logger.LogInformation("POST /api/course - Create course request with Name={Name}, Description={Description}, Price={Price}, CategoryId={CategoryId}",
+                request.Name,
+                request.Description,
+                request.Price,
+                request.CategoryId);
+
             var response = new ApiResponse<CourseQueryDto>();
             var validation = await validator.ValidateAsync(request);
             if (!validation.IsValid) return HandleValidationFailure<CourseQueryDto>(validation);
@@ -96,6 +102,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
+                logger.LogInformation("POST /api/course - Create course successful with Name={Name}",
+                    request.Name);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -107,7 +115,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
-
+                logger.LogError("Create course failed with Error={err}",
+                    ex.Message);
                 return BadRequest(response);
             }
         }
@@ -119,6 +128,14 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         {
             var response = new ApiResponse<CourseQueryDto>();
             request.Id = id;
+
+            logger.LogInformation("PATCH /api/course - Update course request with CourseId={CourseId}, Name={Name}, Description={Description}, Price={Price}, CategoryId={CategoryId}",
+                id,
+                request.Name,
+                request.Description,
+                request.Price,
+                request.CategoryId);
+
             var validation = await validator.ValidateAsync(request);
             if (!validation.IsValid) return HandleValidationFailure<CourseQueryDto>(validation);
 
@@ -138,7 +155,9 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
-
+                logger.LogInformation("PATCH /api/course - Update course successful with CourseId={CourseId}, Name={Name}",
+                    id,
+                    request.Name);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -150,7 +169,8 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
-
+                logger.LogError("Update course failed with Error={err}",
+                    ex.Message);
                 return BadRequest(response);
             }
         }

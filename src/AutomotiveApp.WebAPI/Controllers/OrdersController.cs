@@ -1,22 +1,20 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using AutomotiveApp.Application.Interfaces;
+using AutomotiveApp.Domain.Entities.Courses;
+using AutomotiveApp.Domain.Entities.Courses.Cart; // IRepository<>         
+using AutomotiveApp.Domain.Entities.Invoices;
 using AutomotiveApp.Domain.Entities.Orders;
-using Microsoft.AspNetCore.Authorization;
+using AutomotiveApp.Domain.Enums;
+using AutomotiveApp.Shared.Dtos.Auth;
 using AutomotiveApp.Shared.Dtos.Order;
+using AutomotiveApp.Shared.Exceptions;
+using AutomotiveApp.Shared.Response;
 using AutomotiveApp.WebAPI.Helper;
 using FluentValidation;
-using AutomotiveApp.Application.Interfaces;
-using AutoMapper;
-using AutomotiveApp.Shared.Response;
-using AutomotiveApp.Domain.Entities.Payments;
-using AutomotiveApp.Shared.Exceptions;
-using AutomotiveApp.Domain.Entities.Courses;
-using AutomotiveApp.Domain.Enums;
-using AutomotiveApp.Shared.Dtos.OrderItem;
-using AutomotiveApp.Domain.Entities.Invoices;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
-using AutomotiveApp.Domain.Entities.Courses.Cart; // IRepository<>         
 
 namespace AutomotiveApp.WebAPI.Controllers
 {
@@ -27,11 +25,13 @@ namespace AutomotiveApp.WebAPI.Controllers
     {
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IUnitOfWork uow, IMapper mapper)
+        public OrdersController(IUnitOfWork uow, IMapper mapper, ILogger<OrdersController> logger)
         {
             _uow = uow;
             _mapper = mapper;
+            _logger = logger;
 
         }
 
@@ -71,6 +71,11 @@ namespace AutomotiveApp.WebAPI.Controllers
             request.UserId = userId;
 
             await validator.ValidateAndThrowAsync(request, ct);
+
+            _logger.LogInformation("POST /api/orders/instant - Start Instant Order request for UserId={UserId}, SessionId={SessionId}",
+                userId,
+                request.SessionId);
+
             await using var transaction = await _uow.BeginTransactionAsync(ct);
             try
             {
@@ -84,6 +89,8 @@ namespace AutomotiveApp.WebAPI.Controllers
 
                 await _uow.OrderRepo.AddAsync(order);
                 await _uow.SaveChangesAsync(ct);
+
+                _logger.LogInformation("Instant Order created with OrderId={OrderId}", order.Id.ToString());
 
                 //2. get the session data & create the order Item
                 var session = await _uow.CourseSessionRepo.Query()
@@ -105,11 +112,19 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.OrderItemRepo.AddAsync(orderItem);
                 await _uow.SaveChangesAsync(ct);
 
+                _logger.LogInformation("Order item created with OrderItemId={OrderItemId}, SessionId={SessionId}, OrderId={OrderId}",
+                    orderItem.Id.ToString(),
+                    request.SessionId.ToString(),
+                    order.Id.ToString());
+
                 //3. set the order succesful and finalize the price (Payment method is always succesful in the demo) 
                 order.Status = OrderStatus.Finished;
                 order.TotalPrice = orderItem.Price;
                 _uow.OrderRepo.Update(order);
                 await _uow.SaveChangesAsync(ct);
+
+                _logger.LogInformation("Order status changed to 'Finished' for OrderId={OrderId}",
+                    order.Id.ToString());
 
                 //4. Create the invoice
                 var lastInvoiceNumber = await _uow.InvoiceRepo.GetLastInvoiceNumber();
@@ -123,6 +138,11 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.InvoiceRepo.AddAsync(invoice);
                 await _uow.SaveChangesAsync(ct);
 
+                _logger.LogInformation("Invoice created with InvoiceNumber={InvoiceNumber}, OrderId={OrderId}, TotalPrice={TotalPrice}",
+                    invoice.InvoiceCode,
+                    order.Id.ToString(),
+                    order.TotalPrice);
+
                 //5. set the user Bookings
                 var userBooking = new CourseBooking
                 {
@@ -133,10 +153,16 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.CourseBookingRepo.AddAsync(userBooking);
                 await _uow.SaveChangesAsync(ct);
 
+                _logger.LogInformation("Booking added for UserId={UserId}, SessionId={SessionId}",
+                     userBooking.UserId.ToString(),
+                     request.SessionId);
+
                 //6. Commit the transaction
                 await transaction.CommitAsync(ct);
                 response.Data = "Payment received and order completed successfully.";
                 response.StatusCode = HttpStatusCode.OK;
+                _logger.LogInformation("POST /api/orders/instant - Instant order completed successfully for OrderId={OrderId}",
+                      order.Id.ToString());
                 return Ok(response);
 
             }
@@ -145,11 +171,13 @@ namespace AutomotiveApp.WebAPI.Controllers
                 if (transaction != null)
                 {
                     await transaction.RollbackAsync(ct);
+                    _logger.LogInformation("Instant order creation failed. Rolling back changes...");
                 }
 
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
+                _logger.LogError("Instant order creation failed with Error={Error}", ex.Message);
                 return BadRequest(response);
             }
         }
@@ -163,6 +191,11 @@ namespace AutomotiveApp.WebAPI.Controllers
             request.UserId = userId;
 
             await validator.ValidateAndThrowAsync(request, ct);
+
+            _logger.LogInformation("POST /api/orders - Start Instant Order request for UserId={UserId}, CartId={CartId}",
+                userId,
+                request.CartId);
+
             await using var transaction = await _uow.BeginTransactionAsync(ct);
 
             try
@@ -188,6 +221,8 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.OrderRepo.AddAsync(order);
                 await _uow.SaveChangesAsync(ct);
 
+                _logger.LogInformation("Order created with OrderId={OrderId}", order.Id.ToString());
+
                 //Get the ordered items
                 var orderedItems = cart.Items.Where(i => request.CartItemIds.Contains(i.Id));
                 long totalPrice = 0;
@@ -203,6 +238,11 @@ namespace AutomotiveApp.WebAPI.Controllers
 
                     totalPrice += orderItem.Price;
                     await _uow.OrderItemRepo.AddAsync(orderItem);
+
+                    _logger.LogInformation("Order item created with OrderItemId={OrderItemId}, SessionId={SessionId}, OrderId={OrderId}",
+                        orderItem.Id.ToString(),
+                        item.SessionId.ToString(),
+                        order.Id.ToString());
                 }
                 await _uow.SaveChangesAsync(ct);
 
@@ -211,6 +251,9 @@ namespace AutomotiveApp.WebAPI.Controllers
                 order.TotalPrice = totalPrice;
                 _uow.OrderRepo.Update(order);
                 await _uow.SaveChangesAsync(ct);
+
+                _logger.LogInformation("Order status changed to 'Finished' for OrderId={OrderId}",
+                    order.Id.ToString());
 
                 // Create invoice
                 var lastInvoiceNumber = await _uow.InvoiceRepo.GetLastInvoiceNumber();
@@ -223,6 +266,11 @@ namespace AutomotiveApp.WebAPI.Controllers
                 await _uow.InvoiceRepo.AddAsync(invoice);
                 await _uow.SaveChangesAsync(ct);
 
+                _logger.LogInformation("Invoice created with InvoiceNumber={InvoiceNumber}, OrderId={OrderId}, TotalPrice={TotalPrice}",
+                    invoice.InvoiceCode,
+                    order.Id.ToString(),
+                    order.TotalPrice);
+
                 // Create bookings && remove the cart
                 foreach (var item in orderedItems)
                 {
@@ -232,6 +280,9 @@ namespace AutomotiveApp.WebAPI.Controllers
                         UserId = userId
                     };
                     await _uow.CourseBookingRepo.AddAsync(booking);
+                    _logger.LogInformation("Booking added for UserId={UserId}, SessionId={SessionId}",
+                         booking.UserId.ToString(),
+                         item.SessionId);
                 }
                 await _uow.SaveChangesAsync(ct);
                 // Clear cart
@@ -247,16 +298,22 @@ namespace AutomotiveApp.WebAPI.Controllers
 
                 response.Data = "Payment received and order completed successfully.";
                 response.StatusCode = HttpStatusCode.OK;
+                _logger.LogInformation("POST /api/orders - Order completed successfully for OrderId={OrderId}",
+                      order.Id.ToString());
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 if (transaction != null)
+                {
+                    _logger.LogInformation("Order creation failed. Rolling back changes...");
                     await transaction.RollbackAsync(ct);
+                }
 
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.BadRequest;
                 response.Errors = [ex.Message];
+                _logger.LogError("Order creation failed with Error={Error}", ex.Message);
                 return BadRequest(response);
             }
         }
