@@ -44,7 +44,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseCategoryQueryDto>>> GetCourseCategories()
         {
-            _logger.LogInformation("GET /api/coursecategory - fetching categories");
+            //_logger.LogInformation("GET /api/coursecategory - fetching categories");
 
             var response = new ApiResponse<IEnumerable<CourseCategoryQueryDto>>();
             var query = new GetCourseCategories();
@@ -58,7 +58,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
-            _logger.LogInformation("GET /api/coursecategory - returned {Count} items", result?.Count() ?? 0);
+            //_logger.LogInformation("GET /api/coursecategory - returned {Count} items", result?.Count() ?? 0);
 
             return Ok(response);
         }
@@ -66,7 +66,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CourseCategoryQueryDto>> GetCourseCategoryById([FromRoute] Guid id, [FromServices] IValidator<GetCourseCategoryById> validator)
         {
-            _logger.LogInformation("GET /api/coursecategory/{Id} - start", id);
+            //_logger.LogInformation("GET /api/coursecategory/{Id} - start", id);
 
             var query = new GetCourseCategoryById(id);
             var response = new ApiResponse<CourseCategoryQueryDto>();
@@ -81,7 +81,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
             response.StatusCode = HttpStatusCode.OK;
             response.Data = result;
 
-            _logger.LogInformation("GET /api/coursecategory/{Id} - ok", id);
+            //_logger.LogInformation("GET /api/coursecategory/{Id} - ok", id);
 
             return Ok(response);
         }
@@ -114,7 +114,7 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
         [FromForm] CourseCategoryCreateRequest request,
         [FromServices] IValidator<CourseCategoryCreateRequest> validator)
         {
-            _logger.LogInformation("POST /api/coursecategory - creating {Name}", request?.Name);
+            _logger.LogInformation("POST /api/coursecategory - creating Name={Name}", request?.Name);
 
             var response = new ApiResponse<CourseCategoryQueryDto>();
             await validator.ValidateAndThrowAsync(request);
@@ -143,13 +143,13 @@ namespace AutomotiveApp.WebAPI.Controllers.Courses
                 response.StatusCode = HttpStatusCode.OK;
                 response.Data = result;
 
-                _logger.LogInformation("POST /api/coursecategory - created category {CategoryId}", result.Id);
+                _logger.LogInformation("POST /api/coursecategory - Created category with CategoryId={CategoryId}", result.Id);
 
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "POST /api/coursecategory failed for {Name}", request?.Name);
+                _logger.LogError(ex, "POST /api/coursecategory failed for Name={Name}", request?.Name);
 
                 if (imageFileName != null)
                 {

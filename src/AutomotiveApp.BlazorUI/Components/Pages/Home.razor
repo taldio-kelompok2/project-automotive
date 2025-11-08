@@ -4,8 +4,10 @@
 @using AutomotiveApp.Shared.Dtos.Courses
 @using AutomotiveApp.Shared.Models
 @using AutomotiveApp.Shared.Response
+@using AutomotiveApp.Shared.Dtos.Analytics
 
 
+@inject IAnalyticsService AnalyticsSvc
 @inject ICourseCategoryService CategorySvc
 @inject HttpClient Http
 
@@ -23,15 +25,36 @@
     </div>
     <div class="banner-content-bottom">
         <MudStack Spacing="4">
-            <MudText Typo="Typo.h1" Color="Color.Inherit">50+</MudText>
+            @if (analyticsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h1">@($"{coursesCount}+")</MudText>
+            }
             <span class="banner-caption">A class ready to make you a reliable driver</span>
         </MudStack>
         <MudStack Spacing="4">
-            <MudText Typo="Typo.h1" Color="Color.Inherit">20+</MudText>
+            @if (analyticsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h1">@($"{ordersCount}+")</MudText>
+            }
             <span class="banner-caption">Professional workforce with great experience</span>
         </MudStack>
         <MudStack Spacing="4">
-            <MudText Typo="Typo.h1" Color="Color.Inherit">10+</MudText>
+            @if (analyticsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h1">@($"{partnersCount}+")</MudText>
+            }
             <span class="banner-caption">Cooperate with driver service partners</span>
         </MudStack>
     </div>
@@ -158,6 +181,9 @@
 
         categoryPage = 1;
         await LoadCategoriesAsync(categoryPage);
+
+        // analytics
+        await LoadAnalyticsAsync();
     }
 
     private async Task OnPageChanged(int page)
@@ -230,4 +256,31 @@
         var api = Http.BaseAddress?.ToString()?.TrimEnd('/');
         return $"{api}/images/CourseCategory/{url}";
     }
+
+
+    // --- Analytics ---
+    private int coursesCount;
+    private int ordersCount;
+    private int partnersCount;
+    private bool analyticsLoading;
+
+    private async Task LoadAnalyticsAsync()
+    {
+        analyticsLoading = true;
+        try
+        {
+            var result = await AnalyticsSvc.GetOverviewAsync();
+            if (result.Success && result.Data != null)
+            {
+                coursesCount = result.Data.CoursesCount;
+                ordersCount = result.Data.OrdersCount;
+                partnersCount = result.Data.PartnersCount;
+            }
+        }
+        finally { analyticsLoading = false; }
+    }
+
+
+
+
 }

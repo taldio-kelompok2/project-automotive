@@ -5,10 +5,11 @@ using AutomotiveApp.Shared.Dtos.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AutomotiveApp.Application.Features.Auth.Command
 {
-    public class RefreshTokenHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings)
+    public class RefreshTokenHandler(UserManager<User> userManager, ITokenService tokenService, IJwtSettings jwtSettings, ILogger<RefreshTokenHandler> logger)
     : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
     {
         public async Task<AuthResponseDto> Handle(RefreshTokenCommand req, CancellationToken cancellationToken)
@@ -26,12 +27,16 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                     };
                 }
 
+                logger.LogInformation("POST /api/auth/refresh-token - Refresh token request from Email={Email}, RefreshToken={RefreshToken}",
+                    user.Email,
+                    req.RefreshToken);
+
                 if (DateTime.UtcNow > user.RefreshTokenExpiryTime)
                 {
                     user.RefreshToken = null;
                     user.RefreshTokenExpiryTime = DateTime.UtcNow;
                     await userManager.UpdateAsync(user);
-
+                    logger.LogWarning("Refresh token failed Error=Refresh token expired");
                     return new AuthResponseDto
                     {
                         Success = false,
@@ -49,6 +54,10 @@ namespace AutomotiveApp.Application.Features.Auth.Command
                 user.LastLogin = DateTime.UtcNow;
                 await userManager.UpdateAsync(user);
 
+                logger.LogInformation("POST /api/auth/refresh-token - Token refreshed with RefreshToken={RefreshToken}, AccessToken={AccessToken}",
+                    newRefreshToken,
+                    newAccessToken);
+
                 return new AuthResponseDto
                 {
                     Success = true,
@@ -60,6 +69,7 @@ namespace AutomotiveApp.Application.Features.Auth.Command
             }
             catch (Exception)
             {
+                logger.LogWarning("Refresh token failed Error=Internal error");
                 return new AuthResponseDto
                 {
                     Success = false,

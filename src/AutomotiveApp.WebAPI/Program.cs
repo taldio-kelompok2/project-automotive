@@ -9,6 +9,7 @@ using AutomotiveApp.Infrastructure.Data.Seeder;
 using AutomotiveApp.Infrastructure.Implementation.Repositories;
 using AutomotiveApp.Infrastructure.Implementation.Utils;
 using AutomotiveApp.Infrastructure.Repositories;
+using AutomotiveApp.WebAPI.Middleware;
 using AutomotiveApp.WebAPI.Validators.Course;
 using FluentValidation;
 using MediatR;
@@ -18,11 +19,34 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using AutomotiveApp.WebAPI.Middleware;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Grafana.Loki;
 using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, lc) => lc
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // debug only
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.With<ShortSourceContextEnricher>()
+        .WriteTo.Console(outputTemplate:
+            "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}")
+        .WriteTo.File("logs/app-.log",
+            rollingInterval: RollingInterval.Day,
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}")
+        .WriteTo.GrafanaLoki("http://localhost:3100",
+        textFormatter: new Serilog.Formatting.Display.MessageTemplateTextFormatter(
+            "{Level:u3} [CorrelationId={CorrelationId}] {ShortSourceContext} {Message:lj} {NewLine}{Exception}",
+            null
+            ),
+        labels:
+        [
+            new LokiLabel { Key = "app", Value = "automotiveapp" },
+        ]));
 
 // Add Controllers
 builder.Services.AddControllers()
@@ -137,13 +161,11 @@ builder.Services.AddAuthentication(options =>
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine($"JWT failed: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
                 var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                Console.WriteLine($"JWT validated for user {userId}");
                 return Task.CompletedTask;
             },
             OnMessageReceived = context =>
@@ -234,6 +256,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<LoggingMiddleware>();
 
 Console.WriteLine("Current environment: " + app.Environment.EnvironmentName);
 
