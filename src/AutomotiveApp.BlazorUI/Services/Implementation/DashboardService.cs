@@ -1,6 +1,7 @@
 ﻿using AutomotiveApp.BlazorUI.Services.Interface;
 using AutomotiveApp.Shared.Dtos.User;
 using AutomotiveApp.Shared.Response;
+using AutomotiveApp.WebAPI.Dto.Courses;
 using Microsoft.AspNetCore.Components.Authorization;
 
 
@@ -23,6 +24,33 @@ namespace AutomotiveApp.BlazorUI.Services.Implementation
                 if (response.IsSuccessStatusCode)
                 {
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<DashboardTransactionDto>>>();
+                    return apiResponse?.Data ?? [];
+                }
+                else
+                {
+                    Console.WriteLine($"[DashboardService] Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                    return [];
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DashboardService] Exception: {ex.Message}");
+                return [];
+            }
+        }
+
+        public async Task<List<CourseStatisticDto>> GetCourseStatistics(int? year)
+        {
+            var url = year.HasValue
+            ? $"api/dashboard/statistics/course?year={year.Value}"
+            : "api/dashboard/statistics/course";
+            try
+            {
+                var response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<CourseStatisticDto>>>();
                     return apiResponse?.Data ?? [];
                 }
                 else

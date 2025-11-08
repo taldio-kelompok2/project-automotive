@@ -10,38 +10,32 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
         public static async Task SeedAsync(AppDbContext db, bool reapply = false)
         {
             if (!reapply && await db.CourseSessions.AnyAsync())
-            {
                 return;
-            }
 
             var sessions = new List<CourseSession>();
             var courses = await db.Courses.ToListAsync();
+            var random = Random.Shared;
 
             foreach (var course in courses)
             {
-                sessions.Add(new CourseSession
+                int sessionCount = random.Next(5, 11);
+                for (int i = 0; i < sessionCount; i++)
                 {
-                    Id = Guid.NewGuid(),
-                    CourseId = course.Id,
-                    Date = DateTime.UtcNow.Date.AddDays(1), // besok
-                    Capacity = 10
-                });
+                    // Random day in the next 365 days
+                    var daysAhead = random.Next(1, 365);
+                    var sessionDate = DateTime.UtcNow.Date.AddDays(daysAhead);
 
-                sessions.Add(new CourseSession
-                {
-                    Id = Guid.NewGuid(),
-                    CourseId = course.Id,
-                    Date = DateTime.UtcNow.Date.AddDays(8), // minggu depan
-                    Capacity = 12
-                });
+                    var capacity = random.Next(8, 50);
 
-                sessions.Add(new CourseSession
-                {
-                    Id = Guid.NewGuid(),
-                    CourseId = course.Id,
-                    Date = DateTime.UtcNow.Date.AddDays(15), // dua minggu lagi
-                    Capacity = 15
-                });
+                    sessions.Add(new CourseSession
+                    {
+                        Id = Guid.NewGuid(),
+                        CourseId = course.Id,
+                        Date = sessionDate,
+                        Capacity = (uint)capacity
+                    });
+                }
+
             }
 
             await db.CourseSessions.AddRangeAsync(sessions);
