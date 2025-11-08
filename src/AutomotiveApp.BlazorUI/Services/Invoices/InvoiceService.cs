@@ -84,4 +84,16 @@ public class InvoiceService(IHttpClientFactory httpFactory) : IInvoiceService
 
     public async Task<InvoiceDetailsDto?> GetDetailsAsync(Guid id, CancellationToken ct = default)
         => await _http.GetFromJsonAsync<InvoiceDetailsDto>($"{BaseEndpoint}/{id}/details", ct);
+    
+    public string GetPdfUrl(Guid id)
+    {
+        var baseUri = _http.BaseAddress?.ToString().TrimEnd('/');
+
+        if (string.IsNullOrEmpty(baseUri))
+        {
+            return $"{BaseEndpoint}/{id}/pdf";
+        }
+
+        return $"{baseUri}/{BaseEndpoint}/{id}/pdf";
+    }
 }
