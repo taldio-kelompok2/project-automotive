@@ -13,6 +13,7 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 
+
 <PageTitle>Details Invoice</PageTitle>
 
 <div style="min-height:calc(100vh - 200px); display:flex; flex-direction:column;">
@@ -33,6 +34,11 @@
         }
         else
         {
+            <MudStack Justify="Justify.FlexEnd" AlignItems="AlignItems.End" Class="mb-4">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download" OnClick="Download" Class="w-100">
+                    Download
+                </MudButton>
+            </MudStack>
             <MudGrid Class="mb-4" Style="color:#4F4F4F;">
                 <MudItem xs="12" md="6">
                     <MudStack Spacing="1">
@@ -153,6 +159,7 @@
     private readonly CultureInfo Indo = new("id-ID");
     private string HeaderStyle => "background-color:#790b0a; height:55px; text-align:center; vertical-align:middle;";
     private string PaymentMethodDisplay = "-";
+    private Guid InvoiceId;
 
     private List<BreadcrumbItem> Crumbs => new()
     {
@@ -204,10 +211,10 @@
 
     private void BindToUi(InvoiceDetailsDto details)
     {
+        InvoiceId   = details.Id;
         InvoiceNo   = details.InvoiceCode;
         InvoiceDate = details.CreatedAt;
         TotalPrice  = details.TotalPrice;
-
         PaymentMethodDisplay = string.IsNullOrWhiteSpace(details.PaymentMethod) ? "-" : details.PaymentMethod;
 
         Items = details.Items.Select((x, idx) => new InvoiceItem
@@ -253,4 +260,17 @@
         public DateTime Schedule { get; set; }
         public decimal Price { get; set; }
     }
+
+    private void Download()
+    {
+        if (InvoiceId == Guid.Empty)
+            return;
+
+        var url = InvoiceService.GetPdfUrl(InvoiceId);
+        Navigation.NavigateTo(url, forceLoad: true);
+    }
+
+
+
+
 }

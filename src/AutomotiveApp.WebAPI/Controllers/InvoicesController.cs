@@ -311,5 +311,78 @@ namespace AutomotiveApp.WebAPI.Controllers
             return Ok(items);
         }
 
+
+        [HttpGet("{id:guid}/pdf")]
+        public async Task<IActionResult> DownloadPdf(Guid id)
+        {
+            var inv = await _db.Invoices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (inv is null)
+                return NotFound("Invoice Not Available");
+
+            var items = await (
+                from oi in _db.OrderItems.AsNoTracking()
+                join cs in _db.CourseSessions.AsNoTracking() on oi.SessionId equals cs.Id
+                join c in _db.Courses.AsNoTracking() on cs.CourseId equals c.Id
+                join cat in _db.CourseCategories.AsNoTracking() on c.CategoryId equals cat.Id
+                where oi.OrderId == inv.OrderId
+                select new InvoiceItemDto
+                {
+                    CourseName = c.Name,
+                    Type = cat.Name,
+                    Schedule = cs.Date,
+                    Price = oi.Price
+                }
+            ).ToListAsync();
+
+            var paymentMethodName = await (
+                from o in _db.Orders.AsNoTracking()
+                join pm in _db.PaymentMethods.AsNoTracking()
+                    on o.PaymentMethodId equals pm.Id
+                where o.Id == inv.OrderId
+                select pm.Name
+            ).FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(paymentMethodName))
+                paymentMethodName = "-";
+
+            var userInfo = await (
+                from o in _db.Orders.AsNoTracking()
+                join u in _db.Users.AsNoTracking() on o.UserId equals u.Id
+                where o.Id == inv.OrderId
+                select new { u.UserName, u.Email }
+            ).FirstOrDefaultAsync();
+
+            var customerName = userInfo?.UserName;
+            var customerEmail = userInfo?.Email;
+
+            if (string.IsNullOrWhiteSpace(customerName))
+                customerName = customerEmail ?? "-";
+            if (string.IsNullOrWhiteSpace(customerEmail))
+                customerEmail = "-";
+
+            var dto = new InvoiceDetailsDto
+            {
+                Id = inv.Id,
+                InvoiceCode = inv.InvoiceCode,
+                CreatedAt = inv.CreatedAt,
+                TotalPrice = inv.TotalPrice > 0
+                                ? inv.TotalPrice
+                                : (long)items.Sum(x => x.Price),
+                PaymentMethod = paymentMethodName,
+                CustomerName  = customerName!,
+                CustomerEmail = customerEmail!,
+                Items = items
+            };
+
+            var pdfBytes = InvoicePdfGenerator.Generate(dto);
+            var fileName = $"Invoice-{dto.InvoiceCode}.pdf";
+
+            return File(pdfBytes, "application/pdf", fileName);
+        }
+
+
     }
 }

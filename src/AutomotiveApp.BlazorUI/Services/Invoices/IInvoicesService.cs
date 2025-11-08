@@ -29,4 +29,6 @@ public interface IInvoiceService
     Task<List<InvoiceReadDto>> GetMyInvoicesAsync(Guid? orderId = null, int? invoiceNumber = null, CancellationToken ct = default);
 
     Task<InvoiceDetailsDto?> GetDetailsAsync(Guid id, CancellationToken ct = default);
+
+    string GetPdfUrl(Guid id);
 }
