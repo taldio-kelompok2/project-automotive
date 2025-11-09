@@ -16,10 +16,18 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             var courses = await db.Courses.ToListAsync();
             var random = Random.Shared;
 
+            var sharedSessionDates = new List<DateTime>
+            {
+                DateTime.UtcNow.Date.AddDays(1),
+                DateTime.UtcNow.Date.AddDays(2),
+                DateTime.UtcNow.Date.AddDays(3)
+            };
+
+
             foreach (var course in courses)
             {
                 int sessionCount = random.Next(5, 11);
-                var usedDays = new HashSet<int>();
+                var usedDays = new HashSet<int> { 1, 2, 3 };
                 for (int i = 0; i < sessionCount; i++)
                 {
                     int daysAhead;
@@ -27,7 +35,6 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                         daysAhead = random.Next(1, 365);
                     while (!usedDays.Add(daysAhead));
                     var sessionDate = DateTime.UtcNow.Date.AddDays(daysAhead);
-
                     var capacity = random.Next(8, 50);
 
                     sessions.Add(new CourseSession
@@ -39,6 +46,16 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
                     });
                 }
 
+                foreach (var sharedDate in sharedSessionDates)
+                {
+                    sessions.Add(new CourseSession
+                    {
+                        Id = Guid.NewGuid(),
+                        CourseId = course.Id,
+                        Date = sharedDate,
+                        Capacity = (uint)random.Next(8, 50)
+                    });
+                }
             }
 
             await db.CourseSessions.AddRangeAsync(sessions);
