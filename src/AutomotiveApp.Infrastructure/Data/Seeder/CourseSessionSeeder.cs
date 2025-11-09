@@ -19,10 +19,13 @@ namespace AutomotiveApp.Infrastructure.Data.Seeder
             foreach (var course in courses)
             {
                 int sessionCount = random.Next(5, 11);
+                var usedDays = new HashSet<int>();
                 for (int i = 0; i < sessionCount; i++)
                 {
-                    // Random day in the next 365 days
-                    var daysAhead = random.Next(1, 365);
+                    int daysAhead;
+                    do
+                        daysAhead = random.Next(1, 365);
+                    while (!usedDays.Add(daysAhead));
                     var sessionDate = DateTime.UtcNow.Date.AddDays(daysAhead);
 
                     var capacity = random.Next(8, 50);
