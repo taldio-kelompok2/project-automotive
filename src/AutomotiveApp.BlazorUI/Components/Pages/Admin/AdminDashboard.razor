@@ -63,7 +63,7 @@
         <MudStack Spacing="3">
             <MudText Typo="Typo.h5">Total revenue per category</MudText>
             <MudPaper Class="pa-4 d-flex justify-content-center">
-                <MudChart ChartType="ChartType.Donut" InputData="@revenuePerCategory" InputLabels="@categoryLabels"/>
+                <MudChart ChartType="ChartType.Pie" InputData="@revenuePerCategory" InputLabels="@categoryLabels"/>
             </MudPaper>
         </MudStack>
     </MudItem>
@@ -157,6 +157,18 @@
         }
     }
 
+    private List<ChartSeries> revenuePerCategorySeries => new List<ChartSeries>
+    {
+        new ChartSeries
+        {
+            Name = "Revenue",
+            Data = statistics
+                .GroupBy(s => s.Category)
+                .Select(g => (double)g.Sum(s => s.TotalRevenue))
+                .ToArray(),
+        }
+    };
+
     private List<ChartSeries> monthlyRevenueSeries => new List<ChartSeries>
     {
         new ChartSeries
@@ -172,6 +184,15 @@
         }
     };
     
+
+    private ChartOptions barChartOptions = new ChartOptions() {
+        YAxisTicks = 1_500_000,
+        YAxisFormat = "N0",
+        ChartPalette = new string[]
+        {
+            Colors.Red.Darken3
+        }
+    };
     private ChartOptions lineChartOptions = new ChartOptions() {
         InterpolationOption = InterpolationOption.Straight,
         LineStrokeWidth = 4,
@@ -179,7 +200,7 @@
         YAxisFormat = "N0",
         ChartPalette = new string[]
         {
-            Colors.Red.Darken3, // first series
+            Colors.Red.Darken3
         }
 
     };
