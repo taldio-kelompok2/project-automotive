@@ -12,7 +12,7 @@ namespace AutomotiveApp.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class DashboardController(IMediator _mediator) : BaseApiController(_mediator)
     {
         [HttpGet("overview")]
